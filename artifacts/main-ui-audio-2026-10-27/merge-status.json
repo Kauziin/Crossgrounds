@@ -1,0 +1,44 @@
+[
+  {
+    "path": "StarterPlayer.StarterPlayerScripts.ExperienceMenu",
+    "conflict": false,
+    "mainDiffersFromBaseline": true,
+    "bytes": 36292
+  },
+  {
+    "path": "StarterPlayer.StarterPlayerScripts.MenuTheme",
+    "conflict": false,
+    "mainDiffersFromBaseline": true,
+    "bytes": 6139
+  },
+  {
+    "path": "StarterPlayer.StarterPlayerScripts.MenuNavigation",
+    "conflict": false,
+    "mainDiffersFromBaseline": false,
+    "bytes": 21979
+  },
+  {
+    "path": "StarterPlayer.StarterPlayerScripts.LobbyPlaylist",
+    "conflict": false,
+    "mainDiffersFromBaseline": false,
+    "bytes": 5118
+  },
+  {
+    "path": "StarterPlayer.StarterPlayerScripts.LobbyMusicMenu",
+    "conflict": false,
+    "mainDiffersFromBaseline": false,
+    "bytes": 3738
+  },
+  {
+    "path": "ReplicatedStorage.Crossgrounds.LobbyMusicCatalog",
+    "conflict": false,
+    "mainDiffersFromBaseline": false,
+    "bytes": 2208
+  },
+  {
+    "path": "StarterPlayer.StarterPlayerScripts.HubController",
+    "conflict": false,
+    "mainDiffersFromBaseline": true,
+    "bytes": 20100
+  }
+]

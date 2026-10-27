@@ -1,0 +1,21 @@
+{
+  "adminMapsPreserved": true,
+  "compiled": 7,
+  "place": 4375993208,
+  "game": "Crossgrounds (ALPHA)",
+  "homeApplied": true,
+  "changed": {
+    "1": "StarterPlayer.StarterPlayerScripts.HubController",
+    "2": "StarterPlayer.StarterPlayerScripts.ExperienceMenu",
+    "3": "ReplicatedStorage.Crossgrounds.LobbyMusicCatalog",
+    "4": "StarterPlayer.StarterPlayerScripts.MenuNavigation",
+    "5": "StarterPlayer.StarterPlayerScripts.LobbyPlaylist",
+    "6": "StarterPlayer.StarterPlayerScripts.MenuTheme",
+    "7": "StarterPlayer.StarterPlayerScripts.LobbyMusicMenu"
+  },
+  "date": "2026-10-27",
+  "destination": "main Studio experience, not a backup",
+  "readbackMatched": true,
+  "published": false,
+  "runtimeTest": "Not started in the main editing session; UI and audio were tested in the separate local copy."
+}

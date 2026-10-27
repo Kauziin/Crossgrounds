@@ -1,0 +1,503 @@
+--- main/StarterPlayer\StarterPlayerScripts\ExperienceMenu.luau
++++ merged/StarterPlayer\StarterPlayerScripts\ExperienceMenu.luau
+@@ -70,8 +70,8 @@
+ end
+ local function settingRow(key)
+  local rule=Settings.Rules[key] local numeric=rule.Min~=nil
+- local row=Instance.new("Frame") row.Name=key row.Size=UDim2.new(1,-4,0,numeric and 168 or 154) row.BackgroundColor3=Color3.fromRGB(29,45,59) row.BorderSizePixel=0 row.Parent=lists.Detail
+- local name=label(row,"Label",rule.Label,UDim2.new(1,-20,0,30)) name.Position=UDim2.fromOffset(10,3) name.TextSize=14 name.TextWrapped=true
++ local row=Instance.new("Frame") row.Name=key row.Size=UDim2.new(1,-8,0,76) row.BackgroundColor3=Theme.Colors.Surface row.BorderSizePixel=0 row.Parent=lists.Detail
++ local name=label(row,"Label",rule.Label,UDim2.new(1,-20,0,30)) name.Position=UDim2.fromOffset(10,3) name.TextSize=16 name.TextWrapped=true
+  local origin=label(row,"Origin","",UDim2.new(1,-20,0,20)) origin.Position=UDim2.fromOffset(10,32) origin.TextSize=11 origin.TextColor3=muted
+  local value=Instance.new(numeric and "TextBox" or "TextButton") value.Name="Value" value.BackgroundTransparency=1 value.Position=UDim2.new(.2,0,0,55) value.Size=UDim2.new(.6,0,0,38) value.Font=Enum.Font.GothamBold value.TextSize=15 value.TextColor3=white value.Parent=row
+  local left=btn(row,"Minus","−") left.Position=UDim2.fromOffset(8,53) left.Size=UDim2.fromOffset(44,44)
+@@ -79,57 +79,98 @@
+  local lg=Icons:Glyph(left,"DPadLeft","DPadLeft",28) lg.Position=UDim2.fromOffset(6,6) lg.Visible=false
+  local rg=Icons:Glyph(right,"DPadRight","DPadRight",28) rg.Position=UDim2.fromOffset(6,6) rg.Visible=false
+  local factor=(rule.Percent or key=="MenuVolume" or key=="MenuSFXVolume" or key=="DamageFlash" or key=="CameraMotion") and 100 or 1
+- local slider,fill
++ local divider=Instance.new("Frame") divider.Name="Divider" divider.BackgroundColor3=muted divider.BackgroundTransparency=.55 divider.BorderSizePixel=0 divider.Parent=row
++ local slider,fill,thumb,track
+  if numeric then
+   slider=Instance.new("TextButton") slider.Name="Slider" slider.Text="" slider.Position=UDim2.fromOffset(12,101) slider.Size=UDim2.new(1,-24,0,12) slider.BackgroundColor3=muted slider.BorderSizePixel=0 slider.Parent=row
+-  fill=Instance.new("Frame") fill.Name="Fill" fill.BackgroundColor3=accent fill.BorderSizePixel=0 fill.Parent=slider value.ClearTextOnFocus=false
++  slider.BackgroundTransparency=1
++  track=Instance.new("Frame") track.Name="Track" track.BackgroundColor3=Color3.fromRGB(55,57,65) track.BorderSizePixel=0 track.Position=UDim2.new(0,0,.5,-5) track.Size=UDim2.new(1,0,0,10) track.Parent=slider
++  local tc=Instance.new("UICorner") tc.CornerRadius=UDim.new(1,0) tc.Parent=track
++  fill=Instance.new("Frame") fill.Name="Fill" fill.BackgroundColor3=Color3.fromRGB(171,208,228) fill.BorderSizePixel=0 fill.Parent=track
++  local fc=tc:Clone() fc.Parent=fill
++  thumb=Instance.new("Frame") thumb.Name="Thumb" thumb.AnchorPoint=Vector2.new(.5,.5) thumb.Size=UDim2.fromOffset(20,20) thumb.BackgroundColor3=fill.BackgroundColor3 thumb.BorderSizePixel=0 thumb.Parent=track
++  local kc=tc:Clone() kc.Parent=thumb value.ClearTextOnFocus=false
+  end
+  local customize=btn(row,"Inheritance","") customize.Position=UDim2.new(0,8,1,-48) customize.Size=UDim2.new(.6,-12,0,44) customize.TextSize=11
+- local reset=btn(row,"Default","Padrão") reset.Position=UDim2.new(.6,0,1,-48) reset.Size=UDim2.new(.4,-8,0,44) reset.TextSize=11
++ local reset=btn(row,"Default","") reset:SetAttribute("AccessibleLabel","Restaurar "..rule.Label.." ao padrão")
++ -- Draw the reset icon with UI primitives: Gotham has no reliable circular-arrow glyph.
++ local ring=Instance.new("Frame") ring.Name="ResetIcon" ring.BackgroundTransparency=1 ring.Position=UDim2.fromOffset(13,13) ring.Size=UDim2.fromOffset(18,18) ring.Parent=reset
++ local round=Instance.new("UICorner") round.CornerRadius=UDim.new(1,0) round.Parent=ring
++ local outline=Instance.new("UIStroke") outline.Color=white outline.Thickness=2 outline.Parent=ring
++ local gap=Instance.new("UIGradient") gap.Rotation=135 gap.Transparency=NumberSequence.new({NumberSequenceKeypoint.new(0,1),NumberSequenceKeypoint.new(.2,1),NumberSequenceKeypoint.new(.21,0),NumberSequenceKeypoint.new(1,0)}) gap.Parent=outline
++ for _,size in {Vector2.new(8,2),Vector2.new(2,8)} do local line=Instance.new("Frame") line.BackgroundColor3=white line.BorderSizePixel=0 line.Position=UDim2.fromOffset(10,10) line.Size=UDim2.fromOffset(size.X,size.Y) line.Parent=reset end
++ for _,button in {left,right,reset} do button.TextXAlignment=Enum.TextXAlignment.Center button.UIPadding.PaddingLeft=UDim.new() button.UIPadding.PaddingRight=UDim.new() end
++ origin.TextWrapped=true
++ local reflow
+  local function read() return Preferences:Value(key,context(key)) end
+  local function refresh()
+   local v,custom,scope=read()
+   if UIS:GetFocusedTextBox()~=value then value.Text=numeric and string.format(factor==100 and "%.0f" or "%.2f",v*factor) or Settings:Format(key,v) end
+-  if fill then fill.Size=UDim2.fromScale((v-rule.Min)/(rule.Max-rule.Min),1) end
++  if fill then local ratio=math.clamp((v-rule.Min)/(rule.Max-rule.Min),0,1) fill.Size=UDim2.fromScale(ratio,1) thumb.Position=UDim2.fromScale(ratio,.5) end
+   local mode=scope:match("^Mode:(.+)$")
+   origin.Text=mode and (custom and "Personalizado neste modo · "..mode:upper() or "Global (herdado) · "..mode:upper()) or scope:match("Device:") and "Dispositivo · "..scope:sub(8) or "Global · compartilhado entre modos"
+   customize.Visible=mode~=nil customize.Text=custom and "Herdar Global" or "Personalizar neste modo"
++  if reflow then reflow() end
+  end
+  local function adjust(d)
+   local v=read()
+   if numeric then v+=d*rule.Step elseif rule.Choices then local index=table.find(rule.Choices,v) or 1 v=rule.Choices[(index-1+d)%#rule.Choices+1] else v=not v end
+-  commit(key,v) refresh()
++  v=Settings:Sanitize(key,v)
++  if v~=read() then Nav:PlaySound("Step") end
++  if commit(key,v)~=false then refresh() end
+  end
+  Nav:Register(row,function() if numeric then value:CaptureFocus() else adjust(1) end end,adjust)
+  Nav:Connect(left,function() adjust(-1) end) Nav:Connect(right,function() adjust(1) end)
+  Nav:Connect(reset,function() Preferences:Edit(key,context(key),nil,"default") refresh() end)
+  Nav:Connect(customize,function() local v,custom=read() Preferences:Edit(key,context(key),v,custom and "inherit" or "set") refresh() end)
++ left:SetAttribute("MenuSoundKind","Silent") right:SetAttribute("MenuSoundKind","Silent")
++ if not numeric then value:SetAttribute("MenuSoundKind","Silent") end
++ -- Horizontal adjustments remain available when the cursor lands on a subcontrol.
++ Nav:Register(left,function() adjust(-1) end,adjust) Nav:Register(right,function() adjust(1) end,adjust)
++ if numeric then Nav:Register(value,function() value:CaptureFocus() end,adjust) Nav:Register(slider,function() value:CaptureFocus() end,adjust) end
+  if numeric then
+   hook(value.Focused,function() task.defer(function() if value.Parent then value.CursorPosition=#value.Text+1 value.SelectionStart=1 end end) end)
+   hook(value.FocusLost,function() local n=tonumber((value.Text:gsub(",","."))) if n then commit(key,n/factor) end refresh() end)
+   local dragging
+-  local function drag(input) if slider.AbsoluteSize.X>0 then local a=math.clamp((input.Position.X-slider.AbsolutePosition.X)/slider.AbsoluteSize.X,0,1) commit(key,rule.Min+a*(rule.Max-rule.Min)) refresh() end end
++  local function drag(input) if slider.AbsoluteSize.X>0 then local a=math.clamp((input.Position.X-slider.AbsolutePosition.X)/slider.AbsoluteSize.X,0,1) local nextValue=Settings:Sanitize(key,rule.Min+a*(rule.Max-rule.Min)) if nextValue~=read() then Nav:PlaySound("Step") commit(key,nextValue) refresh() end end end
+   hook(slider.InputBegan,function(i) if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then dragging=i drag(i) end end)
+   hook(UIS.InputChanged,function(i) if dragging and (i==dragging or i.UserInputType==Enum.UserInputType.MouseMovement) then drag(i) end end)
+   hook(UIS.InputEnded,function(i) if i==dragging then dragging=nil end end)
+- else Nav:Connect(value,function() adjust(1) end) end
++ else Nav:Connect(value,function() adjust(1) end) Nav:Register(value,function() adjust(1) end,adjust) end
+  local function focusIcons()
+   local selected=Nav:GetFocus() local focused=selected and (selected==row or selected:IsDescendantOf(row))
+   local visible=Mode:Get()==Enum.PreferredInput.Gamepad and focused or false
+   lg.Visible=visible rg.Visible=visible left.Text=visible and "" or "−" right.Text=visible and "" or "+"
+  end
+- local function reflow()
++ reflow=function()
+   if not row.Parent then return end
+   local textService=game:GetService("TextService")
+-  local width=math.max(120,row.AbsoluteSize.X-20)
+-  local labelHeight=math.max(30,textService:GetTextSize(rule.Label,name.TextSize,name.Font,Vector2.new(width,math.huge)).Y+8)
+-  local extra=math.max(0,labelHeight-30)
+-  name.Size=UDim2.new(1,-20,0,labelHeight) origin.Position=UDim2.fromOffset(10,32+extra)
+-  value.Position=UDim2.new(.2,0,0,55+extra) left.Position=UDim2.fromOffset(8,53+extra) right.Position=UDim2.new(1,-8,0,53+extra)
+-  if slider then slider.Position=UDim2.fromOffset(12,101+extra) end
+-  row.Size=UDim2.new(1,-4,0,(numeric and 168 or 154)+extra)
+- end
+- hook(name:GetPropertyChangedSignal("TextSize"),reflow) hook(row:GetPropertyChangedSignal("AbsoluteSize"),reflow)
++  local preferenceScale=panel:FindFirstChild("PreferenceScale")
++  local w=row.AbsoluteSize.X/(preferenceScale and preferenceScale.Scale or 1) local narrow=w<620
++  local labelWidth=narrow and math.max(100,w-28) or math.floor(w*.38)-28
++  local labelHeight=math.max(22,textService:GetTextSize(rule.Label,name.TextSize,name.Font,Vector2.new(labelWidth,math.huge)).Y+4)
++  local originHeight=math.max(18,textService:GetTextSize(origin.Text,origin.TextSize,origin.Font,Vector2.new(labelWidth,math.huge)).Y+4)
++  local textHeight=labelHeight+originHeight
++  local y=narrow and textHeight+18 or math.max(12,(textHeight-44)/2+12)
++  local x=narrow and 12 or math.floor(w*.38)+12
++  local controlsWidth=math.max(1,w-x-12) local centerWidth=math.max(1,controlsWidth-164)
++  name.Position=UDim2.fromOffset(14,12) name.Size=UDim2.fromOffset(labelWidth,labelHeight)
++  origin.Position=UDim2.fromOffset(14,12+labelHeight) origin.Size=UDim2.fromOffset(labelWidth,originHeight)
++  divider.Visible=not narrow divider.Position=UDim2.fromOffset(x-12,14) divider.Size=UDim2.fromOffset(1,math.max(44,textHeight-4))
++  left.AnchorPoint=Vector2.zero left.Position=UDim2.fromOffset(x,y) left.Size=UDim2.fromOffset(44,44)
++  right.AnchorPoint=Vector2.zero right.Position=UDim2.fromOffset(x+56+centerWidth+12,y) right.Size=UDim2.fromOffset(44,44)
++  reset.Position=UDim2.fromOffset(w-56,y) reset.Size=UDim2.fromOffset(44,44)
++  value.Position=UDim2.fromOffset(x+56,y+(numeric and -4 or 0)) value.Size=UDim2.fromOffset(centerWidth,numeric and 24 or 44)
++  if slider then slider.Position=UDim2.fromOffset(x+66,y+18) slider.Size=UDim2.fromOffset(math.max(1,centerWidth-20),30) end
++  local base=math.max(76,y+56,textHeight+24)
++  customize.Position=UDim2.fromOffset(14,base) customize.Size=UDim2.new(1,-28,0,36)
++  row.Size=UDim2.new(1,-8,0,base+(customize.Visible and 44 or 0))
++  local focused=Nav:GetFocus()
++  if Mode:Get()==Enum.PreferredInput.Gamepad and focused and (focused==row or focused:IsDescendantOf(row)) then
++   task.defer(function() if row.Parent and focused.Parent then Nav:Focus(focused) end end)
++  end
++ end
++ hook(name:GetPropertyChangedSignal("TextSize"),reflow) hook(origin:GetPropertyChangedSignal("TextSize"),reflow) hook(row:GetPropertyChangedSignal("AbsoluteSize"),reflow)
+  hook(game:GetService("GuiService"):GetPropertyChangedSignal("PreferredTextSize"),reflow) reflow()
+  hook(Nav.FocusChanged,focusIcons) hook(Mode.Changed,focusIcons)
+  hook(Preferences.Changed,function(changes) if not changes or changes[key] then refresh() end end)
+@@ -314,9 +355,9 @@
+  for _,f in panes do f.Visible=false end
+  for i,id in stack do
+   local f=panes[id] f.Visible=not narrow or i==#stack f.Active=true f.ZIndex=i
+-  local x=narrow and 0 or (i-1)*step local y=narrow and 38 or 38+(i-1)*5
++  local x=narrow and 0 or (i-1)*step local y=narrow and 32 or 38+(i-1)*5
+   local width=narrow and w or #stack==1 and math.min(w,240) or i==#stack and w-x or step-8
+-  f.Size=UDim2.fromOffset(width,h-70-(i-1)*5)
++  f.Size=UDim2.fromOffset(width,narrow and h-54 or h-70-(i-1)*5)
+   Theme.CascadeDepth(f,#stack-i,animate and not Theme.ReducedMotion())
+   for _,b in lists[id]:GetChildren() do if b:IsA("TextButton") then b.TextWrapped=i==#stack b.TextTruncate=i==#stack and Enum.TextTruncate.None or Enum.TextTruncate.AtEnd end end
+   local target=UDim2.fromOffset(x,y)
+--- main/StarterPlayer\StarterPlayerScripts\MenuTheme.luau
++++ merged/StarterPlayer\StarterPlayerScripts\MenuTheme.luau
+@@ -71,7 +71,7 @@
+  gui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling
+  local function style(v)
+   if not v:IsA("GuiObject") or v:GetAttribute("CascadeDecoration") then return end
+-  if v:IsA("TextButton") and v.Name=="Slider" then v.BackgroundColor3=Color3.fromRGB(74,76,84) v.BackgroundTransparency=.15 corner(v,5)
++  if v:IsA("TextButton") and v.Name=="Slider" then v.BackgroundColor3=Color3.fromRGB(74,76,84) v.BackgroundTransparency=v:FindFirstChild("Track") and 1 or .15 corner(v,5)
+   elseif v:IsA("Frame") and v.Name=="Fill" and v.Parent.Name=="Slider" then v.BackgroundColor3=Theme.Colors.Muted
+   elseif v:IsA("TextButton") then
+    local mobile=gui.Name=="MobileCombatHUD" and (v.Parent.Name=="Controls" or v.Parent.Name=="Editor" and v.Name~="ToggleInspector")
+--- main/StarterPlayer\StarterPlayerScripts\MenuNavigation.luau
++++ merged/StarterPlayer\StarterPlayerScripts\MenuNavigation.luau
+@@ -6,6 +6,34 @@
+ local function zone(key) local value=game.Players.LocalPlayer:GetAttribute("Setting"..key) return value~=nil and value or Settings.Rules[key].Default end
+ local Mode=require(script.Parent:WaitForChild("InputMode")) local Icons=require(script.Parent:WaitForChild("InputIcons"))
+ local player=game.Players.LocalPlayer
++-- Reuse four local voices and give action feedback priority over focus sounds.
++local Audio={}
++local soundDefinitions={
++ Focus={id="75458150587771",gain=.6},
++ Confirm={id="10066968815",gain=.75}, -- Roblox: RBLX UI Select 02
++ Back={id="10066914500",gain=.65}, -- Roblox: RBLX UI Back
++ Step={id="10066936758",gain=.4}, -- Roblox: RBLX UI Hover 02
++}
++local voices={} local lastSound={} local actionSoundAt=-100
++for kind,data in soundDefinitions do
++ local sound=Instance.new("Sound") sound.Name="CrossgroundsMenu"..kind
++ sound.SoundId="rbxassetid://"..data.id sound.Volume=0 sound.Parent=game:GetService("SoundService") voices[kind]=sound
++ task.spawn(function() pcall(function() game:GetService("ContentProvider"):PreloadAsync({sound}) end) end)
++end
++function Audio:Play(kind)
++ local sound=voices[kind] if not sound then return end
++ local volume=zone("MenuSFXVolume") local now=os.clock()
++ if volume<=0 or not sound.IsLoaded or Gui.MenuIsOpen then return end
++ if now-(lastSound[kind] or -100)<(kind=="Step" and .08 or .075) then return end
++ if kind=="Focus" and now-actionSoundAt<.08 then return end
++ if kind~="Focus" then actionSoundAt=now for _,voice in voices do voice:Stop() end end
++ lastSound[kind]=now sound.Volume=volume*soundDefinitions[kind].gain sound.TimePosition=0 sound:Play()
++ player:SetAttribute("LastMenuSound",kind)
++ if kind=="Focus" then player:SetAttribute("MenuNavigationSoundCount",(player:GetAttribute("MenuNavigationSoundCount") or 0)+1) end
++end
++player:GetAttributeChangedSignal("SettingMenuSFXVolume"):Connect(function()
++ if zone("MenuSFXVolume")<=0 then for _,voice in voices do voice:Stop() end end
++end)
+ -- Our cursor owns PlayerGui input. CoreGui keeps its normal navigation when open.
+ local nativeDefaults={navigation=Gui.GuiNavigationEnabled,autoSelect=Gui.AutoSelectGuiEnabled}
+ local suppressingNative=false
+@@ -53,19 +81,12 @@
+ local focusFrame=Instance.new("Frame") focusFrame.Name="FocusOutline" focusFrame.BackgroundTransparency=1 focusFrame.Visible=false focusFrame.Active=false focusFrame.ZIndex=2 focusFrame.Parent=screen
+ local focusCorner=Instance.new("UICorner") focusCorner.Parent=focusFrame
+ local focusStroke=Instance.new("UIStroke") focusStroke.Parent=focusFrame focusStroke.Name="AccessibleFocus" focusStroke.Thickness=4 focusStroke.Transparency=.04 focusStroke.Color=Color3.fromRGB(220,243,255) focusStroke.ApplyStrokeMode=Enum.ApplyStrokeMode.Border
+-local tick=Instance.new("Sound") tick.Name="CrossgroundsMenuNavigationTick"
+-tick.SoundId="rbxassetid://75458150587771" tick.Volume=0 tick.Parent=game:GetService("SoundService")
+-local lastTick=-100
+-task.spawn(function() pcall(function() game:GetService("ContentProvider"):PreloadAsync({tick}) end) end)
+ local function navigationSound(object)
+  local entry=registered[object]
+  if not object or not root or Gui.MenuIsOpen or not (object:IsA("GuiButton") or object:IsA("TextBox") or entry and entry.adjust) then return end
+- local volume=zone("MenuSFXVolume")
+- if volume<=0 or not tick.IsLoaded or os.clock()-lastTick<.075 then return end
+- lastTick=os.clock() tick.Volume=volume tick.TimePosition=0 tick:Play()
+- player:SetAttribute("MenuNavigationSoundCount",(player:GetAttribute("MenuNavigationSoundCount") or 0)+1)
+-end
+-player:GetAttributeChangedSignal("SettingMenuSFXVolume"):Connect(function() if zone("MenuSFXVolume")<=0 then tick:Stop() end end)
++ Audio:Play("Focus")
++end
++function Navigation:PlaySound(kind) Audio:Play(kind) end
+ local function dockCursor(object)
+  local pos,size=object.AbsolutePosition,object.AbsoluteSize
+  local origin,bounds=screen.AbsolutePosition,screen.AbsolutePosition+screen.AbsoluteSize
+@@ -132,8 +153,13 @@
+  return object
+ end
+ function Navigation:Connect(object,callback)
+- self:Register(object,callback)
+- return object.Activated:Connect(callback)
++ local function activate()
++  local kind=object:GetAttribute("MenuSoundKind") or ((object.Name=="Back" or object.Name=="Close" or object.Name=="Cancel") and "Back" or "Confirm")
++  if kind~="Silent" then Audio:Play(kind) end
++  callback()
++ end
++ self:Register(object,activate)
++ return object.Activated:Connect(activate)
+ end
+ function Navigation:Activate()
+  local entry=focused and registered[focused]
+@@ -188,7 +214,7 @@
+    table.sort(ordered,function(a,b) local x,y=a.AbsolutePosition,b.AbsolutePosition return math.abs(x.Y-y.Y)<3 and x.X<y.X or math.abs(x.Y-y.Y)>=3 and x.Y<y.Y end)
+    if #ordered>0 then local index=table.find(ordered,focused) or 0 local step=(UIS:IsKeyDown(Enum.KeyCode.LeftShift) or UIS:IsKeyDown(Enum.KeyCode.RightShift)) and -1 or 1 Navigation:Focus(ordered[(index-1+step)%#ordered+1]) end
+   elseif key==Enum.KeyCode.ButtonA then Navigation:Activate()
+-  elseif key==Enum.KeyCode.ButtonB then local callback=back[root] if callback then callback() end
++  elseif key==Enum.KeyCode.ButtonB then local callback=back[root] if callback then Audio:Play("Back") callback() end
+   else direction(key) heldDirection=key repeatAt=os.clock()+.4 end
+  elseif state==Enum.UserInputState.End or state==Enum.UserInputState.Cancel then heldDirection=nil end
+  return Enum.ContextActionResult.Sink
+--- main/StarterPlayer\StarterPlayerScripts\LobbyPlaylist.luau
++++ merged/StarterPlayer\StarterPlayerScripts\LobbyPlaylist.luau
+@@ -5,9 +5,9 @@
+ local Catalog=require(game.ReplicatedStorage.Crossgrounds.LobbyMusicCatalog)
+ local changed=Instance.new("BindableEvent") Playlist.Changed=changed.Event
+ Playlist.Tracks={} Playlist.Paused=false Playlist.Shuffle=false Playlist.Index=1 Playlist.State="Preparando"
+-for _,track in Catalog do local copy=table.clone(track) copy.enabled=true table.insert(Playlist.Tracks,copy) end
++for _,track in Catalog do local copy=table.clone(track) copy.enabled=track.enabled~=false table.insert(Playlist.Tracks,copy) end
+ local sound local retired={} local failed={} local loadingSince local lastAllowed
+-local function allowed() return not player:GetAttribute("InArena") and not player:GetAttribute("ArenaPlaying") end
++local function allowed() return Scope:IsHub() and not player:GetAttribute("InArena") and not player:GetAttribute("ArenaPlaying") end
+ local function emit()
+  script:SetAttribute("CurrentTrack",Playlist.Tracks[Playlist.Index] and Playlist.Tracks[Playlist.Index].id)
+  script:SetAttribute("PlaybackState",Playlist.State) changed:Fire()
+@@ -18,7 +18,8 @@
+ function Playlist:Select(id,automatic)
+  local index for i,t in self.Tracks do if t.id==id then index=i break end end
+  if not index then return false end
+- self.Tracks[index].enabled=true self.Index=index
++ -- Listening to a disabled candidate is a preview; inclusion stays explicit.
++ self.Index=index
+  if not automatic then self.Paused=false failed[id]=nil end
+  if sound then table.insert(retired,{sound=sound,started=os.clock()}) end
+  sound=Instance.new("Sound") sound.Name="CrossgroundsLobbyTrack" sound.SoundId=self.Tracks[index].soundId sound.Volume=0 sound.Looped=false sound.Parent=game.SoundService self.Sound=sound loadingSince=nil
+--- main/StarterPlayer\StarterPlayerScripts\LobbyMusicMenu.luau
++++ merged/StarterPlayer\StarterPlayerScripts\LobbyMusicMenu.luau
+@@ -19,7 +19,7 @@
+ local shuffle=browser:Button("RootPane","Shuffle","Aleatório: desligado",function() Playlist:ToggleShuffle() end)
+ browser:Button("RootPane","Tracks","Editar playlist  ›",function() browser:Push({"RootPane","Tracks"}) end)
+ browser:Button("RootPane","Close","Voltar ao menu",close)
+-local note=browser:Info("Tracks","Note","Escolha uma faixa para ouvir, retirar ou mudar a ordem. Alterações valem nesta sessão.",64) note.LayoutOrder=-1
++local note=browser:Info("Tracks","Note","Candidatas começam desativadas. Ouça antes de incluí-las; evite tensão ou euforia no lobby. Alterações valem nesta sessão.",80) note.LayoutOrder=-1
+ local detail=browser:Info("Track","Description","",72)
+ local status=browser:Info("Track","Status","",40)
+ browser:Button("Track","Play","Ouvir agora",function() Playlist:Select(selected,false) end)
+@@ -41,7 +41,7 @@
+   end
+   local row=rows[t.id] row.LayoutOrder=i
+   row.Text=i..". "..t.title.."\n"..(t.enabled and "Na playlist" or "Desativada")..(state.index==i and " · selecionada" or "")
+-  if t.id==selected then detail.Text=t.title.."\n"..t.artist include.Text=t.enabled and "Retirar da playlist" or "Incluir na playlist" end
++  if t.id==selected then detail.Text=t.title.."\n"..t.artist..(t.candidate and " · candidata, avaliação sonora pendente" or "") include.Text=t.enabled and "Retirar da playlist" or "Incluir na playlist" end
+  end
+ end
+ Playlist.Changed:Connect(refresh)
+--- main/ReplicatedStorage\Crossgrounds\LobbyMusicCatalog.luau
++++ merged/ReplicatedStorage\Crossgrounds\LobbyMusicCatalog.luau
+@@ -1,6 +1,19 @@
+--- Add licensed/experience-authorized audio here. Failures are skipped by LobbyPlaylist.
++-- Neutral lobby pool. Research candidates are opt-in pending human audition.
++-- Tactical Pulse (1843033302), formerly mislabeled as an original lobby theme,
++-- is reserved for mode research in docs/UI-AUDIO-2026-10-26.md.
+ return {
+- {id="original",title="Crossgrounds · Tema do lobby",artist="Faixa original",soundId="rbxassetid://1843033302"},
+  {id="chill-jazz",title="Chill Jazz",artist="APMOfficial",soundId="rbxassetid://1845341094"},
+  {id="ambient-relax",title="Pure Electronic Ambient Relax",artist="DistrokidOfficial",soundId="rbxassetid://103039402222856"},
++ {id="quiet-interlude",title="Quiet Interlude",artist="DistrokidOfficial",soundId="rbxassetid://125032085440264",enabled=false,candidate=true},
++ {id="tranquil-textures",title="Tranquil Textures",artist="DistrokidOfficial",soundId="rbxassetid://105015132623623",enabled=false,candidate=true},
++ {id="lotus-pond",title="Hidden Lotus Pond",artist="DistrokidOfficial",soundId="rbxassetid://82061470648013",enabled=false,candidate=true},
++ {id="healing-ambient",title="Healing Ambient",artist="DistrokidOfficial",soundId="rbxassetid://128689740458045",enabled=false,candidate=true},
++ {id="cabin-space",title="Moonlit Cabin Space",artist="DistrokidOfficial",soundId="rbxassetid://102678913950464",enabled=false,candidate=true},
++ {id="garden-breeze",title="Lofi Garden Breeze",artist="DistrokidOfficial",soundId="rbxassetid://126770507384889",enabled=false,candidate=true},
++ {id="cozy-retreat",title="Cozy Retreat",artist="DistrokidOfficial",soundId="rbxassetid://136037234851815",enabled=false,candidate=true},
++ {id="mountain-solitude",title="Mountain Solitude",artist="DistrokidOfficial",soundId="rbxassetid://117853234541616",enabled=false,candidate=true},
++ {id="rainy-focus",title="Rainy Focus",artist="DistrokidOfficial",soundId="rbxassetid://109177031934381",enabled=false,candidate=true},
++ {id="brutalist-peace",title="Brutalist Peace",artist="DistrokidOfficial",soundId="rbxassetid://133244468349763",enabled=false,candidate=true},
++ {id="night-drive",title="Calm Jazz for Night Drive",artist="DistrokidOfficial",soundId="rbxassetid://140223010238256",enabled=false,candidate=true},
++ {id="sunset-jazz",title="Sunset Chill Jazz – Warm Background Atmosphere",artist="DistrokidOfficial",soundId="rbxassetid://88120440731435",enabled=false,candidate=true},
+ }
+--- main/StarterPlayer\StarterPlayerScripts\HubController.luau
++++ merged/StarterPlayer\StarterPlayerScripts\HubController.luau
+@@ -19,10 +19,182 @@
+ end
+ browser.OnClose=stay
+ local resume=browser:Button("RootPane","StayLobby","Permanecer no lobby",stay)
+-browser:Button("RootPane","Modes","Jogar  ›",function() browser:Push({"RootPane","Modes"}) end)
+-browser:Button("RootPane","Progress","Progresso",function() player:SetAttribute("ProgressionMenuOpen",true) end)
+-browser:Button("RootPane","Settings","Ajustes",function() Nav:OpenMenu("Settings") end)
+-browser:Button("RootPane","Music","Música / Playlist",function() Nav:OpenMenu("Playlist") end)
++local function playModes() browser:Push({"RootPane","Modes"}) end
++local function openProgress() player:SetAttribute("ProgressionMenuOpen",true) end
++local function openSettings() Nav:OpenMenu("Settings") end
++local function openMusic() Nav:OpenMenu("Playlist") end
++browser:Button("RootPane","Modes","Jogar  ›",playModes)
++browser:Button("RootPane","Progress","Progresso",openProgress)
++browser:Button("RootPane","Settings","Ajustes",openSettings)
++browser:Button("RootPane","Music","Música / Playlist",openMusic)
++
++-- A presentation owned by this controller, used only at the root of the hub.
++-- The existing cascade, callbacks and all other menus retain their own styling.
++local InputMode=require(script.Parent:WaitForChild("InputMode"))
++local turquoise=Color3.fromRGB(22,220,235)
++local function homeObject(class,name,parent)
++ local object=Instance.new(class) object.Name=name
++ if object:IsA("GuiObject") then object:SetAttribute("CascadeDecoration",true) object.BorderSizePixel=0 object.BackgroundTransparency=1 end
++ object.Parent=parent return object
++end
++local function homeText(name,parent,value,size)
++ local object=homeObject("TextLabel",name,parent) object.Text=value object.Font=Enum.Font.GothamMedium
++ object.TextSize=size object.TextColor3=Color3.fromRGB(226,233,238) object.TextXAlignment=Enum.TextXAlignment.Left
++ object.TextYAlignment=Enum.TextYAlignment.Center return object
++end
++local function homeCorner(object,radius)
++ local corner=Instance.new("UICorner") corner.CornerRadius=UDim.new(0,radius) corner.Parent=object
++end
++local function homeStroke(object,thickness,transparency)
++ local stroke=Instance.new("UIStroke") stroke.Color=turquoise stroke.Thickness=thickness
++ stroke.Transparency=transparency stroke.ApplyStrokeMode=Enum.ApplyStrokeMode.Border stroke.Parent=object return stroke
++end
++local scrimGui=Instance.new("ScreenGui") scrimGui.Name="CrossgroundsHomeBackdrop" scrimGui.ResetOnSpawn=false
++scrimGui.IgnoreGuiInset=true scrimGui.ScreenInsets=Enum.ScreenInsets.None scrimGui.DisplayOrder=gui.DisplayOrder-1 scrimGui.Enabled=false scrimGui.Parent=player.PlayerGui
++local scrim=homeObject("Frame","HomeScrim",scrimGui) scrim.Size=UDim2.fromScale(1,1) scrim.ZIndex=0
++scrim.BackgroundColor3=Color3.fromRGB(1,5,9) scrim.BackgroundTransparency=.06
++local fade=Instance.new("UIGradient") fade.Rotation=28
++fade.Transparency=NumberSequence.new({NumberSequenceKeypoint.new(0,0),NumberSequenceKeypoint.new(.25,.12),NumberSequenceKeypoint.new(.58,.58),NumberSequenceKeypoint.new(1,1)}) fade.Parent=scrim
++local home=homeObject("Frame","Home",browser.Panel) home.Size=UDim2.fromScale(1,1)
++local content=homeObject("Frame","Content",home)
++local homeScale=Instance.new("UIScale") homeScale.Parent=content
++local title=homeText("Wordmark",content,"CROSSGROUNDS",72) title.Font=Enum.Font.GothamBlack title.TextColor3=turquoise
++local underline=homeObject("Frame","TitleRule",content) underline.BackgroundColor3=turquoise underline.BackgroundTransparency=0
++local ruleTail=homeObject("Frame","RuleTail",content) ruleTail.BackgroundColor3=Color3.fromRGB(104,138,149) ruleTail.BackgroundTransparency=.7
++local tailFade=Instance.new("UIGradient") tailFade.Transparency=NumberSequence.new(0,1) tailFade.Parent=ruleTail
++local homeList=homeObject("ScrollingFrame","Actions",content) homeList.ScrollBarThickness=3 homeList.ScrollBarImageColor3=turquoise
++homeList.CanvasSize=UDim2.new() homeList.AutomaticCanvasSize=Enum.AutomaticSize.Y homeList.ScrollingDirection=Enum.ScrollingDirection.Y
++local homeLayout=Instance.new("UIListLayout") homeLayout.SortOrder=Enum.SortOrder.LayoutOrder homeLayout.Padding=UDim.new(0,2) homeLayout.Parent=homeList
++local homePadding=Instance.new("UIPadding") homePadding.PaddingLeft=UDim.new(0,18) homePadding.PaddingTop=UDim.new(0,7) homePadding.PaddingBottom=UDim.new(0,7) homePadding.PaddingRight=UDim.new(0,10) homePadding.Parent=homeList
++local homeButtons={} local homeRows={} local selectedHome local homeActive=false local focusPaint={}
++local function iconLine(parent,x1,y1,x2,y2)
++ local line=homeObject("Frame","Line",parent) line.BackgroundColor3=Color3.fromRGB(210,225,232) line.BackgroundTransparency=0
++ line.AnchorPoint=Vector2.new(.5,.5) line.Position=UDim2.fromOffset((x1+x2)/2,(y1+y2)/2)
++ line.Size=UDim2.fromOffset(Vector2.new(x2-x1,y2-y1).Magnitude,1.8) line.Rotation=math.deg(math.atan2(y2-y1,x2-x1)) return line
++end
++local function iconCircle(parent,x,y,w,h,solid)
++ local shape=homeObject("Frame","Circle",parent) shape.Position=UDim2.fromOffset(x,y) shape.Size=UDim2.fromOffset(w,h)
++ shape.BackgroundColor3=Color3.fromRGB(210,225,232) shape.BackgroundTransparency=solid and 0 or 1 homeCorner(shape,20)
++ if not solid then local stroke=homeStroke(shape,1.6,0) stroke.Color=shape.BackgroundColor3 end
++end
++local function drawIcon(parent,kind)
++ if kind=="Play" then
++  for i=0,12 do iconLine(parent,6+i,3+i*.65,6+i,21-i*.65) end
++ elseif kind=="StayLobby" then
++  iconCircle(parent,8,2,8,8,false) iconCircle(parent,4,14,16,9,false)
++  iconLine(parent,20,5,23,10) iconLine(parent,23,14,24,21)
++ elseif kind=="Progress" then
++  for i=0,2 do local bar=homeObject("Frame","Bar",parent) bar.BackgroundColor3=Color3.fromRGB(210,225,232) bar.BackgroundTransparency=0 bar.Position=UDim2.fromOffset(4+i*6,17-i*5) bar.Size=UDim2.fromOffset(3,7+i*5) end
++  iconLine(parent,4,10,17,2) iconLine(parent,14,2,18,2) iconLine(parent,18,2,18,6)
++ elseif kind=="Settings" then
++  iconCircle(parent,5,5,14,14,false) iconCircle(parent,10,10,4,4,false)
++  for i=0,7 do local a=i*math.pi/4 iconLine(parent,12+math.cos(a)*8,12+math.sin(a)*8,12+math.cos(a)*11,12+math.sin(a)*11) end
++ else
++  iconLine(parent,9,18,9,4) iconLine(parent,9,4,22,1) iconLine(parent,22,1,22,16) iconLine(parent,9,8,22,5)
++  iconCircle(parent,3,17,7,5,true) iconCircle(parent,16,15,7,5,true)
++ end
++end
++local function restoreFocusPaint()
++ for object,properties in focusPaint do if object.Parent then for key,value in properties do object[key]=value end end end focusPaint={}
++end
++local function paintHomeFocus()
++ if not homeActive or not browser.Backdrop.Visible then restoreFocusPaint() return end
++ local cursorGui=player.PlayerGui:FindFirstChild("AccessibleMenuCursor") if not cursorGui then return end
++ for _,name in {"FocusOutline","FocusGlow","Cursor"} do
++  local object=cursorGui:FindFirstChild(name) local stroke=object and object:FindFirstChildOfClass("UIStroke")
++  if stroke then
++   if not focusPaint[stroke] then focusPaint[stroke]={Color=stroke.Color,Thickness=stroke.Thickness,Transparency=stroke.Transparency} end
++   stroke.Color=turquoise
++   if name=="FocusOutline" then stroke.Thickness=2 stroke.Transparency=.04
++   elseif name=="FocusGlow" then stroke.Thickness=8 stroke.Transparency=.88 end
++  end
++ end
++end
++local function selectHome(button)
++ if button then selectedHome=button end
++ for object,row in homeRows do
++  local active=object==selectedHome
++  object.BackgroundTransparency=active and (player:GetAttribute("SettingHighContrast") and .08 or .48) or 1
++  local gamepad=InputMode:Get()==Enum.PreferredInput.Gamepad
++  row.Edge.Transparency=active and not gamepad and .12 or 1 row.Glow.Transparency=active and not gamepad and .88 or 1
++  row.Label.TextColor3=active and Color3.new(1,1,1) or Color3.fromRGB(210,221,229)
++  row.Diamond.Visible=active and InputMode:Get()~=Enum.PreferredInput.Gamepad
++  row.Divider.Visible=not active
++ end
++ paintHomeFocus()
++end
++for index,entry in {{"Play","Jogar",playModes},{"StayLobby","Permanecer no lobby",stay},{"Progress","Progresso",openProgress},{"Settings","Ajustes",openSettings},{"Music","Música / Playlist",openMusic}} do
++ local button=homeObject("TextButton",entry[1],homeList) button.Text="" button.AutoButtonColor=false button.LayoutOrder=index
++ button.BackgroundColor3=Color3.fromRGB(2,16,23) button.Size=UDim2.new(1,-2,0,60) button:SetAttribute("AccessibleLabel",entry[2]) homeCorner(button,11)
++ local edge=homeStroke(button,1.6,1) local glow=homeStroke(button,7,1)
++ local icon=homeObject("Frame","Icon",button) icon.Position=UDim2.new(0,22,.5,-12) icon.Size=UDim2.fromOffset(26,26) drawIcon(icon,entry[1])
++ local text=homeText("Label",button,entry[2],19) text.Position=UDim2.new(0,72,0,0) text.Size=UDim2.new(1,-110,1,0)
++ text.TextWrapped=true
++ local chevron=homeText("Chevron",button,"›",26) chevron.Position=UDim2.new(1,-36,0,0) chevron.Size=UDim2.new(0,20,1,0) chevron.TextXAlignment=Enum.TextXAlignment.Center
++ local divider=homeObject("Frame","Divider",button) divider.Position=UDim2.new(0,0,1,-1) divider.Size=UDim2.new(1,0,0,1) divider.BackgroundColor3=Color3.fromRGB(151,179,192) divider.BackgroundTransparency=.83
++ local diamond=homeObject("Frame","Diamond",button) diamond.AnchorPoint=Vector2.new(.5,.5) diamond.Position=UDim2.new(0,-12,.5,0) diamond.Size=UDim2.fromOffset(9,9) diamond.Rotation=45 diamond.BackgroundColor3=Color3.fromRGB(220,252,255) diamond.BackgroundTransparency=0 homeStroke(diamond,1.5,.08)
++ homeRows[button]={Edge=edge,Glow=glow,Label=text,Diamond=diamond,Divider=divider} homeButtons[index]=button
++ Nav:Connect(button,entry[3])
++end
++selectedHome=homeButtons[1]
++for index,button in homeButtons do button.NextSelectionUp=homeButtons[index-1] or button button.NextSelectionDown=homeButtons[index+1] or button end
++local function layoutHome()
++ local size=home.AbsoluteSize if size.X<100 or size.Y<100 then return end
++ local scale=player:GetAttribute("SettingMenuScale") or 1 homeScale.Scale=scale
++ local w,h=size.X/scale,size.Y/scale content.Size=UDim2.fromOffset(w,h)
++ local compact=h<520 local left=math.clamp(w*.064,22,108) local top=compact and 12 or math.clamp(h*.12,24,112)
++ local fontSize=math.clamp(math.min(w*.058,h*(compact and .12 or .108)),27,90)
++ local fontScale=player:GetAttribute("SettingFontScale") or 1
++ local textService=game:GetService("TextService")
++ local wordmarkWidth=textService:GetTextSize(title.Text,fontSize*fontScale,Enum.Font.GothamBlack,Vector2.new(10000,1000)).X
++ fontSize*=math.min(1,(w-left-20)/math.max(1,wordmarkWidth))
++ local titleHeight=fontSize*fontScale*1.2
++ title.TextSize=fontSize title.Position=UDim2.fromOffset(left,top) title.Size=UDim2.new(1,-left-20,0,titleHeight)
++ local ruleY=top+titleHeight+(compact and 6 or 14)
++ underline.Position=UDim2.fromOffset(left+4,ruleY) underline.Size=UDim2.fromOffset(compact and 48 or 76,3)
++ ruleTail.Position=UDim2.fromOffset(left+(compact and 52 or 80),ruleY) ruleTail.Size=UDim2.fromOffset(math.min(350,w*.25),2)
++ local listTop=ruleY+(compact and 12 or 40)
++ local listWidth=math.min(w-left-18,math.clamp(w*(compact and .45 or .29),compact and 320 or 290,450))
++ local labelSize=compact and 16 or math.clamp(h*.025,17,21)
++ local textHeight=textService:GetTextSize("Permanecer no lobby",labelSize*fontScale,Enum.Font.GothamMedium,Vector2.new(math.max(60,listWidth-112),1000)).Y
++ local rowHeight=math.max(math.clamp(h*.078,44,68),textHeight+12)
++ -- Leave room for the existing console footer and admin notice on short screens.
++ local bottomSpace=compact and (player:GetAttribute("CrossgroundsAdmin")==true and 104 or 40) or 16
++ homeList.Position=UDim2.fromOffset(left-18,listTop) homeList.Size=UDim2.fromOffset(listWidth+28,math.max(44,h-listTop-bottomSpace))
++ for _,button in homeButtons do
++  button.Size=UDim2.new(1,-2,0,rowHeight)
++  homeRows[button].Label.TextSize=labelSize
++ end
++end
++local cascadeResize=browser.Resize
++function browser:Resize(animate)
++ cascadeResize(self,animate)
++ homeActive=#self.Stack==1 and self.Stack[1]=="RootPane"
++ home.Visible=homeActive scrimGui.Enabled=homeActive and self.Backdrop.Visible self.Heading.Visible=not homeActive
++ if homeActive then
++  self.Panel.Size=UDim2.fromScale(1,1) self.Panel.Position=UDim2.fromScale(.5,.5)
++  self.Panel.PreferenceScale.Scale=1 self.Panes.RootPane.Frame.Visible=false
++  layoutHome() selectHome(selectedHome)
++ else restoreFocusPaint() end
++end
++local cascadePush=browser.Push
++function browser:Push(ids)
++ cascadePush(self,ids)
++ if #ids==1 and ids[1]=="RootPane" then
++  selectedHome=homeButtons[1] selectHome(selectedHome)
++  task.defer(function() if self.Backdrop.Visible and home.Visible then Nav:Focus(selectedHome) end end)
++ end
++end
++home:GetPropertyChangedSignal("AbsoluteSize"):Connect(layoutHome)
++Nav.FocusChanged:Connect(function(object) if homeActive and object and homeRows[object] then selectHome(object) end end)
++InputMode.Changed:Connect(function() selectHome(selectedHome) end)
++browser.Backdrop:GetPropertyChangedSignal("Visible"):Connect(function()
++ scrimGui.Enabled=homeActive and browser.Backdrop.Visible
++ if not browser.Backdrop.Visible then restoreFocusPaint() elseif homeActive then selectHome(selectedHome) end
++end)
++player:GetAttributeChangedSignal("SettingHighContrast"):Connect(function() selectHome(selectedHome) end)
++player:GetAttributeChangedSignal("SettingFontScale"):Connect(layoutHome)
++player:GetAttributeChangedSignal("CrossgroundsAdmin"):Connect(layoutHome)
+ local function definition()
+  local data=Bridge:Get() for _,v in data and data.catalog or {} do if v.id==selected then return v end end
+ end
+@@ -85,7 +257,7 @@
+  cancel.Visible=q.state=="joining" or q.state=="ready"
+  status.Text=Bridge.LocalError or data.error or (q.state~="idle" and q.message) or ""
+ end
+-Nav:SetBack(browser.Panel,function() if #browser.Stack>1 then browser:Push({"RootPane"}) else stay() end end,resume)
++Nav:SetBack(browser.Panel,function() if #browser.Stack>1 then browser:Push({"RootPane"}) else stay() end end,homeButtons[1])
+ Nav.MenuRequested:Connect(function(id)
+  if id=="Hub" and Scope:IsHub() then catalogOpen=true browser:Push({"RootPane","Modes"}) refresh()
+  elseif id=="Resume" and Scope:IsHub() then stay() end

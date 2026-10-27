@@ -1,0 +1,76 @@
+{
+  "date": "2026-10-27",
+  "applied": {
+    "models": {
+      "1": {
+        "id": "M1911",
+        "parts": 66
+      },
+      "2": {
+        "id": "Magnum",
+        "parts": 59
+      },
+      "3": {
+        "id": "Glock18",
+        "parts": 69
+      },
+      "4": {
+        "id": "DesertEagle",
+        "parts": 35
+      },
+      "5": {
+        "id": "Luger",
+        "parts": 38
+      },
+      "6": {
+        "id": "Beretta",
+        "parts": 41
+      },
+      "7": {
+        "id": "Sword",
+        "parts": 22
+      }
+    },
+    "readback": true,
+    "compiled": 2,
+    "definitionsUnchanged": true,
+    "place": 4375993208,
+    "loadoutServiceUnchanged": true,
+    "name": "Crossgrounds (ALPHA)",
+    "parts": 330
+  },
+  "pendingSelection": {
+    "sameCharacter": true,
+    "activeBefore": "Magnum",
+    "active": "Magnum",
+    "pending": "Beretta",
+    "preservedTools": 2,
+    "sameTools": true
+  },
+  "actualRespawn": {
+    "tools": {
+      "1": {
+        "id": "Sword",
+        "name": "Executor"
+      },
+      "2": {
+        "id": "ArenaPistol",
+        "name": "Beretta M9",
+        "visual": "Beretta"
+      }
+    },
+    "alive": true,
+    "active": "Beretta"
+  },
+  "cameraBounds": {
+    "viewports": 8,
+    "allInFront": true,
+    "maxProjectedExtent": 0.8792
+  },
+  "cleanup": {
+    "remainingViewports": 0,
+    "restoredListSize": "{1, -16}, {1, -60}"
+  },
+  "published": false,
+  "physicalControllerTested": false
+}

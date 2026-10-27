@@ -1,0 +1,51 @@
+{
+  "date": "2026-10-27",
+  "scope": "HubController only; home root of existing lobby cascade",
+  "savedPlace": "Crossgrounds-Home.rbxl",
+  "compilation": {
+    "changedController": true,
+    "previousUIAudioAndHomeSources": 9
+  },
+  "desktop": {
+    "viewport": [
+      1366,
+      767
+    ],
+    "screenshotInspected": true,
+    "selection": "Play",
+    "unselectedBackgroundTransparency": 1,
+    "selectedBackgroundTransparency": 0.48,
+    "fullScreenGradient": true
+  },
+  "phone": {
+    "viewport": [
+      749,
+      381
+    ],
+    "screenshotInspected": true,
+    "lastActionReachable": true,
+    "focusedMusicBottom": 214,
+    "adminNoticeTop": 229,
+    "scrollFollowsFocus": true
+  },
+  "actions": {
+    "Play": "mode catalogue opened",
+    "StayLobby": "dismissed home; reopen action visible",
+    "Progress": "progress panel opened",
+    "Settings": "options opened; original focus color restored",
+    "Music": "playlist opened"
+  },
+  "input": "simulated D-pad and A/B; physical controller and real touch not tested",
+  "protectedFiles": [
+    "ExperienceMenu",
+    "MenuTheme",
+    "MenuNavigation",
+    "InterfaceThemeController"
+  ],
+  "protectedHashesUnchanged": true,
+  "finalViewportReset": true,
+  "notes": [
+    "Known preexisting asset/plugin/loading warnings remain outside this scope.",
+    "No live/published experience was modified."
+  ]
+}

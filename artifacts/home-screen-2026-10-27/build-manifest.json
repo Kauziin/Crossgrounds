@@ -1,0 +1,19 @@
+{
+  "input": "artifacts/ui-audio-2026-10-26/Crossgrounds-UI-Audio.rbxl",
+  "output": "C:\\Users\\Kauziin\\Documents\\ChatGPT\\RobloxStudio\\artifacts\\home-screen-2026-10-27\\Crossgrounds-Home.rbxl",
+  "runtimeSources": [
+    "StarterPlayer.StarterPlayerScripts.HubController"
+  ],
+  "headerPreserved": true,
+  "totalChunks": 3583,
+  "preservedChunks": 3582,
+  "changedChunks": [
+    {
+      "chunk": "PROP",
+      "property": "Source",
+      "className": "LocalScript"
+    }
+  ],
+  "sha256": "079d0dfaef944ded2147004d440740b581e356c1ad935f9db0dad2bb5b316046",
+  "sourceSHA256": "cb57689ce6c000078a69fcf0bf52470f9df89f2f6dfb0f25b8a8deb6b82a2029"
+}
