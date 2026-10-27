@@ -66,27 +66,35 @@ local function added(player)
  end)
  task.spawn(load,player)
 end
-join.OnServerEvent:Connect(function(player,id)
- if not Context:IsCTF(player) or player:GetAttribute("CrossgroundsTransition") or player:GetAttribute("ModeCharacterReady")==false then result:FireClient(player,false,"Entre na preparação do CTF e aguarde o personagem.") return end
- if typeof(id)~="string" or not Kits.Profiles[id] then result:FireClient(player,false,"Escolha um kit válido.") return end
- if player:GetAttribute("InArena") or loading[player] then return end
- if os.clock()-(lastRequest[player] or -10)<.4 then return end
- lastRequest[player]=os.clock()
- if not player:GetAttribute("InMatch") and not TeamManager:AssignPlayerToTeam(player) then result:FireClient(player,false,"Equipes cheias. Explore o lobby enquanto aguarda.") return end
- player:SetAttribute("SelectedKit",Kits.Profiles[id] and id or "Regular")
+-- Shared server entry path: the adapter and the explicit kit button use the same checks.
+function PlayerManager:Join(player,id)
+ if not player.Parent or not Context:IsCTF(player) or player:GetAttribute("ModeCharacterReady")~=true then return false,"Aguarde seu personagem ficar pronto." end
+ if typeof(id)~="string" or not Kits.Profiles[id] then return false,"Escolha um kit válido." end
+ if player:GetAttribute("InArena") then return true,"Boa partida!" end
+ if loading[player] then return false,"Seu personagem está sendo preparado." end
+ if not player:GetAttribute("InMatch") and not TeamManager:AssignPlayerToTeam(player) then return false,"Equipes cheias. Aguarde uma vaga no lobby." end
+ player:SetAttribute("SelectedKit",id)
  if running then
   local maps=require(script.Parent.MapManager)local mapId=workspace:GetAttribute("CurrentMapId")
   loading[player]=true player:SetAttribute("ModeCharacterReady",false)
-  local ready,message=require(game.ServerScriptService.Crossgrounds.SceneLoadService):Wait({player},maps:SceneRoots(),maps:SceneAnchors(),function()return player.Parent and Context:IsCTF(player)and running and workspace:GetAttribute("CurrentMapId")==mapId end,.3,true)
+  local ready,message=require(game.ServerScriptService.Crossgrounds.SceneLoadService):Wait({player},maps:SceneRoots(),maps:SceneAnchors(),function()return player.Parent and Context:IsCTF(player) and running and workspace:GetAttribute("CurrentMapId")==mapId end,.3,true)
   loading[player]=nil
   if not ready then
-   if player.Parent and Context:IsCTF(player)then TeamManager:RemovePlayer(player)PlayerManager:Spawn(player)result:FireClient(player,false,message or"A rodada mudou. Tente entrar novamente.")end
-   return
+   if player.Parent and Context:IsCTF(player) then TeamManager:RemovePlayer(player)PlayerManager:Spawn(player) end
+   return false,message or "A rodada mudou. Tente entrar novamente."
   end
  end
+ if not player.Parent or not Context:IsCTF(player) then return false,"Entrada interrompida." end
  player:SetAttribute("InMatch",true)
- PlayerManager:Spawn(player)
- result:FireClient(player,true,running and "Boa partida!" or "Pronto! A rodada começa em instantes.")
+ self:Spawn(player)
+ return true,running and "Boa partida!" or "Você está pronto! A rodada começa automaticamente."
+end
+join.OnServerEvent:Connect(function(player,id)
+ if player:GetAttribute("CrossgroundsTransition") then return end
+ if os.clock()-(lastRequest[player] or -10)<.4 then return end
+ lastRequest[player]=os.clock()
+ local ok,message=PlayerManager:Join(player,id)
+ if player.Parent then result:FireClient(player,ok,message) end
 end)
 preview.OnServerEvent:Connect(function(player,id)
  if not Context:IsCTF(player) or player:GetAttribute("CrossgroundsTransition") or typeof(id)~="string" then return end

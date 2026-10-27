@@ -1,0 +1,35 @@
+{
+  "input": "artifacts/ctf-flow-2026-10-27/before.rbxl",
+  "output": "C:\\Users\\Kauziin\\Documents\\ChatGPT\\RobloxStudio\\CrossgroundsAlphaCopy-CTF.rbxl",
+  "sources": [
+    "ReplicatedFirst.CrossgroundsLoading",
+    "StarterPlayer.StarterPlayerScripts.JoinMenu",
+    "StarterPlayer.StarterPlayerScripts.CTFFlagLabels",
+    "ServerScriptService.MainGameScript.GameManager",
+    "ServerScriptService.MainGameScript.GameManager.PlayerManager",
+    "ServerScriptService.MainGameScript.GameManager.MapManager",
+    "ServerScriptService.MainGameScript.GameManager.FlagService",
+    "ServerScriptService.MainGameScript.GameManager.SettingsService",
+    "ServerScriptService.Crossgrounds.CTFAdapter",
+    "ServerScriptService.Crossgrounds.ProgressionBalance",
+    "ServerScriptService.Crossgrounds.ProgressionService",
+    "ServerScriptService.Crossgrounds.SceneLoadService"
+  ],
+  "headerPreserved": true,
+  "totalChunks": 3583,
+  "preservedChunks": 3581,
+  "changedChunks": [
+    {
+      "type": "PROP",
+      "property": "Source",
+      "className": "LocalScript"
+    },
+    {
+      "type": "PROP",
+      "property": "Source",
+      "className": "ModuleScript"
+    }
+  ],
+  "inputSHA256": "a342202208a556d4abcf371d64e44bbd0e35a2181507fe8ee9b9cf9eba93c009",
+  "outputSHA256": "b0b9494507b38f4d0a00d36cfc7e051dd94183cc32e1749f5ab55588555481c3"
+}

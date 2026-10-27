@@ -5,20 +5,33 @@ local CAS=game:GetService("ContextActionService")
 local StarterGui=game:GetService("StarterGui")
 local GuiService=game:GetService("GuiService")
 local player=Players.LocalPlayer
+local Router=require(script.Parent:WaitForChild("ControlRouter"))
+local Icons=require(script.Parent:WaitForChild("InputIcons"))
+local held={}
+local spectatorSubject
+local focusLost=false
+local function adminKey(action)
+ local device=UIS:GetLastInputType().Name:match("^Gamepad") and "Gamepad" or "Keyboard"
+ return Icons:Name(Router:Key(action or "AdminMode",device))
+end
 local remote=game.ReplicatedStorage:WaitForChild("Crossgrounds"):WaitForChild("Remotes"):WaitForChild("AdminCamera",30)
 if not remote then return end
 local active=false local clean=false local pending=false local speed=64
 local catalog={} local photoIndex=0
 local position,yaw,pitch local saved local controls local savedGui={} local savedCore={}
 local gui=Instance.new("ScreenGui") gui.Name="AdminCameraHelp" gui.ResetOnSpawn=false gui.DisplayOrder=1000 gui.Enabled=false gui.Parent=player:WaitForChild("PlayerGui")
-local help=Instance.new("TextLabel") help.AnchorPoint=Vector2.new(.5,1) help.Position=UDim2.new(.5,0,1,-16)
-help.Size=UDim2.fromOffset(840,78) help.BackgroundColor3=Color3.fromRGB(18,27,37) help.BackgroundTransparency=.15
-help.TextColor3=Color3.fromRGB(235,245,250) help.TextSize=14 help.TextWrapped=true help.Font=Enum.Font.GothamMedium help.Parent=gui
+local help=Instance.new("TextLabel") help.AnchorPoint=Vector2.new(1,1) help.Position=UDim2.new(1,-12,1,-12)
+help.Size=UDim2.fromOffset(210,26) help.BackgroundColor3=Color3.fromRGB(18,27,37) help.BackgroundTransparency=.6
+help.TextColor3=Color3.fromRGB(181,199,208) help.TextSize=11 help.TextWrapped=true help.Font=Enum.Font.GothamMedium help.Parent=gui
 local corner=Instance.new("UICorner") corner.CornerRadius=UDim.new(0,8) corner.Parent=help
 local function hint(message)
- gui.Enabled=player:GetAttribute("CrossgroundsAdmin")==true and not clean
- help.Text=message or (active and ("ADMIN · CÂMERA LIVRE · "..math.floor(speed).." studs/s\nWASD mover · Q/E descer/subir · Shift acelerar · Ctrl precisão · roda ajustar\nPageUp/PageDown mapa da Arena · F7 captura limpa · F6 sair") or "ADMIN · F6 câmera livre · sai da partida antes de ativar")
+ gui.Enabled=player:GetAttribute("CrossgroundsAdmin")==true and not clean and not player:GetAttribute("HUDLayoutEditing")
+ local width=workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize.X or 800
+ help.Size=UDim2.fromOffset(math.min(width-24,message and 300 or active and 300 or 210),message and 48 or active and 42 or 26)
+ help.Text=message or (active and ("Espectador · "..math.floor(speed).." studs/s\n"..adminKey("AdminClean").." captura · "..adminKey().." sair") or "Admin · "..adminKey().." espectador")
 end
+player:GetAttributeChangedSignal("HUDLayoutEditing"):Connect(function() hint() end)
+if workspace.CurrentCamera then workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(function() hint() end) end
 local function hideGui(obj)
  if not clean or savedGui[obj] then return end
  if obj:IsA("ScreenGui") then
@@ -37,6 +50,7 @@ local function hideGui(obj)
 end
 local function setClean(value)
  clean=value
+ player:SetAttribute("AdminCaptureClean",clean)
  if clean then
   for _,obj in player.PlayerGui:GetDescendants() do hideGui(obj) end
   for _,obj in workspace:GetDescendants() do hideGui(obj) end
@@ -54,12 +68,14 @@ end
 player.PlayerGui.DescendantAdded:Connect(hideGui)
 workspace.DescendantAdded:Connect(hideGui)
 local function stop()
- if not active then return end active=false
+ if not active then return end active=false table.clear(held)
  setClean(false)
  Run:UnbindFromRenderStep("AdminFreeCamera") CAS:UnbindAction("AdminCameraMovement")
- if controls then controls:Enable() end
+ if spectatorSubject then spectatorSubject:Destroy() spectatorSubject=nil end
+ if controls then if Router:CanMove() then controls:Enable() else controls:Disable() end end
  local camera=workspace.CurrentCamera
  if saved then
+  player.CameraMode=saved.cameraMode player.CameraMaxZoomDistance=saved.maxZoom player.CameraMinZoomDistance=saved.minZoom
   camera.CameraType=saved.cameraType camera.FieldOfView=saved.fov
   if saved.subject and saved.subject.Parent then camera.CameraSubject=saved.subject end
   camera.CFrame=saved.cf camera.Focus=saved.focus
@@ -70,28 +86,38 @@ end
 local function start()
  if active or player:GetAttribute("CrossgroundsAdmin")~=true then return end
  local camera=workspace.CurrentCamera
- saved={cameraType=camera.CameraType,subject=camera.CameraSubject,cf=camera.CFrame,focus=camera.Focus,fov=camera.FieldOfView,mouse=UIS.MouseBehavior,icon=UIS.MouseIconEnabled}
+ saved={cameraMode=player.CameraMode,minZoom=player.CameraMinZoomDistance,maxZoom=player.CameraMaxZoomDistance,cameraType=camera.CameraType,subject=camera.CameraSubject,cf=camera.CFrame,focus=camera.Focus,fov=camera.FieldOfView,mouse=UIS.MouseBehavior,icon=UIS.MouseIconEnabled}
  position=camera.CFrame.Position
  local look=camera.CFrame.LookVector pitch=math.asin(math.clamp(look.Y,-1,1)) yaw=math.atan2(-look.X,-look.Z)
- local module=player.PlayerScripts:FindFirstChild("PlayerModule") if module then controls=require(module):GetControls() controls:Disable() end
+ local module=player.PlayerScripts:FindFirstChild("PlayerModule") if module then controls=require(module):GetControls() controls:Enable() end
+ spectatorSubject=Instance.new("Part")
+ spectatorSubject.Name="AdminSpectatorCamera" spectatorSubject.Size=Vector3.one spectatorSubject.Transparency=1
+ spectatorSubject.Anchored=true spectatorSubject.CanCollide=false spectatorSubject.CanTouch=false spectatorSubject.CanQuery=false spectatorSubject.CastShadow=false
+ spectatorSubject.CFrame=CFrame.new(position) spectatorSubject.Parent=workspace
+ player.CameraMinZoomDistance=.5 player.CameraMaxZoomDistance=.5 player.CameraMode=Enum.CameraMode.LockFirstPerson
+ camera.CameraType=Enum.CameraType.Custom camera.CameraSubject=spectatorSubject
  active=true
- CAS:BindActionAtPriority("AdminCameraMovement",function()return Enum.ContextActionResult.Sink end,false,20000,Enum.KeyCode.W,Enum.KeyCode.A,Enum.KeyCode.S,Enum.KeyCode.D,Enum.KeyCode.Q,Enum.KeyCode.E,Enum.KeyCode.Space,Enum.KeyCode.LeftShift,Enum.KeyCode.LeftControl,Enum.UserInputType.MouseButton1,Enum.UserInputType.MouseButton2)
- Run:BindToRenderStep("AdminFreeCamera",Enum.RenderPriority.Camera.Value+100,function(dt)
-  camera=workspace.CurrentCamera camera.CameraType=Enum.CameraType.Scriptable
-  local blocked=UIS:GetFocusedTextBox()~=nil or GuiService.MenuIsOpen
-  UIS.MouseIconEnabled=blocked UIS.MouseBehavior=blocked and Enum.MouseBehavior.Default or Enum.MouseBehavior.LockCenter
-  if not blocked then
-   local delta=UIS:GetMouseDelta() yaw-=delta.X*.0025 pitch=math.clamp(pitch-delta.Y*.0025,-1.55,1.55)
-   local function key(code)return UIS:IsKeyDown(code) and 1 or 0 end
-   local move=Vector3.new(key(Enum.KeyCode.D)-key(Enum.KeyCode.A),key(Enum.KeyCode.E)-key(Enum.KeyCode.Q),key(Enum.KeyCode.S)-key(Enum.KeyCode.W))
-   if move.Magnitude>1 then move=move.Unit end
-   local rotation=CFrame.fromOrientation(pitch,yaw,0)
-   local direction=rotation.RightVector*move.X+Vector3.yAxis*move.Y-rotation.LookVector*move.Z
-   local multiplier=UIS:IsKeyDown(Enum.KeyCode.LeftShift) and 4 or UIS:IsKeyDown(Enum.KeyCode.LeftControl) and .2 or 1
-   position+=direction*speed*multiplier*math.min(dt,.1)
+ Run:BindToRenderStep("AdminFreeCamera",Enum.RenderPriority.Camera.Value-1,function(dt)
+  camera=workspace.CurrentCamera
+  local blocked=focusLost or not Router:CanMove()
+  if not spectatorSubject then return end
+  camera.CameraType=Enum.CameraType.Custom camera.CameraSubject=spectatorSubject
+  if not blocked and controls then
+   local move=controls:GetMoveVector()
+   local controller=controls.activeController
+   local jumping=controller and controller.GetIsJumping and controller:GetIsJumping()
+   local down=UIS:IsKeyDown(Enum.KeyCode.LeftShift)
+   for _,input in UIS:GetGamepadState(Enum.UserInputType.Gamepad1) do
+    if input.KeyCode==Enum.KeyCode.ButtonB and input.UserInputState~=Enum.UserInputState.End then down=true end
+   end
+   local vertical=(jumping and 1 or 0)-(down and 1 or 0)
+   local direction=camera.CFrame.RightVector*move.X-camera.CFrame.LookVector*move.Z+Vector3.yAxis*vertical
+   if direction.Magnitude>1 then direction=direction.Unit end
+   position+=direction*speed*math.min(dt,.1)
   end
-  camera.CFrame=CFrame.new(position)*CFrame.fromOrientation(pitch,yaw,0) camera.Focus=camera.CFrame*CFrame.new(0,0,-32)
+  spectatorSubject.CFrame=CFrame.new(position)
  end)
+
  hint()
  task.spawn(function()
   local ok,allowed,list=pcall(function()return remote:InvokeServer("catalog")end)
@@ -103,26 +129,70 @@ local function sync()
 end
 player:GetAttributeChangedSignal("AdminFreecam"):Connect(sync)
 player:GetAttributeChangedSignal("CrossgroundsAdmin"):Connect(sync)
-UIS.InputBegan:Connect(function(input,processed)
- if player:GetAttribute("CrossgroundsAdmin")~=true or UIS:GetFocusedTextBox() or GuiService.MenuIsOpen then return end
- if input.KeyCode==Enum.KeyCode.F6 and not pending then
-  pending=true task.spawn(function()
-   local ok,accepted,message=pcall(function()return remote:InvokeServer(not active)end)
-   pending=false if not ok or not accepted then hint(message or "Câmera admin indisponível.") else sync() end
-  end)
- elseif input.KeyCode==Enum.KeyCode.F7 and active then setClean(not clean)
- elseif active and not pending and #catalog>0 and (input.KeyCode==Enum.KeyCode.PageDown or input.KeyCode==Enum.KeyCode.PageUp) then
-  photoIndex=((photoIndex-1+(input.KeyCode==Enum.KeyCode.PageDown and 1 or -1))%#catalog)+1
-  pending=true task.spawn(function()
-   local ok,allowed,data=pcall(function()return remote:InvokeServer("preview",catalog[photoIndex].id)end)
-   pending=false
-   if ok and allowed and active then
-    position=data.position local look=(data.focus-data.position).Unit pitch=math.asin(look.Y) yaw=math.atan2(-look.X,-look.Z)
-    hint("ADMIN · "..data.name.."\nF7 captura limpa · WASD/Q/E mover · PageUp/PageDown outro mapa · F6 sair")
-   else hint(type(data)=="string" and data or "Não foi possível abrir o mapa.") end
-  end)
+Router:Register("AdminMode",function(state)
+ if state~=Enum.UserInputState.Begin or player:GetAttribute("CrossgroundsAdmin")~=true or pending or UIS:GetFocusedTextBox() or GuiService.MenuIsOpen or player:GetAttribute("ExperienceMenuOpen") then
+  return Enum.ContextActionResult.Pass
  end
+ pending=true task.spawn(function()
+  local ok,accepted,message=pcall(function()return remote:InvokeServer(not active)end)
+  pending=false if not ok or not accepted then hint(message or "Câmera admin indisponível.") else sync() end
+ end)
+ return Enum.ContextActionResult.Sink
+end,{scope="global",allowMenus=true})
+Router.Changed:Connect(function() hint() end)
+UIS.LastInputTypeChanged:Connect(function() hint() end)
+local function loadPhoto(key)
+ if pending then return end
+ pending=true
+ task.spawn(function()
+  if not active then
+   local ok,allowed,message=pcall(function()return remote:InvokeServer(true)end)
+   if not ok or not allowed then pending=false hint(message or "Não foi possível ativar o modo admin.") return end
+   sync()
+   task.wait(.35)
+  end
+  local ok,allowed,data=pcall(function()return remote:InvokeServer("preview",key)end)
+  pending=false
+  if ok and allowed and active then
+   position=data.position
+   if spectatorSubject then spectatorSubject.CFrame=CFrame.new(position) end
+   workspace.CurrentCamera.CFrame=CFrame.lookAt(data.position,data.focus)
+   for index,entry in catalog do if entry.id==key then photoIndex=index break end end
+   hint()
+  else hint(type(data)=="string" and data or "Não foi possível abrir o mapa.") end
+ end)
+end
+player:GetAttributeChangedSignal("AdminMapSelection"):Connect(function()
+ local key=player:GetAttribute("AdminMapSelection")
+ if typeof(key)=="string" and player:GetAttribute("CrossgroundsAdmin")==true then loadPhoto(key) end
 end)
+local function adminCommand(action,state)
+ if state==Enum.UserInputState.End or state==Enum.UserInputState.Cancel then held[action]=nil return end
+ if not active or player:GetAttribute("CrossgroundsAdmin")~=true or UIS:GetFocusedTextBox() or GuiService.MenuIsOpen or player:GetAttribute("ExperienceMenuOpen") or player:GetAttribute("HUDLayoutEditing") then return Enum.ContextActionResult.Pass end
+ if state~=Enum.UserInputState.Begin then return end
+ if action=="AdminClean" then setClean(not clean)
+ elseif action=="AdminSpeedUp" or action=="AdminSpeedDown" then
+  speed=math.clamp(speed*1.25^(action=="AdminSpeedUp" and 1 or -1),4,512) hint()
+ elseif action=="AdminNextMap" or action=="AdminPreviousMap" then
+  if pending or #catalog==0 then return end
+  photoIndex=((photoIndex-1+(action=="AdminNextMap" and 1 or -1))%#catalog)+1
+  loadPhoto(catalog[photoIndex].id)
+ else held[action]=true end
+ return Enum.ContextActionResult.Sink
+end
+for _,action in require(game.ReplicatedStorage.ControlDefinitions).Order do
+ if action~="AdminMode" and action:match("^Admin") then
+  Router:Register(action,function(state) return adminCommand(action,state) end,{scope="admin",allowMenus=true})
+ end
+end
+UIS.WindowFocusReleased:Connect(function() focusLost=true table.clear(held) end)
+UIS.WindowFocused:Connect(function() focusLost=false end)
+local touchCount=0
+UIS.TouchStarted:Connect(function()
+ touchCount+=1
+ if clean and touchCount>=3 then setClean(false) end
+end)
+UIS.TouchEnded:Connect(function() touchCount=math.max(0,touchCount-1) end)
 UIS.InputChanged:Connect(function(input)
  if active and input.UserInputType==Enum.UserInputType.MouseWheel and not UIS:GetFocusedTextBox() then speed=math.clamp(speed*1.25^input.Position.Z,4,512) hint() end
 end)

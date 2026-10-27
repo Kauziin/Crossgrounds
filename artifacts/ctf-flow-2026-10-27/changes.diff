@@ -1,0 +1,560 @@
+--- before/ReplicatedFirst\CrossgroundsLoading.luau
++++ after/ReplicatedFirst\CrossgroundsLoading.luau
+@@ -7,13 +7,14 @@
+ local gui=Instance.new("ScreenGui")
+ gui.Name="CrossgroundsLoading"gui.ResetOnSpawn=false gui.IgnoreGuiInset=true gui.DisplayOrder=10000
+ gui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling
++local coverGroup=Instance.new("CanvasGroup") coverGroup.Name="Transition" coverGroup.Size=UDim2.fromScale(1,1) coverGroup.BackgroundTransparency=1 coverGroup.Parent=gui
+ local background=Instance.new("TextButton")background.Name="Cover"background.Size=UDim2.fromScale(1,1)
+ background.BackgroundColor3=Color3.fromRGB(9,15,24)background.BorderSizePixel=0 background.Text=""
+-background.AutoButtonColor=false background.Modal=true background.Active=true background.Parent=gui
++background.AutoButtonColor=false background.Modal=true background.Active=true background.Parent=coverGroup
+ local gradient=Instance.new("UIGradient")gradient.Color=ColorSequence.new(Color3.fromRGB(20,37,55),Color3.fromRGB(7,12,20))gradient.Rotation=35 gradient.Parent=background
+ local panel=Instance.new("Frame")panel.AnchorPoint=Vector2.new(.5,.5)panel.Position=UDim2.fromScale(.5,.5)
+ panel.Size=UDim2.new(.86,0,0,270)panel.BackgroundTransparency=1 panel.Parent=background
+-local limit=Instance.new("UISizeConstraint")limit.MaxSize=Vector2.new(540,330)limit.Parent=panel
++local limit=Instance.new("UISizeConstraint")limit.MaxSize=Vector2.new(540,370)limit.Parent=panel
+ local function label(name,text,y,size,color)
+  local item=Instance.new("TextLabel")item.Name=name item.Text=text item.Position=UDim2.new(0,0,0,y)
+  item.Size=UDim2.new(1,0,0,size+14)item.TextSize=size item.Font=Enum.Font.GothamMedium
+@@ -37,13 +38,23 @@
+ gui.Parent=player:WaitForChild("PlayerGui")
+ game:GetService("ReplicatedFirst"):RemoveDefaultLoadingScreen()
+ local visible=true local opened=os.clock()local clearSince=nil local request=nil local phase=""local mode="loading"
++local retired={}
+ local prepared={}local remotes local readyRemote local charRevision=nil local arrivalReady=false
+ local cosmeticDone=false local cosmeticStarted=false
+ local function block()return Enum.ContextActionResult.Sink end
+ Input:BindActionAtPriority("CrossgroundsLoadingMovement",block,false,10000,Enum.PlayerActions.CharacterForward,Enum.PlayerActions.CharacterBackward,Enum.PlayerActions.CharacterLeft,Enum.PlayerActions.CharacterRight,Enum.PlayerActions.CharacterJump)
+ player:SetAttribute("ClientLoading",true)
++local fade local fadeSerial=0
+ local function show(value)
+- if value==visible then return end visible=value gui.Enabled=value player:SetAttribute("ClientLoading",value)
++ if value==visible then return end visible=value fadeSerial+=1 local serial=fadeSerial
++ if fade then fade:Cancel() end
++ player:SetAttribute("ClientLoading",value)
++ if value then gui.Enabled=true coverGroup.GroupTransparency=0
++ elseif player:GetAttribute("SettingReducedMenuMotion") then gui.Enabled=false
++ else
++  fade=game:GetService("TweenService"):Create(coverGroup,TweenInfo.new(.22,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{GroupTransparency=1})
++  fade:Play() task.delay(.22,function() if serial==fadeSerial and not visible then gui.Enabled=false end end)
++ end
+  if value then
+   opened=os.clock()clearSince=nil arrivalReady=false
+   Input:BindActionAtPriority("CrossgroundsLoadingMovement",block,false,10000,Enum.PlayerActions.CharacterForward,Enum.PlayerActions.CharacterBackward,Enum.PlayerActions.CharacterLeft,Enum.PlayerActions.CharacterRight,Enum.PlayerActions.CharacterJump)
+@@ -83,6 +94,7 @@
+ end
+ local function beginScene(data)
+  if typeof(data)~="table"or typeof(data.token)~="string"or typeof(data.roots)~="table"then return end
++ if retired[data.token] then return end
+  if prepared[data.token]then readyRemote:FireServer(data.token)return end
+  if request and request.token==data.token then return end
+  request=data request.mode=player:GetAttribute("CrossgroundsMode")request.assets=false request.preloading=false
+@@ -91,6 +103,11 @@
+ task.spawn(function()
+  local root=game.ReplicatedStorage:WaitForChild("Crossgrounds")remotes=root:WaitForChild("Remotes")
+  readyRemote=remotes:WaitForChild("SceneReady")remotes:WaitForChild("PrepareScene").OnClientEvent:Connect(beginScene)
++ remotes:WaitForChild("SceneLoadFinished").OnClientEvent:Connect(function(token)
++  if request and request.token==token then request=nil end
++  prepared[token]=nil retired[token]=true
++  task.delay(35,function() retired[token]=nil end)
++ end)
+  for _,name in {"ArenaRemotes","GetOutRemotes"}do task.spawn(function()
+   local state=root:WaitForChild(name):WaitForChild("State")
+   state.OnClientEvent:Connect(function(data)
+@@ -100,19 +117,24 @@
+ end)
+ retry.Activated:Connect(function()
+  if not remotes then return end
+- if player:GetAttribute("CrossgroundsMode")=="hub"then
++ if player:GetAttribute("CrossgroundsMode")=="hub" or (player:GetAttribute("CrossgroundsMode")=="ctf" and workspace:GetAttribute("RoundState")=="LoadFailed")then
+   local event=remotes:FindFirstChild("RetryLoading")if event then event:FireServer()end
+  else local command=remotes:FindFirstChild("Command")if command then command:FireServer({action="returnHub"})end end
+  opened=os.clock()retry.Visible=false arrivalReady=false
++end)
++local exit=retry:Clone() exit.Name="ReturnHub" exit.Text="Voltar ao lobby" exit.Position=UDim2.new(.5,0,0,284) exit.Visible=false exit.Parent=panel
++exit.Activated:Connect(function()
++ local command=remotes and remotes:FindFirstChild("Command")
++ if command then command:FireServer({action="returnHub"}) end
+ end)
+ local elapsed=0
+ Run.RenderStepped:Connect(function(dt)
+  elapsed+=dt if elapsed<.15 then return end elapsed=0
+  local currentMode=player:GetAttribute("CrossgroundsMode")or"loading"
+- if mode~=currentMode then mode=currentMode phase=""request=nil arrivalReady=false cosmeticStarted=false cosmeticDone=false prepared={}end
++ if mode~=currentMode then mode=currentMode phase=""request=nil arrivalReady=false cosmeticStarted=false cosmeticDone=false prepared={} retired={}end
+  local boot=workspace:GetAttribute("CrossgroundsBootReady")==true
+  local mapBusy=phase=="loading"or phase=="deploying"or phase=="preparing"or(mode=="ctf"and player:GetAttribute("InMatch")==true and workspace:GetAttribute("RoundState")=="Loading")
+- local demand=not game:IsLoaded()or not boot or mode=="loading"or player:GetAttribute("CrossgroundsTransition")==true or player:GetAttribute("SceneLoading")==true or mapBusy or request~=nil
++ local demand=not game:IsLoaded()or not boot or mode=="loading"or player:GetAttribute("CrossgroundsTransition")==true or player:GetAttribute("SceneLoading")==true or mapBusy or request~=nil or player:GetAttribute("SceneLoadingError")~=nil
+  local serial=player:GetAttribute("CharacterReadySerial")
+  if charRevision~=serial then charRevision=serial arrivalReady=false end
+  if demand then show(true)clearSince=nil end
+@@ -166,8 +188,9 @@
+  else clearSince=nil end
+  if errorText or os.clock()-opened>45 then
+   heading="O carregamento precisa de atenção"caption=errorText or"O cenário ainda não ficou pronto. Aguarde ou tente novamente."
+-  retry.Text=mode=="hub"and"Recarregar personagem"or"Voltar ao lobby"retry.Visible=remotes~=nil
++  retry.Text=mode=="hub"and"Recarregar personagem"or(mode=="ctf" and workspace:GetAttribute("RoundState")=="LoadFailed")and"Tentar carregar mapa"or"Voltar ao lobby"retry.Visible=remotes~=nil
+  else retry.Visible=false end
++ exit.Visible=retry.Visible and mode=="ctf" and workspace:GetAttribute("RoundState")=="LoadFailed"
+  title.Text=heading detail.Text=caption fill.Size=UDim2.fromScale(math.clamp(progress,0,1),1)
+  status.Text=errorText and"AGUARDANDO NOVA TENTATIVA"or"CENÁRIO • RECURSOS • PERSONAGEM"
+ end)
+--- before/ServerScriptService\Crossgrounds\CTFAdapter.luau
++++ after/ServerScriptService\Crossgrounds\CTFAdapter.luau
+@@ -34,6 +34,10 @@
+ function Adapter:Enter(player)
+  if not self:IsAvailable() then return false,"Protótipo CTF indisponível." end
+  self.context:SetMode(player,"ctf") self.players:Spawn(player)
++ local ready,message=waitReady(player,self.context,"ctf")
++ if not ready then return false,message end
++ local joined,reason=self.players:Join(player,player:GetAttribute("SelectedKit") or "Regular")
++ if not joined then return false,reason end
+  return waitReady(player,self.context,"ctf")
+ end
+ function Adapter:Leave(player)
+--- before/ServerScriptService\Crossgrounds\ProgressionBalance.luau
++++ after/ServerScriptService\Crossgrounds\ProgressionBalance.luau
+@@ -6,15 +6,17 @@
+ }
+ local values={}
+ local snapshot
+-local ok, result = pcall(function() return game:GetService("ConfigService"):GetConfigAsync() end)
+-if ok then
+- snapshot = result
++-- Remote reward config must never block character creation or the round loop.
++-- Local unpublished places have no universe config; use the existing defaults.
++if game.GameId~=0 then task.defer(function()
++ local ok,result=pcall(function() return game:GetService("ConfigService"):GetConfigAsync() end)
++ if not ok then warn("Crossgrounds reward config unavailable; using defaults.") return end
++ snapshot=result values={}
+  snapshot.UpdateAvailable:Connect(function()
+-  local refreshed, err = pcall(function() snapshot:Refresh() end)
+-  if refreshed then values={} end
+-  if not refreshed then warn("Crossgrounds reward config refresh: " .. tostring(err)) end
++  local refreshed,err=pcall(function() snapshot:Refresh() end)
++  if refreshed then values={} else warn("Crossgrounds reward config refresh: "..tostring(err)) end
+  end)
+-end
++end) end
+ function Balance.Get(key)
+  local fallback = assert(defaults[key], "Unknown reward " .. tostring(key))
+  if values[key]~=nil then return values[key] end
+--- before/ServerScriptService\Crossgrounds\ProgressionService.luau
++++ after/ServerScriptService\Crossgrounds\ProgressionService.luau
+@@ -3,7 +3,7 @@
+ local RunService = game:GetService("RunService")
+ local Balance = require(script.Parent.ProgressionBalance)
+ local Policy = require(script.Parent.ProgressionPolicy)
+-local store = game:GetService("DataStoreService"):GetDataStore("CrossgroundsProgression_v1")
++local store = not RunService:IsStudio() and game:GetService("DataStoreService"):GetDataStore("CrossgroundsProgression_v1") or nil
+ local fields = {"XP","Coins","Kills","Deaths","Captures","PlaySeconds","BotKills","TrainingKills"}
+ local savedFriends={}
+ local state = {}
+@@ -214,4 +214,4 @@
+   for _, player in Players:GetPlayers() do save(player) end
+  end)
+ end
+-return Service+return Service
+--- before/ServerScriptService\Crossgrounds\SceneLoadService.luau
++++ after/ServerScriptService\Crossgrounds\SceneLoadService.luau
+@@ -7,6 +7,7 @@
+  local remotes=game.ReplicatedStorage.Crossgrounds.Remotes
+  local function remote(name)local r=remotes:FindFirstChild(name)or Instance.new("RemoteEvent")r.Name=name r.Parent=remotes return r end
+  self.prepare=remote("PrepareScene")
++ self.finished=remote("SceneLoadFinished")
+  remote("SceneReady").OnServerEvent:Connect(function(player,token)
+   local state=pending[player]
+   if state and typeof(token)=="string"and state.token==token and context:GetMode(player)==state.mode then state.ready=true end
+@@ -14,7 +15,11 @@
+  local retryRates={}
+  remote("RetryLoading").OnServerEvent:Connect(function(player)
+   if os.clock()-(retryRates[player]or-10)<3 then return end retryRates[player]=os.clock()
+-  if workspace:GetAttribute("CrossgroundsBootReady")and context:GetMode(player)=="hub"and not player:GetAttribute("CrossgroundsTransition")then context:ReloadHubCharacter(player)end
++  if not workspace:GetAttribute("CrossgroundsBootReady") or player:GetAttribute("CrossgroundsTransition") then return end
++  if context:GetMode(player)=="hub" then context:ReloadHubCharacter(player)
++  elseif context:GetMode(player)=="ctf" and player:GetAttribute("InMatch") and workspace:GetAttribute("RoundState")=="LoadFailed" then
++   workspace:SetAttribute("CTFLoadRetry",(workspace:GetAttribute("CTFLoadRetry") or 0)+1)
++  end
+  end)
+  Players.PlayerRemoving:Connect(function(player)pending[player]=nil retryRates[player]=nil end)
+ end
+@@ -31,7 +36,10 @@
+  local states={}local started=os.clock()local deadline=started+30 local nextSend=0
+  local function finish(ok,message)
+   for player,state in states do if pending[player]==state then pending[player]=nil
+-   if player.Parent then player:SetAttribute("SceneLoading",false)player:SetAttribute("SceneLoadingError",self.context:GetMode(player)==state.mode and message or nil)end
++   if player.Parent then
++    player:SetAttribute("SceneLoading",false)player:SetAttribute("SceneLoadingError",self.context:GetMode(player)==state.mode and message or nil)
++    self.finished:FireClient(player,token,ok,message)
++   end
+   end end
+   return ok,message
+  end
+@@ -40,7 +48,7 @@
+   local current=typeof(players)=="function"and players()or players local allReady=true
+   local present={}for _,player in current do present[player]=true end
+   for player,state in states do if not present[player]then
+-   if pending[player]==state then pending[player]=nil if player.Parent then player:SetAttribute("SceneLoading",false)player:SetAttribute("SceneLoadingError",nil)end end
++   if pending[player]==state then pending[player]=nil if player.Parent then player:SetAttribute("SceneLoading",false)player:SetAttribute("SceneLoadingError",nil)self.finished:FireClient(player,token,false)end end
+    states[player]=nil
+   end end
+   for _,player in current do if player.Parent then
+@@ -52,7 +60,7 @@
+    if not state.ready then allReady=false end
+   end end
+   if allReady and os.clock()-started>=(minSeconds or 0)then return finish(true)end
+-  if os.clock()>=deadline then return finish(false,"O cenário não terminou de carregar. Volte ao lobby e tente novamente.")end
++  if os.clock()>=deadline then return finish(false,"O mapa não ficou pronto. Tente carregar novamente ou volte ao lobby pelo menu.")end
+   if os.clock()>=nextSend then nextSend=os.clock()+1 for _,player in current do local state=states[player]if player.Parent and state and not state.ready then self.prepare:FireClient(player,payload)end end end
+   task.wait(.1)
+  end
+--- before/ServerScriptService\MainGameScript\GameManager\FlagService.luau
++++ after/ServerScriptService\MainGameScript\GameManager\FlagService.luau
+@@ -7,9 +7,22 @@
+ local flags = {}
+ local connections = {}
+ local active = false
++local alert=Events:FindFirstChild("CTFFlagAlert") or Instance.new("RemoteEvent") alert.Name="CTFFlagAlert" alert.Parent=Events
++local function notify(flag,kind,character)
++ local actor=character and Players:GetPlayerFromCharacter(character)
++ local name=actor and actor.DisplayName or character and (character:GetAttribute("DisplayName") or character.Name) or ""
++ for _,viewer in Players:GetPlayers() do
++  if viewer:GetAttribute("CrossgroundsMode")=="ctf" and viewer:GetAttribute("InMatch") then
++   alert:FireClient(viewer,{kind=kind,team=flag.team.Name,carrier=name,self=actor==viewer})
++  end
++ end
++end
+ local function publish(flag)
+  if not flag.base then return end
+  flag.base:SetAttribute("FlagState",flag.state)
++ local ref=flag.base:FindFirstChild("FlagCarrier") or Instance.new("ObjectValue") ref.Name="FlagCarrier" ref.Value=flag.carrier ref.Parent=flag.base
++ local actor=flag.carrier and Players:GetPlayerFromCharacter(flag.carrier)
++ flag.base:SetAttribute("FlagCarrierName",actor and actor.DisplayName or flag.carrier and (flag.carrier:GetAttribute("DisplayName") or flag.carrier.Name) or nil)
+  flag.base:SetAttribute("FlagReturnAt",flag.state=="dropped" and workspace:GetServerTimeNow()+Config.FLAG_RESPAWN_TIME or 0)
+ end
+ 
+@@ -43,6 +56,7 @@
+ local function clearCarry(flag)
+  for _,c in flag.carryConnections or {} do c:Disconnect() end flag.carryConnections=nil
+  if flag.carryVisual then flag.carryVisual:Destroy() flag.carryVisual = nil end
++ if flag.carrier then flag.carrier:SetAttribute("CarryingFlag",nil) end
+  flag.carrier = nil
+ end
+ 
+@@ -53,7 +67,7 @@
+  flag.state = "home"
+  showFlag(flag, flag.home)
+  publish(flag)
+- if active and wasAway and not silent then Events.ReturnFlag:Fire(flag.team.TeamColor) end
++ if active and wasAway and not silent then Events.ReturnFlag:Fire(flag.team.TeamColor) notify(flag,"return") end
+ end
+ 
+ function FlagService:DropCarrier(character)
+@@ -64,6 +78,7 @@
+    flag.returnToken += 1
+    clearCarry(flag)
+    flag.state = "dropped"
++   notify(flag,"drop",character)
+    publish(flag)
+    showFlag(flag, Vector3.new(dropAt.X, math.max(dropAt.Y - 3, 13), dropAt.Z))
+    local token = flag.returnToken
+@@ -80,8 +95,10 @@
+  flag.returnToken += 1
+  flag.state = "carried"
+  flag.carrier = character
++ character:SetAttribute("CarryingFlag",flag.team.Name)
+  publish(flag)
+  hideFlag(flag)
++ notify(flag,"pickup",character)
+  local root = character:FindFirstChild("HumanoidRootPart")
+  if root then
+   local pole = Instance.new("Part")
+@@ -127,6 +144,7 @@
+  end
+  if enemy.carrier == character and near(root.Position, own.home, 7) then
+   if not Config.REQUIRE_RETURN_BEFORE_CAP or own.state == "home" then
++   notify(enemy,"capture",character)
+    self:Return(enemy, true)
+    Events.CaptureFlag:Fire(player, team.TeamColor)
+   end
+--- before/ServerScriptService\MainGameScript\GameManager\MapManager.luau
++++ after/ServerScriptService\MainGameScript\GameManager\MapManager.luau
+@@ -38,6 +38,48 @@
+  table.sort(list,function(a,b) return a.id<b.id end)
+  return list
+ end
++-- Map geometry may be raised during authoring. Keep objectives, spawn markers and
++-- bot navigation in the same vertical frame as the actual foundation.
++function Maps:AlignInfrastructure()
++ local arena=workspace:FindFirstChild("CTFInfrastructure")
++ local expected=arena and arena:GetAttribute("NavigationFloorY")
++ local base=arena and arena:FindFirstChild("BlueBase")local stand=base and base:FindFirstChild("FlagStand")
++ if typeof(expected)~="number" or not stand then return end
++ local floorY
++ for _,root in owned do
++  for _,part in root:GetDescendants() do
++   if part:IsA("BasePart") and part.Name=="Foundation" and part.CanCollide then
++    local localPoint=part.CFrame:PointToObjectSpace(stand.Position)
++    if math.abs(localPoint.X)<=part.Size.X*.5 and math.abs(localPoint.Z)<=part.Size.Z*.5 then
++     local top=part.Position.Y+part.Size.Y*.5
++     floorY=math.max(floorY or top,top)
++    end
++   end
++  end
++ end
++ if not floorY or math.abs(floorY-expected)<.01 then return end
++ local delta=Vector3.new(0,floorY-expected,0)
++ for index,part in arena:GetDescendants() do
++  if part:IsA("BasePart") then part.CFrame+=delta end
++  if index%500==0 then task.wait() end
++ end
++ local center=arena:GetAttribute("PlayRegionCenter")
++ if typeof(center)=="Vector3" then arena:SetAttribute("PlayRegionCenter",center+delta) end
++ arena:SetAttribute("NavigationFloorY",floorY)
++ arena:SetAttribute("ClientSceneRevision",nil) arena:SetAttribute("ClientSceneIndex",nil)
++end
++function Maps:ValidateSpawns()
++ local include=self:SceneRoots()table.insert(include,workspace.Terrain)
++ local params=RaycastParams.new()params.FilterType=Enum.RaycastFilterType.Include params.FilterDescendantsInstances=include params.RespectCanCollide=true
++ local anchors=self:SceneAnchors()
++ if #anchors==0 then return false,"O mapa não possui pontos de nascimento." end
++ for _,position in anchors do
++  if not workspace:Raycast(position+Vector3.new(0,1,0),Vector3.new(0,-14,0),params) then
++   return false,"Há um ponto de nascimento sem chão no mapa. Volte ao lobby e avise o desenvolvedor."
++  end
++ end
++ return true
++end
+ function Maps:Initialize()
+  if not storage:FindFirstChild("riverside") then
+   local model=Instance.new("Model") model.Name="riverside" model:SetAttribute("DisplayName","Travessia") model:SetAttribute("Description","Três rotas entre duas bases") model:SetAttribute("TerrainOrigin",Vector3.new(-66,-16,-66))
+@@ -48,6 +90,7 @@
+  end
+  owned={}
+  for _,v in workspace:GetChildren() do if v:GetAttribute("CTFMapGeometry") then table.insert(owned,v) end end
++ self:AlignInfrastructure()
+  current=workspace:GetAttribute("CurrentMapId") or "riverside"
+  workspace:SetAttribute("CurrentMapId",current)
+  local m=storage:FindFirstChild(current) workspace:SetAttribute("CurrentMapName",m and (m:GetAttribute("DisplayName") or m.Name) or current)
+@@ -78,6 +121,7 @@
+  local old=workspace:FindFirstChild("CTFInfrastructure") if old then dispose(old) end
+  publish(stagedArena,workspace)
+  for _,v in stagedGeometry:GetChildren() do v:SetAttribute("CTFMapGeometry",true) publish(v,workspace) table.insert(owned,v) end stagedGeometry:Destroy()
++ self:AlignInfrastructure()
+  current=id workspace:SetAttribute("CurrentMapId",id) workspace:SetAttribute("CurrentMapName",source:GetAttribute("DisplayName") or id)
+  return true
+ end
+--- before/ServerScriptService\MainGameScript\GameManager\PlayerManager.luau
++++ after/ServerScriptService\MainGameScript\GameManager\PlayerManager.luau
+@@ -66,27 +66,35 @@
+  end)
+  task.spawn(load,player)
+ end
+-join.OnServerEvent:Connect(function(player,id)
+- if not Context:IsCTF(player) or player:GetAttribute("CrossgroundsTransition") or player:GetAttribute("ModeCharacterReady")==false then result:FireClient(player,false,"Entre na preparação do CTF e aguarde o personagem.") return end
+- if typeof(id)~="string" or not Kits.Profiles[id] then result:FireClient(player,false,"Escolha um kit válido.") return end
+- if player:GetAttribute("InArena") or loading[player] then return end
+- if os.clock()-(lastRequest[player] or -10)<.4 then return end
+- lastRequest[player]=os.clock()
+- if not player:GetAttribute("InMatch") and not TeamManager:AssignPlayerToTeam(player) then result:FireClient(player,false,"Equipes cheias. Explore o lobby enquanto aguarda.") return end
+- player:SetAttribute("SelectedKit",Kits.Profiles[id] and id or "Regular")
++-- Shared server entry path: the adapter and the explicit kit button use the same checks.
++function PlayerManager:Join(player,id)
++ if not player.Parent or not Context:IsCTF(player) or player:GetAttribute("ModeCharacterReady")~=true then return false,"Aguarde seu personagem ficar pronto." end
++ if typeof(id)~="string" or not Kits.Profiles[id] then return false,"Escolha um kit válido." end
++ if player:GetAttribute("InArena") then return true,"Boa partida!" end
++ if loading[player] then return false,"Seu personagem está sendo preparado." end
++ if not player:GetAttribute("InMatch") and not TeamManager:AssignPlayerToTeam(player) then return false,"Equipes cheias. Aguarde uma vaga no lobby." end
++ player:SetAttribute("SelectedKit",id)
+  if running then
+   local maps=require(script.Parent.MapManager)local mapId=workspace:GetAttribute("CurrentMapId")
+   loading[player]=true player:SetAttribute("ModeCharacterReady",false)
+-  local ready,message=require(game.ServerScriptService.Crossgrounds.SceneLoadService):Wait({player},maps:SceneRoots(),maps:SceneAnchors(),function()return player.Parent and Context:IsCTF(player)and running and workspace:GetAttribute("CurrentMapId")==mapId end,.3,true)
++  local ready,message=require(game.ServerScriptService.Crossgrounds.SceneLoadService):Wait({player},maps:SceneRoots(),maps:SceneAnchors(),function()return player.Parent and Context:IsCTF(player) and running and workspace:GetAttribute("CurrentMapId")==mapId end,.3,true)
+   loading[player]=nil
+   if not ready then
+-   if player.Parent and Context:IsCTF(player)then TeamManager:RemovePlayer(player)PlayerManager:Spawn(player)result:FireClient(player,false,message or"A rodada mudou. Tente entrar novamente.")end
+-   return
++   if player.Parent and Context:IsCTF(player) then TeamManager:RemovePlayer(player)PlayerManager:Spawn(player) end
++   return false,message or "A rodada mudou. Tente entrar novamente."
+   end
+  end
++ if not player.Parent or not Context:IsCTF(player) then return false,"Entrada interrompida." end
+  player:SetAttribute("InMatch",true)
+- PlayerManager:Spawn(player)
+- result:FireClient(player,true,running and "Boa partida!" or "Pronto! A rodada começa em instantes.")
++ self:Spawn(player)
++ return true,running and "Boa partida!" or "Você está pronto! A rodada começa automaticamente."
++end
++join.OnServerEvent:Connect(function(player,id)
++ if player:GetAttribute("CrossgroundsTransition") then return end
++ if os.clock()-(lastRequest[player] or -10)<.4 then return end
++ lastRequest[player]=os.clock()
++ local ok,message=PlayerManager:Join(player,id)
++ if player.Parent then result:FireClient(player,ok,message) end
+ end)
+ preview.OnServerEvent:Connect(function(player,id)
+  if not Context:IsCTF(player) or player:GetAttribute("CrossgroundsTransition") or typeof(id)~="string" then return end
+--- before/ServerScriptService\MainGameScript\GameManager\SettingsService.luau
++++ after/ServerScriptService\MainGameScript\GameManager\SettingsService.luau
+@@ -4,7 +4,7 @@
+ local Definition=require(game.ReplicatedStorage.ExperienceSettings) local Controls=require(game.ReplicatedStorage.ControlDefinitions)
+ local Profile=require(game.ReplicatedStorage.Crossgrounds.PreferenceProfile)
+ local events=game.ReplicatedStorage.Events local update=events:FindFirstChild("UpdateExperienceSetting") or Instance.new("RemoteEvent",events) update.Name="UpdateExperienceSetting"
+-local store=game:GetService("DataStoreService"):GetDataStore("CTF_ExperienceSettings_v1")
++local store= not Run:IsStudio() and game:GetService("DataStoreService"):GetDataStore("CTF_ExperienceSettings_v1") or nil
+ local profiles,dirty,revisions,rate,states,connections={},{},{},{},{},{}
+ local acknowledgements={}
+ local Policy=require(game.ReplicatedStorage.ControlPolicy)
+--- before/ServerScriptService\MainGameScript\GameManager.luau
++++ after/ServerScriptService\MainGameScript\GameManager.luau
+@@ -35,10 +35,18 @@
+  if Player:GetJoinedCount()>=Config.MIN_PLAYERS then
+   workspace:SetAttribute("RoundState","Loading")
+   Time:StartTimer(MapLoadGate.Seconds)
+-  self.loadReady=SceneLoad:Wait(function()
++  local safe,mapError=Maps:ValidateSpawns()
++  if not safe then
++   for _,p in game.Players:GetPlayers() do if p:GetAttribute("CrossgroundsMode")=="ctf" and p:GetAttribute("InMatch") then p:SetAttribute("SceneLoadingError",mapError) end end
++  end
++  self.loadReady=safe and SceneLoad:Wait(function()
+    local list={}for _,p in game.Players:GetPlayers()do if p:GetAttribute("CrossgroundsMode")=="ctf"and p:GetAttribute("InMatch")then table.insert(list,p)end end return list
+   end,Maps:SceneRoots(),Maps:SceneAnchors(),function()return Player:GetJoinedCount()>=Config.MIN_PLAYERS end,MapLoadGate.Seconds,true)
+-  if not self.loadReady then workspace:SetAttribute("RoundState","LoadFailed")task.wait(2)end
++  if not self.loadReady and Player:GetJoinedCount()>=Config.MIN_PLAYERS then
++   workspace:SetAttribute("RoundState","LoadFailed")
++   local retry=workspace:GetAttribute("CTFLoadRetry") or 0
++   repeat task.wait(.2) until Player:GetJoinedCount()<Config.MIN_PLAYERS or (workspace:GetAttribute("CTFLoadRetry") or 0)~=retry
++  end
+  end
+ end
+ function GameManager:GameReady() return self.loadReady==true and Player:GetJoinedCount()>=Config.MIN_PLAYERS end
+--- before/StarterPlayer\StarterPlayerScripts\CTFFlagLabels.luau
++++ after/StarterPlayer\StarterPlayerScripts\CTFFlagLabels.luau
+@@ -32,3 +32,100 @@
+ end)
+ refreshArena()
+ 
++
++-- Carrier indicators are client-owned and only visible to active CTF participants.
++local Tween=game:GetService("TweenService")
++local indicators={}
++local hud=Instance.new("ScreenGui") hud.Name="CTFFlagAlerts" hud.ResetOnSpawn=false hud.IgnoreGuiInset=false hud.DisplayOrder=85 hud.Enabled=false hud.Parent=player:WaitForChild("PlayerGui")
++local toast=Instance.new("TextLabel") toast.Name="Alert" toast.AnchorPoint=Vector2.new(.5,0) toast.Position=UDim2.new(.5,0,0,100)
++toast.Size=UDim2.new(.9,0,0,76) toast.BackgroundColor3=Color3.fromRGB(33,19,24) toast.TextColor3=Color3.fromRGB(255,239,221)
++toast.TextSize=21 toast.TextWrapped=true toast.Font=Enum.Font.GothamBold toast.Visible=false toast.BorderSizePixel=0 toast.Parent=hud
++local cap=Instance.new("UISizeConstraint") cap.MaxSize=Vector2.new(640,100) cap.Parent=toast
++local corner=Instance.new("UICorner") corner.CornerRadius=UDim.new(0,10) corner.Parent=toast
++local border=Instance.new("UIStroke") border.Thickness=2 border.Color=Color3.fromRGB(255,104,86) border.Parent=toast
++local pad=Instance.new("UIPadding") pad.PaddingLeft=UDim.new(0,14) pad.PaddingRight=UDim.new(0,14) pad.Parent=toast
++local persistent=toast:Clone() persistent.Name="CarrierStatus" persistent.Position=UDim2.new(.5,0,0,184) persistent.Size=UDim2.new(.9,0,0,46)
++persistent.TextSize=15 persistent.BackgroundTransparency=.12 persistent.Parent=hud
++local queue={}local showing=false local generation=0
++local function participating()
++ return player:GetAttribute("CrossgroundsMode")=="ctf" and player:GetAttribute("InMatch")==true and player:GetAttribute("AdminFreecam")~=true
++end
++local function color(team) return team=="Blue" and Color3.fromRGB(80,178,255) or Color3.fromRGB(255,103,91) end
++local function flagName(team) return team=="Blue" and "azul" or "vermelha" end
++local function playAlerts()
++ if showing then return end showing=true
++ local serial=generation
++ task.spawn(function()
++  while #queue>0 and participating() and serial==generation do
++   local item=table.remove(queue,1) toast.Text=item.text border.Color=item.color toast.Visible=true
++   toast.BackgroundTransparency=.05 toast.TextTransparency=0
++   if not player:GetAttribute("SettingReducedMenuMotion") then
++    toast.Position=UDim2.new(.5,0,0,90)
++    Tween:Create(toast,TweenInfo.new(.18,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{Position=UDim2.new(.5,0,0,100)}):Play()
++   end
++   local untilTime=os.clock()+3.5
++   repeat task.wait(.1) until os.clock()>=untilTime or not participating() or serial~=generation
++   if serial~=generation then return end
++   toast.Visible=false
++  end
++  if serial==generation then showing=false end
++ end)
++end
++local function forget(team)
++ local item=indicators[team] if not item then return end
++ item.highlight:Destroy() item.label:Destroy() indicators[team]=nil
++end
++local tick=0
++Run.Heartbeat:Connect(function(dt)
++ tick+=dt if tick<.15 then return end tick=0
++ local on=participating() hud.Enabled=on
++ local inRound=on and player:GetAttribute("InArena")==true and workspace:GetAttribute("RoundState")=="Playing"
++ local current=workspace:FindFirstChild("CTFInfrastructure")
++ local lines={}
++ for _,team in {"Blue","Red"} do
++  local base=current and current:FindFirstChild(team.."Base")local ref=base and base:FindFirstChild("FlagCarrier")
++  local carrier=ref and ref.Value local root=carrier and carrier:FindFirstChild("HumanoidRootPart")
++  local valid=inRound and base~=nil and base:GetAttribute("FlagState")=="carried" and root~=nil
++  local item=indicators[team]
++  if item and (not valid or item.character~=carrier) then forget(team) item=nil end
++  if valid then
++   local own=player.Team and player.Team.Name==team
++   if not item then
++    local highlight=Instance.new("Highlight") highlight.Name="CTFFlagCarrierHighlight" highlight.Adornee=carrier highlight.DepthMode=Enum.HighlightDepthMode.AlwaysOnTop
++    highlight.FillTransparency=.7 highlight.OutlineTransparency=0 highlight.FillColor=color(team) highlight.OutlineColor=own and Color3.fromRGB(255,230,100) or color(team) highlight.Parent=carrier
++    local label=Instance.new("BillboardGui") label.Name="CTFCarrierMarker" label.Adornee=root label.Size=UDim2.fromOffset(220,48)label.StudsOffsetWorldSpace=Vector3.new(0,5.5,0)label.AlwaysOnTop=true label.MaxDistance=1400 label.Parent=carrier
++    local text=Instance.new("TextLabel")text.Size=UDim2.fromScale(1,1)text.BackgroundColor3=Color3.fromRGB(12,19,28)text.BackgroundTransparency=.15 text.BorderSizePixel=0 text.TextColor3=color(team)text.Font=Enum.Font.GothamBold text.TextSize=14 text.TextWrapped=true text.Parent=label
++    Instance.new("UICorner",text).CornerRadius=UDim.new(0,6)
++    item={character=carrier,highlight=highlight,label=label,text=text} indicators[team]=item
++   end
++   local name=base:GetAttribute("FlagCarrierName") or carrier.Name
++   item.text.Text=name.."\nBANDEIRA "..string.upper(flagName(team))
++   if carrier==player.Character then
++    table.insert(lines,"LEVE À BASE: você está com a bandeira "..flagName(team).."!")
++   else
++    table.insert(lines,(own and "INTERCEPTE: " or "ESCOLTE: ")..name..(own and " está com a sua bandeira!" or " está com a bandeira "..flagName(team).."!"))
++   end
++  end
++ end
++ persistent.Visible=#lines>0 persistent.Text=table.concat(lines,"\n") persistent.Size=UDim2.new(.9,0,0,#lines>1 and 64 or 46)
++ if not on then
++  generation+=1 table.clear(queue) showing=false toast.Visible=false persistent.Visible=false
++ end
++end)
++task.spawn(function()
++ local remote=game.ReplicatedStorage:WaitForChild("Events"):WaitForChild("CTFFlagAlert")
++ remote.OnClientEvent:Connect(function(data)
++  if not participating() or typeof(data)~="table" or (data.team~="Blue" and data.team~="Red") then return end
++  local own=player.Team and player.Team.Name==data.team
++  local target=own and "a sua bandeira" or "a bandeira "..flagName(data.team)
++  local name=data.self and "Você" or tostring(data.carrier or "Jogador")
++  local message
++  if data.kind=="pickup" then message=data.self and ("Você está com "..target.."! Leve-a à sua base.") or (name.." está com "..target.."!")
++  elseif data.kind=="drop" then message=name.." deixou "..target.." cair!"
++  elseif data.kind=="return" then message=own and "Sua bandeira voltou à base!" or "A bandeira "..flagName(data.team).." voltou à base!"
++  elseif data.kind=="capture" then message=name.." capturou "..target.."!" end
++  if not message then return end
++  if #queue>=4 then table.remove(queue,1)end
++  table.insert(queue,{text=message,color=own and Color3.fromRGB(255,115,83) or color(data.team)}) playAlerts()
++ end)
++end)
+--- before/StarterPlayer\StarterPlayerScripts\JoinMenu.luau
++++ after/StarterPlayer\StarterPlayerScripts\JoinMenu.luau
+@@ -29,6 +29,7 @@
+ browser:Button("KitDetails","JoinSelected","Entrar com este kit",request)
+ browser:Button("KitDetails","StayLobby","Permanecer no lobby",stay)
+ local status=browser:Info("KitDetails","Status","",0) status.LayoutOrder=-1
++local rootStatus=browser:Info("RootPane","Status","Você entra automaticamente com seu kit atual. Use este menu para trocar de kit ou permanecer no lobby.",74) rootStatus.LayoutOrder=-1
+ local cards={}
+ local function select(id,notify)
+  selected=id local profile=Kits.Profiles[id]
+@@ -44,10 +45,10 @@
+  gui.Enabled=on browser:SetOpen(on) player:SetAttribute("CTFKitMenuOpen",on)
+ end
+ Nav:SetBack(browser.Panel,function() if #browser.Stack>1 then browser:Push({"RootPane"}) else stay() end end,keep)
+-joinResult.OnClientEvent:Connect(function(success,message) joining=false status.Text=message or "" status.Size=UDim2.new(1,-8,0,success and 0 or 62) if success then show(false) else browser:Push({"RootPane","Loadouts","KitDetails"}) end end)
++joinResult.OnClientEvent:Connect(function(success,message) joining=false status.Text=message or "" status.Size=UDim2.new(1,-8,0,success and 0 or 62) if success then show(false) else browser:Push({"RootPane","Loadouts","KitDetails"}) show(true) end end)
+ Router:Register("KitMenu",function(state) if state==Enum.UserInputState.Begin and not player:GetAttribute("InArena") and not player:GetAttribute("ExperienceMenuOpen") then show(not gui.Enabled) end end,{allowMenus=true})
+ game:GetService("ProximityPromptService").PromptTriggered:Connect(function(prompt) if prompt.Name=="KitPrompt" then browser:Push({"RootPane","Loadouts"}) show(true) end end)
+ player:GetAttributeChangedSignal("InArena"):Connect(function() if player:GetAttribute("InArena") then show(false) end end)
+-Scope.Changed:Connect(function() joining=false browser:Push({"RootPane"}) show(Scope:IsCTF()) end)
++Scope.Changed:Connect(function() joining=false browser:Push({"RootPane"}) show(false) end)
+ Nav.MenuRequested:Connect(function(id) if id=="CTFKits" and Scope:IsCTF() then browser:Push({"RootPane","Loadouts"}) show(true) elseif id=="Resume" or id=="Settings" or id=="Main" then show(false) end end)
+-select(selected,false) browser:Push({"RootPane"}) show(Scope:IsCTF())
++select(selected,false) browser:Push({"RootPane"}) show(false)

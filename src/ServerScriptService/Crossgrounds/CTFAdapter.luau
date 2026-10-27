@@ -34,6 +34,10 @@ end
 function Adapter:Enter(player)
  if not self:IsAvailable() then return false,"Protótipo CTF indisponível." end
  self.context:SetMode(player,"ctf") self.players:Spawn(player)
+ local ready,message=waitReady(player,self.context,"ctf")
+ if not ready then return false,message end
+ local joined,reason=self.players:Join(player,player:GetAttribute("SelectedKit") or "Regular")
+ if not joined then return false,reason end
  return waitReady(player,self.context,"ctf")
 end
 function Adapter:Leave(player)
@@ -53,4 +57,3 @@ function Adapter:Snapshot(player)
  return {id=self.id,version=self.version,state=phase,round=round,inMatch=player:GetAttribute("InMatch")==true,inArena=player:GetAttribute("InArena")==true,map=workspace:GetAttribute("CurrentMapId") or "riverside"}
 end
 return Adapter
-

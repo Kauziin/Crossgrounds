@@ -59,7 +59,7 @@ local function playAlerts()
   while #queue>0 and participating() and serial==generation do
    local item=table.remove(queue,1) toast.Text=item.text border.Color=item.color toast.Visible=true
    toast.BackgroundTransparency=.05 toast.TextTransparency=0
-   if not player:GetAttribute("SettingReducedMotion") then
+   if not player:GetAttribute("SettingReducedMenuMotion") then
     toast.Position=UDim2.new(.5,0,0,90)
     Tween:Create(toast,TweenInfo.new(.18,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{Position=UDim2.new(.5,0,0,100)}):Play()
    end
@@ -100,7 +100,11 @@ Run.Heartbeat:Connect(function(dt)
    end
    local name=base:GetAttribute("FlagCarrierName") or carrier.Name
    item.text.Text=name.."\nBANDEIRA "..string.upper(flagName(team))
-   table.insert(lines,(own and "INTERCEPTE: " or "ESCOLTE: ")..name..(own and " está com a sua bandeira!" or " está com a bandeira "..flagName(team).."!"))
+   if carrier==player.Character then
+    table.insert(lines,"LEVE À BASE: você está com a bandeira "..flagName(team).."!")
+   else
+    table.insert(lines,(own and "INTERCEPTE: " or "ESCOLTE: ")..name..(own and " está com a sua bandeira!" or " está com a bandeira "..flagName(team).."!"))
+   end
   end
  end
  persistent.Visible=#lines>0 persistent.Text=table.concat(lines,"\n") persistent.Size=UDim2.new(.9,0,0,#lines>1 and 64 or 46)

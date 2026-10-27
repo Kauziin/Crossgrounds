@@ -4,7 +4,7 @@ local combat={"ctf","arena"}
 local world={"ctf","arena","survivor","hacking","beast","waiting","hub","admin"}
 Policy.Contexts={
  Fire=combat,Aim=combat,Sprint=combat,Perspective=combat,SwitchWeapon=combat,ShiftLock=combat,Shoulder=combat,
- Jump=combat,ReloadInteract={"ctf","survivor","beast"},
+ Jump=combat,ReloadInteract={"ctf","arena","survivor","beast"},
  Menu={"ctf","arena","survivor","hacking","beast","waiting","hub","admin","menu"},
  KitMenu={"ctf"},VoteMenu={"ctf","arena"},Leave={"ctf","arena","survivor","hacking","beast","waiting"},
  AdminMode=world,AdminSpeedUp={"admin"},AdminSpeedDown={"admin"},AdminPreviousMap={"admin"},AdminNextMap={"admin"},AdminClean={"admin"},

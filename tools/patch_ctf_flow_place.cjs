@@ -60,7 +60,7 @@ if (process.argv.includes('--inspect')) {
  console.log(chunks.filter(c=>c.prop?.name==='Source').map(c=>({className:classes.get(c.prop.id).name,type:c.prop.type,instances:classes.get(c.prop.id).ids.length})));
  process.exit(0);
 }
-const files = ['ReplicatedFirst.CrossgroundsLoading', 'StarterPlayer.StarterPlayerScripts.CTFFlagLabels', 'StarterPlayer.StarterPlayerScripts.JoinMenu', 'ServerScriptService.Crossgrounds.CTFAdapter', 'ServerScriptService.Crossgrounds.SceneLoadService', 'ServerScriptService.MainGameScript.GameManager', 'ServerScriptService.MainGameScript.GameManager.FlagService', 'ServerScriptService.MainGameScript.GameManager.MapManager', 'ServerScriptService.MainGameScript.GameManager.PlayerManager'];
+const files = ['ReplicatedFirst.CrossgroundsLoading', 'StarterPlayer.StarterPlayerScripts.CTFFlagLabels', 'StarterPlayer.StarterPlayerScripts.JoinMenu', 'ServerScriptService.Crossgrounds.CTFAdapter', 'ServerScriptService.Crossgrounds.ProgressionBalance', 'ServerScriptService.Crossgrounds.ProgressionService', 'ServerScriptService.Crossgrounds.SceneLoadService', 'ServerScriptService.MainGameScript.GameManager', 'ServerScriptService.MainGameScript.GameManager.FlagService', 'ServerScriptService.MainGameScript.GameManager.MapManager', 'ServerScriptService.MainGameScript.GameManager.PlayerManager', 'ServerScriptService.MainGameScript.GameManager.SettingsService'];
 const pending=new Set(files), updated=[];
 for (const chunk of chunks) {
  if (chunk.prop?.name !== 'Source') continue;
@@ -99,4 +99,12 @@ if (homeOnly) {
   sha256:hash(fs.readFileSync(out)),sourceSHA256:hash(fs.readFileSync(path.join(root,'src/StarterPlayer/StarterPlayerScripts/HubController.luau')))
  },null,2));
 }
+fs.writeFileSync(path.join(root,'artifacts/ctf-flow-2026-10-27/build-manifest.json'),JSON.stringify({
+ input:'artifacts/ctf-flow-2026-10-27/before.rbxl',output:out,sources:updated,
+ headerPreserved:output.subarray(0,32).equals(input.subarray(0,32)),
+ totalChunks:chunks.length,preservedChunks:chunks.filter(c=>!c.modified).length,
+ changedChunks:chunks.filter(c=>c.modified).map(c=>({type:c.type,property:c.prop.name,className:classes.get(c.prop.id).name})),
+ inputSHA256:crypto.createHash('sha256').update(input).digest('hex'),
+ outputSHA256:crypto.createHash('sha256').update(output).digest('hex')
+},null,2));
 console.log(JSON.stringify({out,updated}));

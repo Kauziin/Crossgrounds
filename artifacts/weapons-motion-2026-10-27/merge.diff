@@ -1,0 +1,778 @@
+--- main/ReplicatedStorage\ControlDefinitions.luau
++++ merged/ReplicatedStorage\ControlDefinitions.luau
+@@ -1,6 +1,7 @@
+ local Policy=require(script.Parent:WaitForChild("ControlPolicy"))
++Policy.Contexts.Slide={"ctf","arena"}
+ local Controls={}
+-Controls.Order={"AdminSpeedUp","AdminSpeedDown","AdminPreviousMap","AdminNextMap","AdminClean","AdminMode","Sprint","Perspective","SwitchWeapon","ShiftLock","ReloadInteract","Shoulder","Fire","Aim","Jump","Menu","KitMenu","VoteMenu","Leave"}
++Controls.Order={"AdminSpeedUp","AdminSpeedDown","AdminPreviousMap","AdminNextMap","AdminClean","AdminMode","Slide","Sprint","Perspective","SwitchWeapon","ShiftLock","ReloadInteract","Shoulder","Fire","Aim","Jump","Menu","KitMenu","VoteMenu","Leave"}
+ Controls.Actions={
+  MenuPrevious={Label="Menu · categoria anterior",Keyboard="LeftBracket",Gamepad="ButtonL1"},
+  MenuNext={Label="Menu · próxima categoria",Keyboard="RightBracket",Gamepad="ButtonR1"},
+@@ -15,6 +16,7 @@
+  GetOutDrop={Label="Get Out · soltar vítima",Gamepad="ButtonR1",Keyboard="X"},
+  GetOutCheck={Label="Get Out · confirmar teste",Gamepad="ButtonA",Keyboard="Space"},
+  GetOutHacker={Label="Get Out · habilidade da Besta",Gamepad="ButtonY",Keyboard="Q"},
++ Slide={Label="Deslizar durante corrida",Gamepad="ButtonB",Keyboard="C"},
+  Sprint={Label="Alternar corrida",Gamepad="ButtonL3",Keyboard="LeftControl"},
+  Perspective={Label="Trocar câmera",Gamepad="ButtonR3",Keyboard="V"},
+  SwitchWeapon={Label="Trocar arma",Gamepad="ButtonY",Keyboard="G"},
+--- main/ReplicatedStorage\ControlPolicy.luau
++++ merged/ReplicatedStorage\ControlPolicy.luau
+@@ -4,7 +4,7 @@
+ local world={"ctf","arena","survivor","hacking","beast","waiting","hub","admin"}
+ Policy.Contexts={
+  Fire=combat,Aim=combat,Sprint=combat,Perspective=combat,SwitchWeapon=combat,ShiftLock=combat,Shoulder=combat,
+- Jump=combat,ReloadInteract={"ctf","survivor","beast"},
++ Jump=combat,ReloadInteract={"ctf","arena","survivor","beast"},
+  Menu={"ctf","arena","survivor","hacking","beast","waiting","hub","admin","menu"},
+  KitMenu={"ctf"},VoteMenu={"ctf","arena"},Leave={"ctf","arena","survivor","hacking","beast","waiting"},
+  AdminMode=world,AdminSpeedUp={"admin"},AdminSpeedDown={"admin"},AdminPreviousMap={"admin"},AdminNextMap={"admin"},AdminClean={"admin"},
+@@ -23,6 +23,7 @@
+  return s.mode
+ end
+ function Policy.Conflicts(a,b)
++ if a=="Slide" and b=="Leave" or a=="Leave" and b=="Slide" then return false end
+  local first,second=Policy.Contexts[a],Policy.Contexts[b]
+  if not first or not second then return true end
+  for _,context in first do if table.find(second,context) then return true end end
+@@ -30,6 +31,8 @@
+ end
+ function Policy.Available(action,s)
+  if s.suspended then return false,"suspended" end
++ if action=="Slide" and not s.sprinting then return false,"not-sprinting" end
++ if action=="Leave" and s.sprinting and (s.mode=="ctf" or s.mode=="arena") then return false,"sprinting" end
+  local context=Policy.Context(s)
+  if not table.find(Policy.Contexts[action] or {},context) then return false,"context:"..tostring(context) end
+  if action:match("^Admin") and not s.authorized then return false,"permission" end
+--- main/StarterPlayer\StarterPlayerScripts\AnalogMovement.luau
++++ merged/StarterPlayer\StarterPlayerScripts\AnalogMovement.luau
+@@ -5,6 +5,8 @@
+ local Mode=require(script.Parent:WaitForChild("InputMode"))
+ local Filter=require(game.ReplicatedStorage.Crossgrounds.AnalogFilter)
+ local Settings=require(game.ReplicatedStorage.ExperienceSettings)
++local Router=require(script.Parent:WaitForChild("ControlRouter"))
++local gate={}
+ local module=player:WaitForChild("PlayerScripts"):WaitForChild("PlayerModule")
+ local controls=require(module):GetControls() local gamepad=require(module:WaitForChild("ControlModule"):WaitForChild("Gamepad"))
+ local hooked=setmetatable({},{__mode="k"}) local focused=true
+@@ -14,13 +16,13 @@
+  local controller=controls.activeController if not controller or hooked[controller] then return end
+  local original=controller.GetMoveVector hooked[controller]=true
+  controller.GetMoveVector=function(self)
+-  if Mode:Get()~=Enum.PreferredInput.Gamepad then return original(self) end
+-  if not focused or Gui.MenuIsOpen or UIS:GetFocusedTextBox() or player:GetAttribute("GameMenuOpen") or player:GetAttribute("CrossgroundsTransition") then return Vector3.zero end
++  if Mode:Get()~=Enum.PreferredInput.Gamepad then table.clear(gate) return Vector3.zero end
++  if not focused or not Router:CanMove() then table.clear(gate) player:SetAttribute("FilteredLeftStick",Vector2.zero) return Vector3.zero end
+   local raw=Vector2.zero
+   local ok,state=pcall(function() return UIS:GetGamepadState(self.activeGamepad) end)
+   if ok then for _,input in state do if input.KeyCode==Enum.KeyCode.Thumbstick1 then raw=Vector2.new(input.Position.X,input.Position.Y) break end end end
+   local deadzone=player:GetAttribute("SettingLeftStickDeadzone") if deadzone==nil then deadzone=Settings.Rules.LeftStickDeadzone.Default end
+-  local clean=Filter.Radial(raw,deadzone)
++  local clean=Filter.Stick(gate,raw,deadzone)
+   player:SetAttribute("FilteredLeftStick",clean) player:SetAttribute("AnalogMovementAdapter",true)
+   return Vector3.new(clean.X,0,-clean.Y)
+  end
+--- main/StarterPlayer\StarterPlayerScripts\CombatLocomotionPose.luau
++++ merged/StarterPlayer\StarterPlayerScripts\CombatLocomotionPose.luau
+@@ -0,0 +1,56 @@
++-- Additive player pose after Animator. Existing bot pose and Get Out are independent.
++local Players=game:GetService("Players") local Run=game:GetService("RunService")
++local Motion=require(game.ReplicatedStorage.Crossgrounds.LocomotionMotion)
++local records=setmetatable({},{__mode="k"})
++local function reset(r)
++ for _,entry in r.joints do
++  if entry.joint.Parent and entry.applied and entry.joint.Transform==entry.applied then entry.joint.Transform=entry.base end
++  entry.applied=nil
++ end
++end
++Run.PreAnimation:Connect(function() for _,r in records do reset(r) end end)
++Run.PreSimulation:Connect(function(dt)
++ for _,p in Players:GetPlayers() do
++  local c=p.Character local h=c and c:FindFirstChildOfClass("Humanoid") local root=c and c:FindFirstChild("HumanoidRootPart")
++  local active=c and (p:GetAttribute("CrossgroundsMode")=="ctf" and p:GetAttribute("InMatch") or p:GetAttribute("CrossgroundsMode")=="arena" and p:GetAttribute("ArenaPlaying"))
++  local r=c and records[c]
++  if not active or not h or not root or h.Health<=0 or h.RigType~=Enum.HumanoidRigType.R15 or h.Sit then
++   if r then reset(r) records[c]=nil end
++  else
++   if not r then r={motion=Motion.new(),joints={},refresh=0} records[c]=r end
++   if os.clock()>=r.refresh then
++    reset(r) r.joints={} r.refresh=os.clock()+1
++    for _,name in {"LeftHip","RightHip","LeftKnee","RightKnee","LeftAnkle","RightAnkle","Waist"} do
++     local j=c:FindFirstChild(name,true)
++     if j and (j:IsA("Motor6D") or j:IsA("AnimationConstraint")) then r.joints[name]={joint=j} end
++    end
++   end
++   local v=root.CFrame:VectorToObjectSpace(root.AssemblyLinearVelocity)
++   local m=r.motion:Update(dt,v,h.FloorMaterial~=Enum.Material.Air,c:GetAttribute("SlideActive")==true)
++   local function apply(name,offset,replace)
++    local e=r.joints[name] if not e or not e.joint.Parent then return end
++    e.base=e.joint.Transform e.applied=replace and offset or e.base*offset e.joint.Transform=e.applied
++   end
++   if m.slide>.01 then
++    local w=m.slide
++    apply("Waist",CFrame.new(0,-.28*w,0)*CFrame.Angles(-.32*w,0,-.12*w))
++    apply("LeftHip",CFrame.Angles(-1.1*w,0,-.12*w),true)
++    apply("RightHip",CFrame.Angles(-.38*w,0,.22*w),true)
++    apply("LeftKnee",CFrame.Angles(.3*w,0,0),true) apply("RightKnee",CFrame.Angles(1.25*w,0,0),true)
++   elseif h.FloorMaterial==Enum.Material.Air then
++    local fall=v.Y<0
++    apply("LeftHip",CFrame.Angles(fall and -.15 or -.55,0,-.04))
++    apply("RightHip",CFrame.Angles(fall and .12 or .28,0,.04))
++    apply("LeftKnee",CFrame.Angles(fall and .22 or .5,0,0))
++   else
++    local stride=math.sin(m.phase)*m.weight
++    local side=m.side local backward=math.max(0,-m.forward)
++    -- Cardinal direction changes hips/feet, not just the facing of a forward run.
++    apply("LeftHip",CFrame.Angles(-stride*.18*backward,side*.28*m.weight,-stride*side*.30))
++    apply("RightHip",CFrame.Angles(stride*.18*backward,side*.28*m.weight,stride*side*.30))
++    apply("Waist",CFrame.new(0,-m.land*.18,0)*CFrame.Angles(m.land*.12,side*.10*m.weight,-side*.07*m.weight))
++    apply("LeftKnee",CFrame.Angles(m.land*.3,0,0)) apply("RightKnee",CFrame.Angles(m.land*.3,0,0))
++   end
++  end
++ end
++end)
+--- main/StarterPlayer\StarterPlayerScripts\CombatMovementController.luau
++++ merged/StarterPlayer\StarterPlayerScripts\CombatMovementController.luau
+@@ -0,0 +1,15 @@
++local Scope=require(script.Parent:WaitForChild("ModeScope"))
++if not Scope:HasCombatRuntime() then return end
++local Router=require(script.Parent:WaitForChild("ControlRouter"))
++local player=game.Players.LocalPlayer
++local remote=game.ReplicatedStorage:WaitForChild("Events"):WaitForChild("CombatSlide")
++Router:Register("Slide",function(state)
++ if state==Enum.UserInputState.Begin then remote:FireServer(not player:GetAttribute("SlideActive"))
++ elseif state==Enum.UserInputState.Cancel then remote:FireServer(false) end
++ return Enum.ContextActionResult.Sink
++end,{scope="combat"})
++local function cancel() if player:GetAttribute("SlideActive") then remote:FireServer(false) end end
++game:GetService("UserInputService").JumpRequest:Connect(cancel)
++game:GetService("UserInputService").WindowFocusReleased:Connect(cancel)
++Scope.Changed:Connect(cancel)
++if Router.ContextChanged then Router.ContextChanged:Connect(function() if Router:IsBlocked() then cancel() end end) end
+--- main/StarterPlayer\StarterPlayerScripts\CombatPresentation.luau
++++ merged/StarterPlayer\StarterPlayerScripts\CombatPresentation.luau
+@@ -16,7 +16,8 @@
+ local settingRemote=game.ReplicatedStorage.Events:WaitForChild("UpdateExperienceSetting")
+ local yaw,pitch=0,0
+ local stick=Vector2.zero
+-local keyStick=Vector2.zero
++local stickGate={}
++local touchDelta=Vector2.zero
+ local freePoint
+ local touchLook local touchPosition local lastTouchLook=0
+ local touchIntent=Vector2.zero local touchSampleAt=0
+@@ -46,6 +47,12 @@
+ local spring=require(game.ReplicatedStorage.Crossgrounds.WeaponRecoil).new()
+ local recoil,recoilPitch,roll=0,0,0
+ local swingAt=-100
++local ActionMotion=require(game.ReplicatedStorage.Crossgrounds.WeaponActionMotion)
++local Locomotion=require(game.ReplicatedStorage.Crossgrounds.LocomotionMotion)
++local locomotion=Locomotion.new()
++local equippedAt=0 local firedAt=-100 local adsWeight=0
++local poseRemote=game.ReplicatedStorage.Events:WaitForChild("CombatPose")
++local lastPoseAt=-100 local sentPitch=0 local sentAiming=false
+ local function setting(key)
+  local v=player:GetAttribute("Setting"..key)
+  if v==nil then return Settings.Rules[key].Default end return v
+@@ -190,7 +197,7 @@
+   Effects.FinishProjectile(message.actor,message.shotId,message.endpoint) return
+  end
+  local already=message.actor and message.shotId and remoteShots[message.actor]==message.shotId
+- if tool and tool.Parent and not already then Effects.Play(tool) Effects.PlaySound(tool) end
++ if tool and tool.Parent and not already then tool:SetAttribute("PresentationShotAt",workspace:GetServerTimeNow()) Effects.Play(tool) Effects.PlaySound(tool) end
+  if message.actor and message.shotId then remoteShots[message.actor]=message.shotId end
+  if message.phase=="launch" then
+   Effects.Projectile(message.actor,message.shotId,message.origin,message.direction,message)
+@@ -242,6 +249,8 @@
+ function Presentation:Kick(id)
+  local _,_,tool,data=current() if not tool or tool:GetAttribute("WeaponId")~=id then return end
+  if data.Kind=="Gun" then
++  firedAt=os.clock()
++  tool:SetAttribute("PresentationShotAt",workspace:GetServerTimeNow())
+   if firstPerson and renderer then renderer:Flash() end
+   local profile=data.VisualRecoil or {Push=.08,Roll=.4}
+   spring:Kick(profile,math.random()<.5 and -1 or 1)
+@@ -283,38 +292,38 @@
+  else delta*=.0026*setting("LookSensitivity")*ads end
+  yaw-=delta.X pitch=math.clamp(pitch-delta.Y,math.rad(-72),math.rad(72))
+ end
+-local directions={
+- [Enum.KeyCode.Thumbstick2Right]=Vector2.new(1,0),[Enum.KeyCode.Thumbstick2Left]=Vector2.new(-1,0),
+- [Enum.KeyCode.Thumbstick2Up]=Vector2.new(0,1),[Enum.KeyCode.Thumbstick2Down]=Vector2.new(0,-1)
+-}
+-UIS.InputBegan:Connect(function(input) if directions[input.KeyCode] then keyStick=directions[input.KeyCode] end end)
+-UIS.InputEnded:Connect(function(input) if directions[input.KeyCode] then keyStick=Vector2.zero end end)
++
++local function clearLook()
++ stick=Vector2.zero touchDelta=Vector2.zero touchIntent=Vector2.zero
++ touchLook=nil touchPosition=nil lastTouchLook=0 touchSampleAt=0
++ table.clear(stickGate) assistFriction=1 Assist:Reset()
++end
+ UIS.InputChanged:Connect(function(input,processed)
+- if input.KeyCode==Enum.KeyCode.Thumbstick2 then stick=Vector2.new(input.Position.X,input.Position.Y) return end
++ if input.KeyCode==Enum.KeyCode.Thumbstick2 then return end
+  if not owned or Presentation:IsBlocked() then return end
+  if input.UserInputType==Enum.UserInputType.MouseMovement and (locked or aiming) then turn(input.Delta.X,input.Delta.Y)
+  elseif input.UserInputType==Enum.UserInputType.Touch and touchLook==input then
+   local position=Vector2.new(input.Position.X,input.Position.Y)
+   local delta=touchPosition and position-touchPosition or Vector2.zero touchPosition=position
+-  if delta.Magnitude>.2 then lastTouchLook=os.clock() end
+-  turn(delta.X,delta.Y)
++  touchDelta+=delta
+  end
+ end)
+ UIS.TouchStarted:Connect(function(input,processed)
+- if not owned or Presentation:IsBlocked() then return end
++ if not owned or Presentation:IsBlocked() or touchLook then return end
+  local overFire=false
+  for _,object in player.PlayerGui:GetGuiObjectsAtPosition(input.Position.X,input.Position.Y) do
+   if object:GetAttribute("TouchLookSurface") then overFire=true break end
+  end
+  if processed and not overFire then return end
+- if input.Position.X>workspace.CurrentCamera.ViewportSize.X*.4 then touchLook=input touchPosition=Vector2.new(input.Position.X,input.Position.Y) end
++ if input.Position.X>workspace.CurrentCamera.ViewportSize.X*.4 then touchLook=input touchPosition=Vector2.new(input.Position.X,input.Position.Y) touchDelta=Vector2.zero touchIntent=Vector2.zero touchSampleAt=os.clock() end
+ end)
+-UIS.TouchEnded:Connect(function(input) if touchLook==input then touchLook=nil touchPosition=nil touchIntent=Vector2.zero end end)
++UIS.TouchEnded:Connect(function(input) if touchLook==input then clearLook() end end)
+ UIS.TouchTapInWorld:Connect(function(point,processed) if not processed and not locked then freePoint=point end end)
+-UIS.GamepadDisconnected:Connect(function() stick=Vector2.zero keyStick=Vector2.zero Assist:Reset() end)
+-UIS.WindowFocusReleased:Connect(function() stick=Vector2.zero keyStick=Vector2.zero aiming=false firing=false touchLook=nil end)
+-GuiService.MenuOpened:Connect(function() aiming=false firing=false touchLook=nil end)
+-InputMode.Changed:Connect(function() if owned then cursorMode() end end)
++UIS.GamepadDisconnected:Connect(clearLook)
++UIS.WindowFocusReleased:Connect(function() clearLook() aiming=false firing=false end)
++GuiService.MenuOpened:Connect(function() clearLook() aiming=false firing=false end)
++InputMode.Changed:Connect(function() clearLook() if owned then cursorMode() end end)
++player.CharacterRemoving:Connect(clearLook)
+ for _,key in {"ShiftLock","FirstPerson","Shoulder"} do
+  player:GetAttributeChangedSignal("Setting"..key):Connect(function()
+   if key=="ShiftLock" then locked=setting(key) cursorMode()
+@@ -343,10 +352,11 @@
+  end
+  locked,firstPerson=CameraPolicy.Resolve(Scope:Get(),data.Kind,setting("ShiftLock"),setting("FirstPerson"))
+  if tool~=currentTool then
+-  currentTool=tool removeViewmodel()
++  currentTool=tool equippedAt=os.clock() firedAt=-100 adsWeight=0 locomotion=Locomotion.new() removeViewmodel()
+   if owned then buildViewmodel(tool) end
+  end
+  if blocked then
++  clearLook()
+   motion:Reset() carry:Reset() previousYaw=nil assistFriction=1 Assist:Reset() player:SetAttribute("WeaponRunWeight",0) player:SetAttribute("CombatFiring",false) player:SetAttribute("CameraMotionPitch",0) player:SetAttribute("CameraMotionOffset",Vector3.zero) player:SetAttribute("CameraMotionRoll",0) if aimFrame then workspace.CurrentCamera.CFrame=aimFrame end
+   firing=false aiming=false
+   UIS.MouseBehavior=Enum.MouseBehavior.Default UIS.MouseIconEnabled=GuiService.MenuIsOpen or InputMode:Get()~=Enum.PreferredInput.Gamepad
+@@ -357,10 +367,22 @@
+  local dt=math.min(deltaTime,.04)
+  local camera=workspace.CurrentCamera local root=character.HumanoidRootPart
+  local input=InputMode:Get()
+- local movement=Analog.Look(keyStick.Magnitude>0 and keyStick or stick,setting("RightStickDeadzone"),setting("StickCurve"),setting("StickCurveStrength"))
++ 
++ -- Poll the selected physical controller. No synthesized direction can latch a turn.
++ stick=Vector2.zero
++ if input==Enum.PreferredInput.Gamepad then
++  local ok,inputs=pcall(function() return UIS:GetGamepadState(InputMode.ActiveGamepad) end)
++  if ok then for _,v in inputs do if v.KeyCode==Enum.KeyCode.Thumbstick2 then stick=Vector2.new(v.Position.X,v.Position.Y) break end end end
++ end
++ local clean=Analog.Stick(stickGate,stick,setting("RightStickDeadzone"))
++ local movement=setting("StickCurve")==1 and Analog.Dynamic(clean,setting("StickCurveStrength")) or clean
++ local pixels=touchDelta touchDelta=Vector2.zero
++ local touchRadians=input==Enum.PreferredInput.Touch and touchLook and Analog.TouchRadians(pixels,camera.ViewportSize.X,setting("LookSensitivity"),aiming and setting("AimSensitivity") or 1) or Vector2.zero
++ touchIntent=touchRadians.Magnitude>0 and Vector2.new(-touchRadians.X,-touchRadians.Y)/(math.max(deltaTime,.001)*2.4) or Vector2.zero
++ if touchIntent.Magnitude>1 then touchIntent=touchIntent.Unit end
+  local assisted local tracking=Vector2.zero
+  assistFriction=1
+- local lookIntent=input==Enum.PreferredInput.Gamepad and Vector2.new(-movement.X,movement.Y) or touchLook and os.clock()-lastTouchLook<.12 and touchIntent or Vector2.zero
++ local lookIntent=input==Enum.PreferredInput.Gamepad and Vector2.new(-movement.X,movement.Y) or touchIntent
+  assisted,assistFriction,tracking=Assist:Target(aimFrame or camera.CFrame,Presentation:GetAimViewport(),camera,data.Range,setting("AimAssist"),setting("AimAssistStrength"),data.Kind=="Gun",viewmodel,aiming,{
+   dt=deltaTime,look=lookIntent,strafe=humanoid.MoveDirection:Dot((aimFrame or camera.CFrame).RightVector),
+   slowdown=setting("AimAssistSlowdown"),tracking=setting("AimAssistTracking"),
+@@ -377,6 +399,10 @@
+    yaw-=movement.X*speed*dt pitch=math.clamp(pitch+movement.Y*speed*dt,-1.25,1.25)
+   end
+  end
++ 
++ if input==Enum.PreferredInput.Touch then
++  yaw-=touchRadians.X*assistFriction pitch=math.clamp(pitch-touchRadians.Y*assistFriction,-1.25,1.25)
++ end
+  if assisted and (locked or firstPerson) then
+   yaw+=tracking.X pitch=math.clamp(pitch+tracking.Y,-1.25,1.25)
+  end
+@@ -391,7 +417,12 @@
+   end
+  else protectionToken=nil end
+  local rotation=CFrame.fromEulerAnglesYXZ(pitch,yaw,0)
+- local focus=root.Position+Vector3.new(0,1.6,0)
++ 
++ local localMove=rotation:VectorToObjectSpace(root.AssemblyLinearVelocity)
++ local loco=locomotion:Update(dt,localMove,humanoid.FloorMaterial~=Enum.Material.Air,player:GetAttribute("SlideActive")==true)
++ player:SetAttribute("CombatMovementState",loco.state)
++ adsWeight+=((aiming and 1 or 0)-adsWeight)*(1-math.exp(-dt*18))
++ local focus=root.Position+Vector3.new(0,1.6+loco.cameraY,0)
+  local cameraPosition
+  if firstPerson then
+   cameraPosition=focus+Vector3.new(0,.12,0)
+@@ -401,7 +432,12 @@
+   local hit=workspace:Raycast(focus,desired-focus,params)
+   cameraPosition=hit and hit.Position+hit.Normal*.4 or desired
+  end
++ 
+  aimFrame=CFrame.new(cameraPosition)*rotation
++ character:SetAttribute("CombatAimPitch",pitch)
++ if os.clock()-lastPoseAt>=.10 and (math.abs(pitch-sentPitch)>.012 or aiming~=sentAiming or os.clock()-lastPoseAt>1) then
++  poseRemote:FireServer(pitch,aiming) lastPoseAt=os.clock() sentPitch=pitch sentAiming=aiming
++ end
+  local localVelocity=rotation:VectorToObjectSpace(root.AssemblyLinearVelocity)
+  local turnRate=previousYaw and math.clamp((yaw-previousYaw)/math.max(dt,.001),-4,4) or 0 previousYaw=yaw
+  local bob,lean,nod=motion:Update(dt,localVelocity,humanoid.FloorMaterial~=Enum.Material.Air,player:GetAttribute("SprintActive")==true,aiming,setting("CameraMotion"),turnRate)
+@@ -423,8 +459,11 @@
+  local recoilProfile=data.VisualRecoil or {}
+  recoil,recoilPitch,roll=spring:Update(deltaTime,recoilProfile)
+  if firstPerson and renderer then
+-  local swing=data.Kind~="Gun" and math.clamp((os.clock()-swingAt)/.42,0,1) or 1
+-  renderer:Render(deltaTime,camera,character,{runPose=runPose,runWeight=runWeight,runPhase=runPhase,recoil=recoil,pitch=recoilPitch,roll=roll,arc=swing<1 and math.sin(swing*math.pi) or 0})
++  
++  local arc=data.Kind~="Gun" and ActionMotion.Melee(os.clock()-swingAt,data) or 0
++  local action=ActionMotion.Sample({equippedFor=os.clock()-equippedAt,ads=adsWeight,slide=loco.slide,land=loco.land,vertical=localMove.Y,firedAgo=os.clock()-firedAt})
++  action.weapon=loco.weapon*action.weapon
++  renderer:Render(deltaTime,camera,character,{runPose=runPose,runWeight=runWeight,runPhase=runPhase,recoil=recoil,pitch=recoilPitch,roll=roll,arc=arc,action=action})
+  elseif renderer then renderer:SetVisible(false) end
+  player:SetAttribute("CombatCameraActive",true) player:SetAttribute("CameraLocked",locked) player:SetAttribute("FirstPerson",firstPerson) player:SetAttribute("CameraShoulder",shoulder) player:SetAttribute("CombatAiming",aiming) player:SetAttribute("UsingXboxCursor",false)
+  player:SetAttribute("VisualWeaponRecoil",recoil) player:SetAttribute("VisualWeaponPitch",recoilPitch)
+--- main/StarterPlayer\StarterPlayerScripts\ControlRouter.luau
++++ merged/StarterPlayer\StarterPlayerScripts\ControlRouter.luau
+@@ -30,7 +30,7 @@
+    (join and join.Enabled or hud and hud.Enabled and hud:FindFirstChild("LeaveShade") and hud.LeaveShade.Visible)
+  for _,provider in customContexts do if provider() then modal=true end end
+  local h=p.Character and p.Character:FindFirstChildOfClass("Humanoid")
+- return {mode=Scope:Get(),modal=modal==true,settingsMenu=p:GetAttribute("ExperienceMenuOpen")==true,
++ return {mode=Scope:Get(),sprinting=p:GetAttribute("SprintActive")==true,modal=modal==true,settingsMenu=p:GetAttribute("ExperienceMenuOpen")==true,
+   suspended=not focused or capture~=nil or p:GetAttribute("ClientLoading")==true or p:GetAttribute("CrossgroundsTransition")==true or Gui.MenuIsOpen or UIS:GetFocusedTextBox()~=nil,
+   admin=p:GetAttribute("AdminFreecam")==true,authorized=p:GetAttribute("CrossgroundsAdmin")==true,
+   inMatch=p:GetAttribute("InMatch")==true,arenaPlaying=p:GetAttribute("ArenaPlaying")==true,
+@@ -65,7 +65,7 @@
+  local scope=registered.scope
+  if scope=="admin" and not s.admin or scope=="get_out" and s.mode~="get_out"
+   or scope=="ctf" and s.mode~="ctf" or scope=="combat" and not Scope:IsCombat()
+-  or scope=="interaction" and not Scope:IsInteractive() then return false end
++  or scope=="interaction" and not Scope:IsInteractive() and not (action=="ReloadInteract" and Scope:IsArena()) then return false end
+  if registered.enabled and not registered.enabled(s) then return false end
+  return true
+ end
+--- main/StarterPlayer\StarterPlayerScripts\FirstPersonRenderer.luau
++++ merged/StarterPlayer\StarterPlayerScripts\FirstPersonRenderer.luau
+@@ -39,7 +39,11 @@
+   local arm=part(side.." Arm",Vector3.new(.43,1.5,.46),color)
+   -- Classic shirt is applied by the R6-named parts; source meshes are intentionally absent.
+   local grip=handle:FindFirstChild(side=="Right" and "RightHandGrip" or "SupportGrip")
+-  if grip then table.insert(self.arms,{part=arm,side=side,hand=grip.Position}) else arm.Transparency=1 end
++  
++  if grip then
++   local forearm=part(side.."Forearm",Vector3.new(.39,.7,.42),color)
++   table.insert(self.arms,{part=arm,forearm=forearm,side=side,hand=grip.Position})
++  else arm.Transparency=1 end
+  end
+  local flash=Instance.new("Part") flash.Name="MuzzleFlash" flash.Size=Vector3.new(.18,.18,.55) flash.Color=Color3.fromRGB(255,222,123) flash.Material=Enum.Material.Neon flash.Transparency=1 safePart(flash) flash.Parent=model self.flash=flash
+  return self
+@@ -66,19 +70,25 @@
+  local lower=pistol and -.65 or gun and -.85 or -1.1
+  local base=CFrame.new(pistol and .55 or .65,lower,pistol and -1.7 or -2.1)
+  local arc=params.arc or 0
+- local cf=base*(params.runPose or CFrame.new())*reload.weapon*CFrame.new(-arc*.7,self.wall*.12-arc*.35,self.wall*.45+(params.recoil or 0))*CFrame.Angles(math.rad((params.pitch or 0)+self.wall*55-arc*65),0,math.rad((params.roll or 0)-arc*55))
++ local action=params.action or {weapon=CFrame.new(),slide=CFrame.new(),support=Vector3.zero}
++ local cf=base*action.weapon*(params.runPose or CFrame.new())*reload.weapon*CFrame.new(-arc*.7,self.wall*.12-arc*.35,self.wall*.45+(params.recoil or 0))*CFrame.Angles(math.rad((params.pitch or 0)+self.wall*55-arc*65),0,math.rad((params.roll or 0)-arc*55))
+  for _,entry in self.parts do
+-  local transform=entry.group=="Magazine" and reload.magazine or entry.group=="Cylinder" and reload.cylinder or entry.group=="Slide" and reload.slide or entry.group=="Toggle" and reload.toggle or entry.group=="BreakAction" and reload.breakAction or entry.group=="Shell" and reload.breakAction*reload.shell or entry.group=="TubeShell" and reload.tubeShell or CFrame.new()
++  local transform=entry.group=="Magazine" and reload.magazine or entry.group=="Cylinder" and reload.cylinder or entry.group=="Slide" and reload.slide*action.slide or entry.group=="Toggle" and reload.toggle or entry.group=="BreakAction" and reload.breakAction or entry.group=="Shell" and reload.breakAction*reload.shell or entry.group=="TubeShell" and reload.tubeShell or CFrame.new()
+   entry.part.CFrame=cf*transform*entry.rest
+   if entry.reloadOnly then entry.part.Transparency=reload.active>.02 and 0 or 1 end
+  end
+  for _,arm in self.arms do
+   local side=arm.side=="Right" and 1 or -1
+-  local hand=arm.hand+(side<0 and reload.hand or Vector3.zero)
++  local hand=arm.hand+(side<0 and reload.hand+(action.support or Vector3.zero) or Vector3.zero)
+   local elbow=Vector3.new(side*(.9+(.18+.36*math.sin(params.runPhase or 0))*(params.runWeight or 0)),-.65,1.25)
+-  local a=cf:PointToWorldSpace(hand) local b=cf:PointToWorldSpace(elbow*self.scale)
+-  arm.part.Size=Vector3.new(.43,(a-b).Magnitude,.46)
+-  arm.part.CFrame=CFrame.lookAt((a+b)*.5,a)*CFrame.Angles(math.pi/2,0,0)
++  
++  local a=cf:PointToWorldSpace(hand) local shoulder=Vector3.new(side*.78,-1.18,.25)
++  local b=cf:PointToWorldSpace(elbow*self.scale)
++  b=b:Lerp((a+shoulder)*.5,.32)
++  arm.forearm.Size=Vector3.new(.39,math.max(.05,(a-b).Magnitude),.42)
++  arm.forearm.CFrame=CFrame.lookAt((a+b)*.5,a)*CFrame.Angles(math.pi/2,0,0)
++  arm.part.Size=Vector3.new(.43,math.max(.05,(b-shoulder).Magnitude),.46)
++  arm.part.CFrame=CFrame.lookAt((b+shoulder)*.5,b)*CFrame.Angles(math.pi/2,0,0)
+  end
+  local muzzle=self.handle:FindFirstChild("Muzzle")
+  if muzzle then
+--- main/StarterPlayer\StarterPlayerScripts\InputMode.luau
++++ merged/StarterPlayer\StarterPlayerScripts\InputMode.luau
+@@ -1,32 +1,44 @@
++-- Only deliberate input selects a device. Neutral stick noise is not intent.
+ local InputMode={}
+ local UIS=game:GetService("UserInputService")
+ local player=game.Players.LocalPlayer
+-local changed=Instance.new("BindableEvent")
+-InputMode.Changed=changed.Event
++local changed=Instance.new("BindableEvent") InputMode.Changed=changed.Event
+ local mode=UIS.PreferredInput
+-if UIS.GamepadEnabled and not UIS.MouseEnabled then mode=Enum.PreferredInput.Gamepad end
+-local lastGamepad=0
++local lastGamepad=-100
++InputMode.ActiveGamepad=Enum.UserInputType.Gamepad1
+ local function set(value)
+  if value~=mode then mode=value player:SetAttribute("ActiveInput",value.Name) changed:Fire(value) end
+ end
+ local function observe(input)
+- local key=input.KeyCode.Name local kind=input.UserInputType
+- if kind.Name:match("^Gamepad") or key:match("^Button") or key:match("^DPad") or key:match("^Thumbstick") then lastGamepad=os.clock() set(Enum.PreferredInput.Gamepad)
+- elseif kind==Enum.UserInputType.Touch then set(Enum.PreferredInput.Touch)
+- elseif kind==Enum.UserInputType.Keyboard then set(Enum.PreferredInput.KeyboardAndMouse)
+- elseif kind==Enum.UserInputType.MouseButton1 or kind==Enum.UserInputType.MouseButton2 then set(Enum.PreferredInput.KeyboardAndMouse)
++ local key=input.KeyCode local kind=input.UserInputType
++ if kind.Name:match("^Gamepad") then
++  if key==Enum.KeyCode.Thumbstick1 or key==Enum.KeyCode.Thumbstick2 then
++   local dz=player:GetAttribute(key==Enum.KeyCode.Thumbstick1 and "SettingLeftStickDeadzone" or "SettingRightStickDeadzone") or .1
++   if Vector2.new(input.Position.X,input.Position.Y).Magnitude<=math.max(.12,dz+.02) then return end
++  elseif input.UserInputState~=Enum.UserInputState.Begin then return end
++  lastGamepad=os.clock() InputMode.ActiveGamepad=kind set(Enum.PreferredInput.Gamepad)
++ elseif kind==Enum.UserInputType.Touch then
++  if input.UserInputState==Enum.UserInputState.Begin then set(Enum.PreferredInput.Touch) end
++ elseif kind==Enum.UserInputType.Keyboard then
++  -- Thumbstick2Left/Right are synthesized digital directions, not keyboard input.
++  if not key.Name:match("^Thumbstick") and input.UserInputState==Enum.UserInputState.Begin then set(Enum.PreferredInput.KeyboardAndMouse) end
++ elseif kind==Enum.UserInputType.MouseButton1 or kind==Enum.UserInputType.MouseButton2 then
++  if input.UserInputState==Enum.UserInputState.Begin then set(Enum.PreferredInput.KeyboardAndMouse) end
+  elseif kind==Enum.UserInputType.MouseMovement then
+   local p=UIS:GetMouseLocation()
+   if input.Delta.Magnitude>1 and p.X>=0 and p.Y>=0 then set(Enum.PreferredInput.KeyboardAndMouse) end
+  end
+ end
+-UIS.InputBegan:Connect(observe)
+-UIS.InputChanged:Connect(observe)
++UIS.InputBegan:Connect(observe) UIS.InputChanged:Connect(observe)
+ UIS:GetPropertyChangedSignal("PreferredInput"):Connect(function()
+  local value=UIS.PreferredInput
+- local point=UIS:GetMouseLocation()
+- if value==Enum.PreferredInput.KeyboardAndMouse and (point.X<0 or point.Y<0 or os.clock()-lastGamepad<.4) then return end
+- set(value)
++ -- PreferredInput also reacts to noise; deliberate events above own device changes.
++ if value==Enum.PreferredInput.Gamepad and os.clock()-lastGamepad>.3 then return end
++ if value==Enum.PreferredInput.KeyboardAndMouse then
++  local point=UIS:GetMouseLocation()
++  if point.X<0 or point.Y<0 or os.clock()-lastGamepad<.4 then return end
++ end
++ if value~=Enum.PreferredInput.Touch then set(value) end
+ end)
+ function InputMode:Get() return mode end
+ player:SetAttribute("ActiveInput",mode.Name)
+--- main/StarterPlayer\StarterPlayerScripts\SprintController.luau
++++ merged/StarterPlayer\StarterPlayerScripts\SprintController.luau
+@@ -9,6 +9,7 @@
+  if Router:IsBlocked() then held=false bufferedUntil=0 return end
+  local h=player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+  if not h or h.Health<=0 or not h:GetStateEnabled(Enum.HumanoidStateType.Jumping) then return end
++ if player:GetAttribute("SlideActive") then game.ReplicatedStorage.Events.CombatSlide:FireServer(false) end
+  h.Jump=true
+  local state=h:GetState()
+  if h.FloorMaterial~=Enum.Material.Air and state~=Enum.HumanoidStateType.Jumping and state~=Enum.HumanoidStateType.Seated then
+--- main/StarterPlayer\StarterPlayerScripts\TouchActionIcons.luau
++++ merged/StarterPlayer\StarterPlayerScripts\TouchActionIcons.luau
+@@ -17,6 +17,8 @@
+   rect(12,12,action=="Aim" and 17 or 12,action=="Aim" and 17 or 12,12,true) rect(12,12,3,3,2)
+   if action=="Fire" then line(12,1,12,6) line(12,18,12,23) line(1,12,6,12) line(18,12,23,12) end
+  elseif action=="Jump" then line(12,21,12,3) line(5,10,12,3) line(19,10,12,3) line(5,22,19,22)
++ elseif action=="Slide" then
++  rect(8,5,5,5,5) line(8,9,13,13) line(13,13,21,14) line(12,13,7,18) line(7,18,2,18) line(5,22,23,22)
+  elseif action=="Sprint" then arrow(11,12,1) arrow(20,12,1)
+  elseif action=="SwitchWeapon" then line(3,7,21,7) arrow(21,7,1) line(21,17,3,17) arrow(3,17,-1)
+  elseif action=="ReloadInteract" then
+--- main/StarterPlayer\StarterPlayerScripts\WeaponPose.luau
++++ merged/StarterPlayer\StarterPlayerScripts\WeaponPose.luau
+@@ -1,6 +1,9 @@
+ -- Evaluate every visible R15 wielder locally, after animation evaluation.
+ local Pose=require(game.ReplicatedStorage:WaitForChild("Crossgrounds"):WaitForChild("ArmPose"))
+ local Carry=require(game.ReplicatedStorage.Crossgrounds.WeaponLocomotion)
++local Action=require(game.ReplicatedStorage.Crossgrounds.WeaponActionMotion)
++local Reload=require(game.ReplicatedStorage.Crossgrounds.WeaponReloadMotion)
++local Locomotion=require(game.ReplicatedStorage.Crossgrounds.LocomotionMotion)
+ local Players=game:GetService("Players")
+ local Run=game:GetService("RunService")
+ local active={} local pending={} local necks={} local gait=setmetatable({},{__mode="k"})
+@@ -12,7 +15,7 @@
+   pending[tool]=nil local c=tool.Parent local h=c and c:FindFirstChildOfClass("Humanoid")
+   local handle=tool:FindFirstChild("Handle") if not h or not handle or h.RigType~=Enum.HumanoidRigType.R15 then return end
+   local left=Pose.Chain(c,"Left") local right=handle:FindFirstChild("RightHandGrip") and Pose.Chain(c,"Right") or nil
+-  active[tool]={character=c,humanoid=h,carry=Carry.new(),player=Players:GetPlayerFromCharacter(c),left=left,right=right,support=handle:FindFirstChild("SupportGrip"),grip=handle:FindFirstChild("RightHandGrip")}
++  active[tool]={character=c,humanoid=h,carry=Carry.new(),equippedAt=os.clock(),locomotion=Locomotion.new(),kick=0,player=Players:GetPlayerFromCharacter(c),left=left,right=right,support=handle:FindFirstChild("SupportGrip"),grip=handle:FindFirstChild("RightHandGrip")}
+  end)
+ end
+ local function added(value)
+@@ -62,7 +65,7 @@
+    end
+    local torso=r.character:FindFirstChild("UpperTorso") local root=r.character:FindFirstChild("HumanoidRootPart")
+    local mount=torso and torso:FindFirstChild("CrossgroundsWeaponMount") r.mount=mount
+-   local desired
++   local desired local reload
+    if mount and mount.Part1==tool.Handle and root then
+     local velocity=root.CFrame:VectorToObjectSpace(root.AssemblyLinearVelocity)
+     local amount=r.player and r.player:GetAttribute("SettingCameraMotion") if amount==nil then amount=.35 end
+@@ -70,10 +73,21 @@
+     local aiming=r.player and r.player:GetAttribute("CombatAiming")==true
+     local firing=r.player and r.player:GetAttribute("CombatFiring")==true
+     local pose=r.carry:Update(dt,velocity,r.humanoid.FloorMaterial~=Enum.Material.Air,running,aiming,firing or tool:GetAttribute("Reloading") or tool:GetAttribute("Attacking"),amount)
++    
++    local now=workspace:GetServerTimeNow()
++    local duration=math.max(.1,tool:GetAttribute("ReloadDuration") or 1)
++    local t=tool:GetAttribute("Reloading") and math.clamp((now-(tool:GetAttribute("ReloadStartedAt") or now))/duration,0,1) or 0
++    reload=Reload.Sample(t,tool:GetAttribute("CosmeticId") or tool:GetAttribute("WeaponId"))
++    local loco=r.locomotion:Update(dt,velocity,r.humanoid.FloorMaterial~=Enum.Material.Air,r.character:GetAttribute("SlideActive")==true)
++    local action=Action.Sample({equippedFor=os.clock()-r.equippedAt,slide=loco.slide,land=loco.land})
++    local shot=tool:GetAttribute("PresentationShotAt") or -100
++    local kick=math.exp(-math.max(0,now-shot)*22)
++    local pitch=r.character:GetAttribute("CombatAimPitch") or 0
++    pose=CFrame.Angles(math.clamp(pitch,-1.15,1.15)*.8,0,0)*pose*action.weapon*reload.weapon*CFrame.new(0,0,kick*.10)*CFrame.Angles(kick*.04,0,0)
+     mount.Transform=pose desired=torso.CFrame*mount.C0*pose*mount.C1:Inverse()
+    end
+    if r.right and r.grip and r.grip.Parent then Pose.Solve(r.right,r.grip,desired and desired*r.grip.CFrame) end
+-   if r.left and r.support and r.support.Parent then Pose.Solve(r.left,r.support,desired and desired*r.support.CFrame) end
++   if r.left and r.support and r.support.Parent then Pose.Solve(r.left,r.support,desired and desired*CFrame.new(reload and reload.hand or Vector3.zero)*r.support.CFrame) end
+   end
+  end
+ end)
+--- main/ServerScriptService\Crossgrounds\CombatMovementService.luau
++++ merged/ServerScriptService\Crossgrounds\CombatMovementService.luau
+@@ -0,0 +1,94 @@
++-- The server owns slide eligibility, duration, obstruction and cleanup.
++local Service={}
++local Players=game:GetService("Players")
++local Run=game:GetService("RunService")
++local Rules=require(game.ReplicatedStorage.Crossgrounds.CombatMovement)
++local active={} local last={} local requests={} local started=false
++local poseRequests={}
++local function playing(p)
++ local mode=p:GetAttribute("CrossgroundsMode")
++ return mode=="ctf" and p:GetAttribute("InMatch")==true or mode=="arena" and p:GetAttribute("ArenaPlaying")==true
++end
++local function blocked(p)
++ return p:GetAttribute("CrossgroundsTransition") or p:GetAttribute("AdminFreecam")
++  or p:GetAttribute("GameMenuOpen") or p:GetAttribute("ExperienceMenuOpen")
++  or p:GetAttribute("ArenaVotingOpen") or p:GetAttribute("SpectatingEliminator")
++end
++function Service:Stop(p,reason)
++ local s=active[p] if not s then return end active[p]=nil
++ s.velocity:Destroy() s.attachment:Destroy()
++ if s.root.Parent then pcall(function() s.root:SetNetworkOwnershipAuto() end) end
++ if p.Character==s.character and s.humanoid.Parent and s.humanoid.Health>0 and playing(p) then
++  s.humanoid.WalkSpeed=p:GetAttribute("SprintActive") and (p:GetAttribute("KitSprintSpeed") or 25) or (p:GetAttribute("KitWalkSpeed") or 18)
++ end
++ p:SetAttribute("SlideActive",false) p:SetAttribute("SlideExitReason",reason or "complete")
++ if s.character.Parent then s.character:SetAttribute("SlideActive",false) end
++end
++function Service:Request(p,on)
++ if on==false then self:Stop(p,"cancelled") return false end
++ local now=os.clock()
++ if now-(requests[p] or -100)<.12 then return false end requests[p]=now
++ if active[p] then return false end
++ local c=p.Character local h=c and c:FindFirstChildOfClass("Humanoid") local root=c and c:FindFirstChild("HumanoidRootPart")
++ if not h or not root then return false end
++ local flat=Vector3.new(root.AssemblyLinearVelocity.X,0,root.AssemblyLinearVelocity.Z)
++ if not Rules.CanSlide({mode=p:GetAttribute("CrossgroundsMode"),playing=playing(p),alive=h.Health>0,
++  grounded=h.FloorMaterial~=Enum.Material.Air and h:GetState()~=Enum.HumanoidStateType.Jumping,
++  sprinting=p:GetAttribute("SprintActive"),blocked=blocked(p) or h.Sit or root.Anchored,
++  speed=flat.Magnitude,cooldown=Rules.Cooldown-(now-(last[p] or -100))}) then return false end
++ local direction=flat.Unit
++ local attachment=Instance.new("Attachment") attachment.Name="CombatSlideAttachment" attachment.Parent=root
++ local velocity=Instance.new("LinearVelocity") velocity.Name="CombatSlideVelocity"
++ velocity.Attachment0=attachment velocity.RelativeTo=Enum.ActuatorRelativeTo.World
++ velocity.VelocityConstraintMode=Enum.VelocityConstraintMode.Plane
++ velocity.PrimaryTangentAxis=Vector3.xAxis velocity.SecondaryTangentAxis=Vector3.zAxis
++ velocity.ForceLimitsEnabled=true velocity.MaxForce=root.AssemblyMass*900
++ local initial=math.min(flat.Magnitude,p:GetAttribute("KitSprintSpeed") or 25)
++ velocity.PlaneVelocity=Vector2.new(direction.X,direction.Z)*initial velocity.Parent=root
++ pcall(function() root:SetNetworkOwner(nil) end)
++ active[p]={character=c,humanoid=h,root=root,attachment=attachment,velocity=velocity,
++  start=now,initial=initial,direction=direction,tool=c:FindFirstChildOfClass("Tool"),mode=p:GetAttribute("CrossgroundsMode")}
++ last[p]=now h.WalkSpeed=0
++ p:SetAttribute("SlideActive",true) p:SetAttribute("SlideStartedAt",workspace:GetServerTimeNow())
++ c:SetAttribute("SlideActive",true) c:SetAttribute("SlideStartedAt",workspace:GetServerTimeNow())
++ c:SetAttribute("SlideDirection",direction)
++ return true
++end
++function Service:Start()
++ if started then return end started=true
++ local events=game.ReplicatedStorage:WaitForChild("Events")
++ local remote=events:FindFirstChild("CombatSlide") or Instance.new("RemoteEvent") remote.Name="CombatSlide" remote.Parent=events
++ remote.OnServerEvent:Connect(function(p,on) if typeof(on)=="boolean" then self:Request(p,on) end end)
++ local pose=events:FindFirstChild("CombatPose") or Instance.new("RemoteEvent") pose.Name="CombatPose" pose.Parent=events
++ pose.OnServerEvent:Connect(function(p,pitch,aiming)
++  if typeof(pitch)~="number" or pitch~=pitch or math.abs(pitch)>1.3 or typeof(aiming)~="boolean" then return end
++  if os.clock()-(poseRequests[p] or -100)<.075 then return end poseRequests[p]=os.clock()
++  local c=p.Character local h=c and c:FindFirstChildOfClass("Humanoid")
++  if not playing(p) or blocked(p) or not h or h.Health<=0 or not c:FindFirstChildOfClass("Tool") then return end
++  c:SetAttribute("CombatAimPitch",pitch) p:SetAttribute("CombatAiming",aiming)
++ end)
++ Run.Heartbeat:Connect(function(dt)
++  for p,s in active do
++   local h,root=s.humanoid,s.root local elapsed=os.clock()-s.start
++   local reason
++   if p.Character~=s.character or not root.Parent or not h.Parent or h.Health<=0 then reason="character"
++   elseif not playing(p) or p:GetAttribute("CrossgroundsMode")~=s.mode or blocked(p) then reason="context"
++   elseif h.Sit or root.Anchored then reason="state"
++   elseif s.character:FindFirstChildOfClass("Tool")~=s.tool then reason="weapon"
++   elseif h:GetState()==Enum.HumanoidStateType.Jumping or h.FloorMaterial==Enum.Material.Air then reason="airborne"
++   elseif elapsed>=Rules.Duration then reason="complete"
++   else
++    local params=RaycastParams.new() params.FilterType=Enum.RaycastFilterType.Exclude params.FilterDescendantsInstances={s.character} params.RespectCanCollide=true
++    local distance=math.max(1.5,Rules.Speed(s.initial,elapsed)*math.min(dt,.05)+1)
++    local hit=workspace:Blockcast(root.CFrame,Vector3.new(1.4,1.6,1.2),s.direction*distance,params)
++    if hit and hit.Normal:Dot(s.direction)<-.35 then reason="obstructed" end
++   end
++   if reason then self:Stop(p,reason)
++   else
++    h.WalkSpeed=0 s.velocity.PlaneVelocity=Vector2.new(s.direction.X,s.direction.Z)*Rules.Speed(s.initial,elapsed)
++   end
++  end
++ end)
++ Players.PlayerRemoving:Connect(function(p) self:Stop(p,"removed") last[p]=nil requests[p]=nil poseRequests[p]=nil end)
++end
++return Service
+--- main/ServerScriptService\Crossgrounds\HubBootstrap.luau
++++ merged/ServerScriptService\Crossgrounds\HubBootstrap.luau
+@@ -44,6 +44,7 @@
+   local getOut=require(script.Parent.GetOutAdapter).new(context,config)
+   coordinator:Register(getOut) getOut:Start(ctfAdapter and ctfAdapter.players)
+  end
++ require(script.Parent.CombatMovementService):Start()
+  require(script.Parent.SpawnProtectionService):Start()
+  require(script.Parent.ComfortLighting):Start()
+  coordinator:Start()
+--- main/ReplicatedStorage\Crossgrounds\AimAssist.luau
++++ merged/ReplicatedStorage\Crossgrounds\AimAssist.luau
+@@ -86,14 +86,15 @@
+  local a,b=angles(before),angles(after)
+  local velocity=Vector2.new(wrap(b.X-a.X),b.Y-a.Y)/dt
+  if velocity.Magnitude<.0001 then state.velocity=Vector2.zero return state.friction,Vector2.zero end
+- state.velocity=state.velocity:Lerp(velocity,1-math.exp(-dt/.065))
++ 
++ if state.velocity:Dot(velocity)<0 then state.velocity=velocity
++ else state.velocity=state.velocity:Lerp(velocity,1-math.exp(-dt/.065)) end
+  if state.velocity.Magnitude<.0001 then return state.friction,Vector2.zero end
+  local gate=0
+  if magnitude>.025 then
+   local alignment=math.max(0,input.Unit:Dot(state.velocity.Unit))
+   gate=alignment*smooth(.025,.15,magnitude)
+- elseif context.device=="gamepad" then
+-  gate=.14*smooth(.15,.75,math.abs(context.strafe or 0))
++
+  end
+  if state.age<Assist.Tuning.Reaction then return state.friction,Vector2.zero end
+  local ramp=smooth(Assist.Tuning.Reaction,Assist.Tuning.Reaction+Assist.Tuning.Ramp,state.age)
+@@ -101,6 +102,10 @@
+  local delta=state.velocity*dt*gain
+  local yawLimit=math.rad(Assist.Tuning.MaxYawRate)*strength*trackingRange*dt
+  local pitchLimit=math.rad(Assist.Tuning.MaxPitchRate)*strength*trackingRange*dt
+- return state.friction,Vector2.new(math.clamp(delta.X,-yawLimit,yawLimit),math.clamp(delta.Y*.35,-pitchLimit,pitchLimit))
++ 
++ -- Each axis yields immediately when the user lets go or looks the other way.
++ local x=math.abs(input.X)>.025 and input.X*delta.X>0 and math.clamp(delta.X,-yawLimit,yawLimit) or 0
++ local y=math.abs(input.Y)>.025 and input.Y*delta.Y>0 and math.clamp(delta.Y*.35,-pitchLimit,pitchLimit) or 0
++ return state.friction,Vector2.new(x,y)
+ end
+ return Assist
+--- main/ReplicatedStorage\Crossgrounds\AnalogFilter.luau
++++ merged/ReplicatedStorage\Crossgrounds\AnalogFilter.luau
+@@ -21,4 +21,13 @@
+ function Filter.TouchRadians(delta,width,sensitivity,ads)
+  return delta*(math.rad(240)/math.max(width,320))*sensitivity*(ads or 1)
+ end
++
++-- Schmitt gate avoids flicker on the deadzone boundary; never retains a direction.
++function Filter.Stick(state,value,deadzone)
++ deadzone=math.clamp(deadzone or 0,0,.4)
++ local length=value.Magnitude
++ if length<=deadzone or length<.00001 then state.active=false return Vector2.zero end
++ if not state.active and length<=deadzone+.015 then return Vector2.zero end
++ state.active=true return Filter.Radial(value,deadzone)
++end
+ return Filter
+--- main/ReplicatedStorage\Crossgrounds\CombatMovement.luau
++++ merged/ReplicatedStorage\Crossgrounds\CombatMovement.luau
+@@ -0,0 +1,12 @@
++-- Prototype slide tuning, shared by authority and presentation. No airborne boost.
++local Movement={Duration=.72,Cooldown=1.25,MinSpeed=12,ExitSpeed=7}
++function Movement.CanSlide(s)
++ return (s.mode=="ctf" and s.playing or s.mode=="arena" and s.playing)==true
++  and s.alive==true and s.grounded==true and s.sprinting==true
++  and not s.blocked and (s.speed or 0)>=Movement.MinSpeed and (s.cooldown or 0)<=0
++end
++function Movement.Speed(initial,elapsed)
++ local t=math.clamp(elapsed/Movement.Duration,0,1)
++ return initial+(Movement.ExitSpeed-initial)*(t*(2-t))
++end
++return table.freeze(Movement)
+--- main/ReplicatedStorage\Crossgrounds\LocomotionMotion.luau
++++ merged/ReplicatedStorage\Crossgrounds\LocomotionMotion.luau
+@@ -0,0 +1,19 @@
++-- Locomotor state follows actual grounding/velocity; no fixed airborne timers.
++local Motion={} Motion.__index=Motion
++function Motion.new() return setmetatable({phase=0,slide=0,air=0,land=0,grounded=nil,minY=0},Motion) end
++function Motion:Update(dt,velocity,grounded,sliding)
++ dt=math.clamp(dt,0,.05)
++ if self.grounded==false and grounded and self.minY< -5 then self.land=math.clamp((-self.minY-5)/45,.1,1) end
++ self.grounded=grounded self.minY=grounded and 0 or math.min(self.minY,velocity.Y)
++ self.land*=math.exp(-dt*12)
++ self.slide+=((sliding and 1 or 0)-self.slide)*(1-math.exp(-dt*18))
++ local speed=Vector3.new(velocity.X,0,velocity.Z).Magnitude
++ local weight=grounded and not sliding and math.clamp(speed/18,0,1) or 0
++ if weight>0 then self.phase+=dt*speed*.48 end
++ local side=math.clamp(velocity.X/math.max(speed,1),-1,1)
++ local forward=math.clamp(-velocity.Z/math.max(speed,1),-1,1)
++ local state=sliding and "Slide" or not grounded and (velocity.Y>1 and "Jump" or "Fall") or self.land>.08 and "Land" or speed>.5 and (forward<-.4 and "Backward" or math.abs(side)>.6 and "Strafe" or "Move") or "Idle"
++ return {state=state,phase=self.phase,side=side,forward=forward,weight=weight,slide=self.slide,land=self.land,
++  cameraY=-.55*self.slide,weapon=CFrame.new(0,-self.land*.08,0)*CFrame.Angles(math.rad(velocity.Y*.05),0,math.rad(-side*weight*1.8))}
++end
++return Motion
+--- main/ReplicatedStorage\Crossgrounds\MobileLayout.luau
++++ merged/ReplicatedStorage\Crossgrounds\MobileLayout.luau
+@@ -1,10 +1,11 @@
+ -- Coordinates are normalized within ScreenInsets.DeviceSafeInsets.
+-local Layout={Order={"Fire","Aim","ReloadInteract","Jump","Sprint","SwitchWeapon","Perspective","ShiftLock","Shoulder"}}
++local Layout={Order={"Fire","Aim","ReloadInteract","Jump","Slide","Sprint","SwitchWeapon","Perspective","ShiftLock","Shoulder"}}
+ Layout.Buttons={
+  Fire={Label="DISPARO",Glyph="⊕",X=.88,Y=.52,Size=76,Opacity=.85},
+  Aim={Label="MIRA",Glyph="◎",X=.73,Y=.47,Size=60,Opacity=.8},
+  ReloadInteract={Label="RECARREGAR",Glyph="R",X=.72,Y=.70,Size=58,Opacity=.8},
+  Jump={Label="PULAR",Glyph="↑",X=.90,Y=.79,Size=64,Opacity=.8},
++ Slide={Label="DESLIZAR",Glyph="↘",X=.80,Y=.85,Size=54,Opacity=.8},
+  Sprint={Label="CORRER",Glyph="»",X=.25,Y=.60,Size=58,Opacity=.8},
+  SwitchWeapon={Label="ARMA",Glyph="⇄",X=.58,Y=.82,Size=54,Opacity=.8},
+  Perspective={Label="CÂMERA",Glyph="◉",X=.50,Y=.18,Size=48,Opacity=.7},
+--- main/ReplicatedStorage\Crossgrounds\WeaponActionMotion.luau
++++ merged/ReplicatedStorage\Crossgrounds\WeaponActionMotion.luau
+@@ -0,0 +1,25 @@
++-- Editable procedural action curves shared by FP/TP. Cosmetic; no ammo writes.
++local Motion={}
++local function smooth(a,b,t) local x=math.clamp((t-a)/(b-a),0,1) return x*x*(3-2*x) end
++function Motion.Sample(s)
++ local equip=1-smooth(0,.30,math.max(0,s.equippedFor or 1))
++ local ads=math.clamp(s.ads or 0,0,1)
++ local slide=math.clamp(s.slide or 0,0,1)
++ local land=math.clamp(s.land or 0,0,1)
++ local air=math.clamp(s.vertical or 0,-35,35)/35
++ local fire=math.exp(-math.max(0,s.firedAgo or 100)*30)
++ local weapon=CFrame.new(.18*equip,-.6*equip-.18*slide-.12*land,.35*equip)
++  *CFrame.Angles(math.rad(-32*equip-12*slide+3*land-2*air),0,math.rad(12*equip-9*slide))
++ -- Sight-ready position; a true sight-aligned scope needs a dedicated optical model.
++ local ready=CFrame.new(-.34*ads,.20*ads,-.16*ads)*CFrame.Angles(math.rad(-1.5*ads),0,0)
++ return {weapon=ready*weapon,slide=CFrame.new(0,0,.16*fire),bolt=CFrame.new(0,0,.12*fire),
++  support=Vector3.new(-.04*equip,-.10*equip-.05*land,.14*equip),equip=equip}
++end
++function Motion.Melee(elapsed,data)
++ local windup=data.Windup or .1 local active=data.ActiveTime or .2 local recovery=.12
++ if elapsed<0 or elapsed>=windup+active+recovery then return 0 end
++ if elapsed<windup then return -.24*smooth(0,math.max(.001,windup),elapsed) end
++ if elapsed<windup+active then return -.24+1.24*smooth(0,active,elapsed-windup) end
++ return 1-smooth(0,recovery,elapsed-windup-active)
++end
++return Motion

@@ -1,0 +1,25 @@
+{
+  "sources": [
+    "ReplicatedStorage.ControlDefinitions",
+    "ReplicatedStorage.ControlPolicy",
+    "StarterPlayer.StarterPlayerScripts.AnalogMovement",
+    "StarterPlayer.StarterPlayerScripts.CombatLocomotionPose",
+    "StarterPlayer.StarterPlayerScripts.CombatMovementController",
+    "StarterPlayer.StarterPlayerScripts.CombatPresentation",
+    "StarterPlayer.StarterPlayerScripts.ControlRouter",
+    "StarterPlayer.StarterPlayerScripts.FirstPersonRenderer",
+    "StarterPlayer.StarterPlayerScripts.InputMode",
+    "StarterPlayer.StarterPlayerScripts.SprintController",
+    "StarterPlayer.StarterPlayerScripts.TouchActionIcons",
+    "StarterPlayer.StarterPlayerScripts.WeaponPose",
+    "ServerScriptService.Crossgrounds.CombatMovementService",
+    "ServerScriptService.Crossgrounds.HubBootstrap",
+    "ReplicatedStorage.Crossgrounds.AimAssist",
+    "ReplicatedStorage.Crossgrounds.AnalogFilter",
+    "ReplicatedStorage.Crossgrounds.CombatMovement",
+    "ReplicatedStorage.Crossgrounds.LocomotionMotion",
+    "ReplicatedStorage.Crossgrounds.MobileLayout",
+    "ReplicatedStorage.Crossgrounds.WeaponActionMotion"
+  ],
+  "test": "C:\\Users\\Kauziin\\Documents\\ChatGPT\\RobloxStudio\\tests\\Unit\\Cases\\WeaponMovement_Test.luau"
+}

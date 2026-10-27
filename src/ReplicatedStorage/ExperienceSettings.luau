@@ -24,6 +24,12 @@ Settings.Rules={
 }
 Settings.Version=2
 local extra={
+ SimpleAnimations={Label="Animações simples",Default=false,Category="Accessibility"},
+ WeaponAnimationIntensity={Label="Movimento das armas",Default=1,Min=0,Max=1,Step=.05,Percent=true,Category="Accessibility"},
+ FOVTransitionSpeed={Label="Velocidade do FOV",Default=1,Min=.15,Max=1,Step=.05,Percent=true,Category="Accessibility"},
+ WeaponFOVScale={Label="FOV das armas",Default=1,Choices={.75,1,1.25},Labels={[.75]="MENOS INTENSO",[1]="NORMAL",[1.25]="MAIS INTENSO"},Category="Camera"},
+ GameSFXVolume={Label="Sons da partida",Default=.5,Min=0,Max=1,Step=.05,Percent=true,Category="Audio"},
+ BeastProximityVolume={Label="Proximidade da Besta",Default=.35,Min=0,Max=1,Step=.05,Percent=true,Category="Audio"},
  MenuScale={Label="Escala do menu",Default=1,Min=.8,Max=1.3,Step=.05,Percent=true,Category="Interface"},
  HUDScale={Label="Escala da HUD",Default=1,Min=.8,Max=1.3,Step=.05,Percent=true,Category="Interface",ModeOverride=true},
  FontScale={Label="Tamanho adicional do texto",Default=1,Min=.9,Max=1.35,Step=.05,Percent=true,Category="Accessibility"},
@@ -43,8 +49,8 @@ Settings.Rules.CameraMotion.ModeOverride=true Settings.Rules.DamageFlash.ModeOve
 local Layout=require(script.Parent.Crossgrounds.MobileLayout)
 for action,data in Layout.Buttons do
  for _,field in {"X","Y","Size","Opacity"} do
-  local limits=field=="Size" and {40,112} or field=="Opacity" and {.15,1} or {.04,.96}
-  Settings.Rules[Layout.Key(action,field)]={Default=data[field],MobileLayout=true,Min=limits[1],Max=limits[2],Step=field=="Size" and 1 or .01}
+  local limits=field=="Size" and {40,112} or field=="Opacity" and {.15,1} or {0,1}
+  Settings.Rules[Layout.Key(action,field)]={Default=data[field],MobileLayout=true,Min=limits[1],Max=limits[2],Step=field=="Size" and 1 or field=="Opacity" and .01 or .0001}
  end
 end
 Settings.Groups={
@@ -57,7 +63,7 @@ local Controls=require(script.Parent.ControlDefinitions)
 for action,data in pairs(Controls.Actions) do
  for _,device in {"Gamepad","Keyboard"} do Settings.Rules[Controls:Attribute(action,device)]={Default=data[device],Device=device,Action=action} end
 end
-local categories={Gameplay={"AutoSprint"},Camera={"FieldOfView","FirstPerson","ShiftLock","Shoulder","CameraMotion"},Aim={"LookSensitivity","AimSensitivity","AimAssist","AimAssistStrength","AimAssistSlowdown","AimAssistTracking"},Analog={"LeftStickDeadzone","RightStickDeadzone","StickCurve","StickCurveStrength"},Audio={"MenuVolume","MenuSFXVolume"},Accessibility={"FontScale","HighContrast","ReducedMenuMotion","DamageFlash"},Interface={"MenuScale","HUDScale","KillFeedVisible"}}
+local categories={Gameplay={"AutoSprint"},Camera={"FieldOfView","WeaponFOVScale","FirstPerson","ShiftLock","Shoulder","CameraMotion"},Aim={"LookSensitivity","AimSensitivity","AimAssist","AimAssistStrength","AimAssistSlowdown","AimAssistTracking"},Analog={"LeftStickDeadzone","RightStickDeadzone","StickCurve","StickCurveStrength"},Audio={"MenuVolume","MenuSFXVolume","GameSFXVolume","BeastProximityVolume"},Accessibility={"FontScale","HighContrast","ReducedMenuMotion","SimpleAnimations","WeaponAnimationIntensity","FOVTransitionSpeed","DamageFlash"},Interface={"MenuScale","HUDScale","KillFeedVisible"}}
 categories.Reticle={"ReticleColor","ReticleSize","ReticleThickness","ReticleGap","ReticleDot","ReticleOutline","ReticleOpacity","ReticleDynamic"}
 Settings.Categories=categories
 Settings.Groups={}
@@ -81,7 +87,7 @@ function Settings:PreferenceAttribute(key,scope)
 end
 function Settings:Sanitize(key,value)
  local rule=self.Rules[key] if not rule then return end
- if rule.Device then return Controls:IsAllowed(rule.Device,value) and value or nil end
+ if rule.Device then return Controls:IsAllowed(rule.Device,value,rule.Action) and value or nil end
  if typeof(rule.Default)=="boolean" then if typeof(value)=="boolean" then return value end return end
  if typeof(value)~="number" or value~=value or math.abs(value)==math.huge then return end
  if rule.Choices then return table.find(rule.Choices,value) and value or nil end

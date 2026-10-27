@@ -16,7 +16,8 @@ local Settings=require(game.ReplicatedStorage:WaitForChild("ExperienceSettings")
 local settingRemote=game.ReplicatedStorage.Events:WaitForChild("UpdateExperienceSetting")
 local yaw,pitch=0,0
 local stick=Vector2.zero
-local keyStick=Vector2.zero
+local stickGate={}
+local touchDelta=Vector2.zero
 local freePoint
 local touchLook local touchPosition local lastTouchLook=0
 local touchIntent=Vector2.zero local touchSampleAt=0
@@ -26,6 +27,7 @@ local CameraPolicy=require(game.ReplicatedStorage.Crossgrounds.CombatCameraPolic
 local Analog=require(game.ReplicatedStorage.Crossgrounds.AnalogFilter)
 local Assist=require(script.Parent:WaitForChild("TargetingAssist"))
 local assistFriction=1
+local MotionPreferences=require(game.ReplicatedStorage.Crossgrounds.MotionPreferences)
 local motion=require(game.ReplicatedStorage.Crossgrounds.CameraMotion).new()
 local Effects=require(game.ReplicatedStorage.Crossgrounds.WeaponEffects)
 local Query=require(game.ReplicatedStorage.Crossgrounds.ShotQuery)
@@ -46,6 +48,12 @@ local hidden=setmetatable({},{__mode="k"})
 local spring=require(game.ReplicatedStorage.Crossgrounds.WeaponRecoil).new()
 local recoil,recoilPitch,roll=0,0,0
 local swingAt=-100
+local ActionMotion=require(game.ReplicatedStorage.Crossgrounds.WeaponActionMotion)
+local Locomotion=require(game.ReplicatedStorage.Crossgrounds.LocomotionMotion)
+local locomotion=Locomotion.new()
+local equippedAt=0 local firedAt=-100 local adsWeight=0
+local poseRemote=game.ReplicatedStorage.Events:WaitForChild("CombatPose")
+local lastPoseAt=-100 local sentPitch=0 local sentAiming=false
 local function setting(key)
  local v=player:GetAttribute("Setting"..key)
  if v==nil then return Settings.Rules[key].Default end return v
@@ -190,7 +198,7 @@ function Presentation:RenderShot(message)
   Effects.FinishProjectile(message.actor,message.shotId,message.endpoint) return
  end
  local already=message.actor and message.shotId and remoteShots[message.actor]==message.shotId
- if tool and tool.Parent and not already then Effects.Play(tool) Effects.PlaySound(tool) end
+ if tool and tool.Parent and not already then tool:SetAttribute("PresentationShotAt",workspace:GetServerTimeNow()) Effects.Play(tool) Effects.PlaySound(tool) end
  if message.actor and message.shotId then remoteShots[message.actor]=message.shotId end
  if message.phase=="launch" then
   Effects.Projectile(message.actor,message.shotId,message.origin,message.direction,message)
@@ -242,6 +250,8 @@ end
 function Presentation:Kick(id)
  local _,_,tool,data=current() if not tool or tool:GetAttribute("WeaponId")~=id then return end
  if data.Kind=="Gun" then
+  firedAt=os.clock()
+  tool:SetAttribute("PresentationShotAt",workspace:GetServerTimeNow())
   if firstPerson and renderer then renderer:Flash() end
   local profile=data.VisualRecoil or {Push=.08,Roll=.4}
   spring:Kick(profile,math.random()<.5 and -1 or 1)
@@ -283,38 +293,38 @@ local function turn(dx,dy)
  else delta*=.0026*setting("LookSensitivity")*ads end
  yaw-=delta.X pitch=math.clamp(pitch-delta.Y,math.rad(-72),math.rad(72))
 end
-local directions={
- [Enum.KeyCode.Thumbstick2Right]=Vector2.new(1,0),[Enum.KeyCode.Thumbstick2Left]=Vector2.new(-1,0),
- [Enum.KeyCode.Thumbstick2Up]=Vector2.new(0,1),[Enum.KeyCode.Thumbstick2Down]=Vector2.new(0,-1)
-}
-UIS.InputBegan:Connect(function(input) if directions[input.KeyCode] then keyStick=directions[input.KeyCode] end end)
-UIS.InputEnded:Connect(function(input) if directions[input.KeyCode] then keyStick=Vector2.zero end end)
+
+local function clearLook()
+ stick=Vector2.zero touchDelta=Vector2.zero touchIntent=Vector2.zero
+ touchLook=nil touchPosition=nil lastTouchLook=0 touchSampleAt=0
+ table.clear(stickGate) assistFriction=1 Assist:Reset()
+end
 UIS.InputChanged:Connect(function(input,processed)
- if input.KeyCode==Enum.KeyCode.Thumbstick2 then stick=Vector2.new(input.Position.X,input.Position.Y) return end
+ if input.KeyCode==Enum.KeyCode.Thumbstick2 then return end
  if not owned or Presentation:IsBlocked() then return end
  if input.UserInputType==Enum.UserInputType.MouseMovement and (locked or aiming) then turn(input.Delta.X,input.Delta.Y)
  elseif input.UserInputType==Enum.UserInputType.Touch and touchLook==input then
   local position=Vector2.new(input.Position.X,input.Position.Y)
   local delta=touchPosition and position-touchPosition or Vector2.zero touchPosition=position
-  if delta.Magnitude>.2 then lastTouchLook=os.clock() end
-  turn(delta.X,delta.Y)
+  touchDelta+=delta
  end
 end)
 UIS.TouchStarted:Connect(function(input,processed)
- if not owned or Presentation:IsBlocked() then return end
+ if not owned or Presentation:IsBlocked() or touchLook then return end
  local overFire=false
  for _,object in player.PlayerGui:GetGuiObjectsAtPosition(input.Position.X,input.Position.Y) do
   if object:GetAttribute("TouchLookSurface") then overFire=true break end
  end
  if processed and not overFire then return end
- if input.Position.X>workspace.CurrentCamera.ViewportSize.X*.4 then touchLook=input touchPosition=Vector2.new(input.Position.X,input.Position.Y) end
+ if input.Position.X>workspace.CurrentCamera.ViewportSize.X*.4 then touchLook=input touchPosition=Vector2.new(input.Position.X,input.Position.Y) touchDelta=Vector2.zero touchIntent=Vector2.zero touchSampleAt=os.clock() end
 end)
-UIS.TouchEnded:Connect(function(input) if touchLook==input then touchLook=nil touchPosition=nil touchIntent=Vector2.zero end end)
+UIS.TouchEnded:Connect(function(input) if touchLook==input then clearLook() end end)
 UIS.TouchTapInWorld:Connect(function(point,processed) if not processed and not locked then freePoint=point end end)
-UIS.GamepadDisconnected:Connect(function() stick=Vector2.zero keyStick=Vector2.zero Assist:Reset() end)
-UIS.WindowFocusReleased:Connect(function() stick=Vector2.zero keyStick=Vector2.zero aiming=false firing=false touchLook=nil end)
-GuiService.MenuOpened:Connect(function() aiming=false firing=false touchLook=nil end)
-InputMode.Changed:Connect(function() if owned then cursorMode() end end)
+UIS.GamepadDisconnected:Connect(clearLook)
+UIS.WindowFocusReleased:Connect(function() clearLook() aiming=false firing=false end)
+GuiService.MenuOpened:Connect(function() clearLook() aiming=false firing=false end)
+InputMode.Changed:Connect(function() clearLook() if owned then cursorMode() end end)
+player.CharacterRemoving:Connect(clearLook)
 for _,key in {"ShiftLock","FirstPerson","Shoulder"} do
  player:GetAttributeChangedSignal("Setting"..key):Connect(function()
   if key=="ShiftLock" then locked=setting(key) cursorMode()
@@ -338,15 +348,16 @@ RunService:BindToRenderStep("CTFCombatPresentation",Enum.RenderPriority.Camera.V
  if not character then
   release() currentTool=nil
   local camera=workspace.CurrentCamera local target=setting("FieldOfView")
-  camera.FieldOfView+=(target-camera.FieldOfView)*math.min(1,deltaTime*10)
+  camera.FieldOfView+=(target-camera.FieldOfView)*MotionPreferences.FOVAlpha(deltaTime,setting("FOVTransitionSpeed"),10)
   return
  end
  locked,firstPerson=CameraPolicy.Resolve(Scope:Get(),data.Kind,setting("ShiftLock"),setting("FirstPerson"))
  if tool~=currentTool then
-  currentTool=tool removeViewmodel()
+  currentTool=tool equippedAt=os.clock() firedAt=-100 adsWeight=0 locomotion=Locomotion.new() removeViewmodel()
   if owned then buildViewmodel(tool) end
  end
  if blocked then
+  clearLook()
   motion:Reset() carry:Reset() previousYaw=nil assistFriction=1 Assist:Reset() player:SetAttribute("WeaponRunWeight",0) player:SetAttribute("CombatFiring",false) player:SetAttribute("CameraMotionPitch",0) player:SetAttribute("CameraMotionOffset",Vector3.zero) player:SetAttribute("CameraMotionRoll",0) if aimFrame then workspace.CurrentCamera.CFrame=aimFrame end
   firing=false aiming=false
   UIS.MouseBehavior=Enum.MouseBehavior.Default UIS.MouseIconEnabled=GuiService.MenuIsOpen or InputMode:Get()~=Enum.PreferredInput.Gamepad
@@ -357,10 +368,22 @@ RunService:BindToRenderStep("CTFCombatPresentation",Enum.RenderPriority.Camera.V
  local dt=math.min(deltaTime,.04)
  local camera=workspace.CurrentCamera local root=character.HumanoidRootPart
  local input=InputMode:Get()
- local movement=Analog.Look(keyStick.Magnitude>0 and keyStick or stick,setting("RightStickDeadzone"),setting("StickCurve"),setting("StickCurveStrength"))
+
+ -- Poll the selected physical controller. No synthesized direction can latch a turn.
+ stick=Vector2.zero
+ if input==Enum.PreferredInput.Gamepad then
+  local ok,inputs=pcall(function() return UIS:GetGamepadState(InputMode.ActiveGamepad) end)
+  if ok then for _,v in inputs do if v.KeyCode==Enum.KeyCode.Thumbstick2 then stick=Vector2.new(v.Position.X,v.Position.Y) break end end end
+ end
+ local clean=Analog.Stick(stickGate,stick,setting("RightStickDeadzone"))
+ local movement=setting("StickCurve")==1 and Analog.Dynamic(clean,setting("StickCurveStrength")) or clean
+ local pixels=touchDelta touchDelta=Vector2.zero
+ local touchRadians=input==Enum.PreferredInput.Touch and touchLook and Analog.TouchRadians(pixels,camera.ViewportSize.X,setting("LookSensitivity"),aiming and setting("AimSensitivity") or 1) or Vector2.zero
+ touchIntent=touchRadians.Magnitude>0 and Vector2.new(-touchRadians.X,-touchRadians.Y)/(math.max(deltaTime,.001)*2.4) or Vector2.zero
+ if touchIntent.Magnitude>1 then touchIntent=touchIntent.Unit end
  local assisted local tracking=Vector2.zero
  assistFriction=1
- local lookIntent=input==Enum.PreferredInput.Gamepad and Vector2.new(-movement.X,movement.Y) or touchLook and os.clock()-lastTouchLook<.12 and touchIntent or Vector2.zero
+ local lookIntent=input==Enum.PreferredInput.Gamepad and Vector2.new(-movement.X,movement.Y) or touchIntent
  assisted,assistFriction,tracking=Assist:Target(aimFrame or camera.CFrame,Presentation:GetAimViewport(),camera,data.Range,setting("AimAssist"),setting("AimAssistStrength"),data.Kind=="Gun",viewmodel,aiming,{
   dt=deltaTime,look=lookIntent,strafe=humanoid.MoveDirection:Dot((aimFrame or camera.CFrame).RightVector),
   slowdown=setting("AimAssistSlowdown"),tracking=setting("AimAssistTracking"),
@@ -377,6 +400,10 @@ RunService:BindToRenderStep("CTFCombatPresentation",Enum.RenderPriority.Camera.V
    yaw-=movement.X*speed*dt pitch=math.clamp(pitch+movement.Y*speed*dt,-1.25,1.25)
   end
  end
+
+ if input==Enum.PreferredInput.Touch then
+  yaw-=touchRadians.X*assistFriction pitch=math.clamp(pitch-touchRadians.Y*assistFriction,-1.25,1.25)
+ end
  if assisted and (locked or firstPerson) then
   yaw+=tracking.X pitch=math.clamp(pitch+tracking.Y,-1.25,1.25)
  end
@@ -391,7 +418,12 @@ RunService:BindToRenderStep("CTFCombatPresentation",Enum.RenderPriority.Camera.V
   end
  else protectionToken=nil end
  local rotation=CFrame.fromEulerAnglesYXZ(pitch,yaw,0)
- local focus=root.Position+Vector3.new(0,1.6,0)
+
+ local localMove=rotation:VectorToObjectSpace(root.AssemblyLinearVelocity)
+ local loco=locomotion:Update(dt,localMove,humanoid.FloorMaterial~=Enum.Material.Air,player:GetAttribute("SlideActive")==true)
+ player:SetAttribute("CombatMovementState",loco.state)
+ adsWeight+=((aiming and 1 or 0)-adsWeight)*(1-math.exp(-dt*18))
+ local focus=root.Position+Vector3.new(0,1.6+loco.cameraY,0)
  local cameraPosition
  if firstPerson then
   cameraPosition=focus+Vector3.new(0,.12,0)
@@ -401,10 +433,16 @@ RunService:BindToRenderStep("CTFCombatPresentation",Enum.RenderPriority.Camera.V
   local hit=workspace:Raycast(focus,desired-focus,params)
   cameraPosition=hit and hit.Position+hit.Normal*.4 or desired
  end
+
  aimFrame=CFrame.new(cameraPosition)*rotation
+ character:SetAttribute("CombatAimPitch",pitch)
+ if os.clock()-lastPoseAt>=.10 and (math.abs(pitch-sentPitch)>.012 or aiming~=sentAiming or os.clock()-lastPoseAt>1) then
+  poseRemote:FireServer(pitch,aiming) lastPoseAt=os.clock() sentPitch=pitch sentAiming=aiming
+ end
  local localVelocity=rotation:VectorToObjectSpace(root.AssemblyLinearVelocity)
  local turnRate=previousYaw and math.clamp((yaw-previousYaw)/math.max(dt,.001),-4,4) or 0 previousYaw=yaw
- local bob,lean,nod=motion:Update(dt,localVelocity,humanoid.FloorMaterial~=Enum.Material.Air,player:GetAttribute("SprintActive")==true,aiming,setting("CameraMotion"),turnRate)
+ local cameraAmount=setting("CameraMotion")*(setting("SimpleAnimations") and .15 or 1)
+ local bob,lean,nod=motion:Update(dt,localVelocity,humanoid.FloorMaterial~=Enum.Material.Air,player:GetAttribute("SprintActive")==true,aiming,cameraAmount,turnRate)
  local runPose,runWeight,runPhase=carry:Update(dt,localVelocity,humanoid.FloorMaterial~=Enum.Material.Air,player:GetAttribute("SprintActive")==true,aiming,firing or tool:GetAttribute("Reloading") or tool:GetAttribute("Attacking"),setting("CameraMotion"))
  player:SetAttribute("WeaponRunWeight",runWeight) player:SetAttribute("CameraMotionPitch",nod)
  camera.CameraType=Enum.CameraType.Scriptable camera.CFrame=aimFrame*CFrame.new(bob)*CFrame.Angles(nod,0,lean) camera.Focus=CFrame.new(focus)
@@ -412,7 +450,7 @@ RunService:BindToRenderStep("CTFCombatPresentation",Enum.RenderPriority.Camera.V
  local baseFov=setting("FieldOfView")
  local sprinting=player:GetAttribute("SprintActive")==true and humanoid.MoveDirection.Magnitude>.1
  local fov=aiming and baseFov*(tool:GetAttribute("WeaponId")=="Sniper" and 38/70 or 58/70) or baseFov+(sprinting and 6 or 0)
- camera.FieldOfView+=(fov-camera.FieldOfView)*math.min(1,dt*12)
+ camera.FieldOfView+=(fov-camera.FieldOfView)*MotionPreferences.FOVAlpha(dt,setting("FOVTransitionSpeed"),12)
  local point=Presentation:GetAimViewport() player:SetAttribute("AimScreenPosition",point)
  local target=Presentation:GetAimWorld(math.max(850,data.Range+50))
  if locked or firstPerson or aiming or firing then
@@ -423,8 +461,11 @@ RunService:BindToRenderStep("CTFCombatPresentation",Enum.RenderPriority.Camera.V
  local recoilProfile=data.VisualRecoil or {}
  recoil,recoilPitch,roll=spring:Update(deltaTime,recoilProfile)
  if firstPerson and renderer then
-  local swing=data.Kind~="Gun" and math.clamp((os.clock()-swingAt)/.42,0,1) or 1
-  renderer:Render(deltaTime,camera,character,{runPose=runPose,runWeight=runWeight,runPhase=runPhase,recoil=recoil,pitch=recoilPitch,roll=roll,arc=swing<1 and math.sin(swing*math.pi) or 0})
+
+  local arc=data.Kind~="Gun" and ActionMotion.Melee(os.clock()-swingAt,data) or 0
+  local action=ActionMotion.Sample({equippedFor=os.clock()-equippedAt,ads=adsWeight,slide=loco.slide,land=loco.land,vertical=localMove.Y,firedAgo=os.clock()-firedAt})
+  action.weapon=loco.weapon*action.weapon
+  renderer:Render(deltaTime,camera,character,{runPose=runPose,runWeight=runWeight,runPhase=runPhase,recoil=recoil,pitch=recoilPitch,roll=roll,arc=arc,action=action,ads=adsWeight})
  elseif renderer then renderer:SetVisible(false) end
  player:SetAttribute("CombatCameraActive",true) player:SetAttribute("CameraLocked",locked) player:SetAttribute("FirstPerson",firstPerson) player:SetAttribute("CameraShoulder",shoulder) player:SetAttribute("CombatAiming",aiming) player:SetAttribute("UsingXboxCursor",false)
  player:SetAttribute("VisualWeaponRecoil",recoil) player:SetAttribute("VisualWeaponPitch",recoilPitch)

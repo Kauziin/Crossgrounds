@@ -1,0 +1,74 @@
+[
+  {
+    "name": "ReplicatedFirst.CrossgroundsLoading",
+    "mainChanged": false,
+    "conflict": false,
+    "changed": true
+  },
+  {
+    "name": "StarterPlayer.StarterPlayerScripts.CTFFlagLabels",
+    "mainChanged": false,
+    "conflict": false,
+    "changed": true
+  },
+  {
+    "name": "StarterPlayer.StarterPlayerScripts.JoinMenu",
+    "mainChanged": false,
+    "conflict": false,
+    "changed": true
+  },
+  {
+    "name": "ServerScriptService.Crossgrounds.CTFAdapter",
+    "mainChanged": false,
+    "conflict": false,
+    "changed": true
+  },
+  {
+    "name": "ServerScriptService.Crossgrounds.ProgressionBalance",
+    "mainChanged": false,
+    "conflict": false,
+    "changed": true
+  },
+  {
+    "name": "ServerScriptService.Crossgrounds.ProgressionService",
+    "mainChanged": false,
+    "conflict": false,
+    "changed": true
+  },
+  {
+    "name": "ServerScriptService.Crossgrounds.SceneLoadService",
+    "mainChanged": false,
+    "conflict": false,
+    "changed": true
+  },
+  {
+    "name": "ServerScriptService.MainGameScript.GameManager",
+    "mainChanged": false,
+    "conflict": false,
+    "changed": true
+  },
+  {
+    "name": "ServerScriptService.MainGameScript.GameManager.FlagService",
+    "mainChanged": false,
+    "conflict": false,
+    "changed": true
+  },
+  {
+    "name": "ServerScriptService.MainGameScript.GameManager.MapManager",
+    "mainChanged": false,
+    "conflict": false,
+    "changed": true
+  },
+  {
+    "name": "ServerScriptService.MainGameScript.GameManager.PlayerManager",
+    "mainChanged": false,
+    "conflict": false,
+    "changed": true
+  },
+  {
+    "name": "ServerScriptService.MainGameScript.GameManager.SettingsService",
+    "mainChanged": false,
+    "conflict": false,
+    "changed": true
+  }
+]

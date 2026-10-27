@@ -65,7 +65,7 @@ function Router:IsAvailable(action,snapshot)
  local scope=registered.scope
  if scope=="admin" and not s.admin or scope=="get_out" and s.mode~="get_out"
   or scope=="ctf" and s.mode~="ctf" or scope=="combat" and not Scope:IsCombat()
-  or scope=="interaction" and not Scope:IsInteractive() then return false end
+  or scope=="interaction" and not Scope:IsInteractive() and not (action=="ReloadInteract" and Scope:IsArena()) then return false end
  if registered.enabled and not registered.enabled(s) then return false end
  return true
 end

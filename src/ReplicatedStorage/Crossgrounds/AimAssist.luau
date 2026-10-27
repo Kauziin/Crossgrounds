@@ -86,14 +86,15 @@ function Assist.Step(state,window,context)
  local a,b=angles(before),angles(after)
  local velocity=Vector2.new(wrap(b.X-a.X),b.Y-a.Y)/dt
  if velocity.Magnitude<.0001 then state.velocity=Vector2.zero return state.friction,Vector2.zero end
- state.velocity=state.velocity:Lerp(velocity,1-math.exp(-dt/.065))
+
+ if state.velocity:Dot(velocity)<0 then state.velocity=velocity
+ else state.velocity=state.velocity:Lerp(velocity,1-math.exp(-dt/.065)) end
  if state.velocity.Magnitude<.0001 then return state.friction,Vector2.zero end
  local gate=0
  if magnitude>.025 then
   local alignment=math.max(0,input.Unit:Dot(state.velocity.Unit))
   gate=alignment*smooth(.025,.15,magnitude)
- elseif context.device=="gamepad" then
-  gate=.14*smooth(.15,.75,math.abs(context.strafe or 0))
+
  end
  if state.age<Assist.Tuning.Reaction then return state.friction,Vector2.zero end
  local ramp=smooth(Assist.Tuning.Reaction,Assist.Tuning.Reaction+Assist.Tuning.Ramp,state.age)
@@ -101,6 +102,10 @@ function Assist.Step(state,window,context)
  local delta=state.velocity*dt*gain
  local yawLimit=math.rad(Assist.Tuning.MaxYawRate)*strength*trackingRange*dt
  local pitchLimit=math.rad(Assist.Tuning.MaxPitchRate)*strength*trackingRange*dt
- return state.friction,Vector2.new(math.clamp(delta.X,-yawLimit,yawLimit),math.clamp(delta.Y*.35,-pitchLimit,pitchLimit))
+
+ -- Each axis yields immediately when the user lets go or looks the other way.
+ local x=math.abs(input.X)>.025 and input.X*delta.X>0 and math.clamp(delta.X,-yawLimit,yawLimit) or 0
+ local y=math.abs(input.Y)>.025 and input.Y*delta.Y>0 and math.clamp(delta.Y*.35,-pitchLimit,pitchLimit) or 0
+ return state.friction,Vector2.new(x,y)
 end
 return Assist

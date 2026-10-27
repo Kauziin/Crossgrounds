@@ -7,6 +7,7 @@ function Service:Start(context)
  local remotes=game.ReplicatedStorage.Crossgrounds.Remotes
  local function remote(name)local r=remotes:FindFirstChild(name)or Instance.new("RemoteEvent")r.Name=name r.Parent=remotes return r end
  self.prepare=remote("PrepareScene")
+ self.finished=remote("SceneLoadFinished")
  remote("SceneReady").OnServerEvent:Connect(function(player,token)
   local state=pending[player]
   if state and typeof(token)=="string"and state.token==token and context:GetMode(player)==state.mode then state.ready=true end
@@ -14,7 +15,11 @@ function Service:Start(context)
  local retryRates={}
  remote("RetryLoading").OnServerEvent:Connect(function(player)
   if os.clock()-(retryRates[player]or-10)<3 then return end retryRates[player]=os.clock()
-  if workspace:GetAttribute("CrossgroundsBootReady")and context:GetMode(player)=="hub"and not player:GetAttribute("CrossgroundsTransition")then context:ReloadHubCharacter(player)end
+  if not workspace:GetAttribute("CrossgroundsBootReady") or player:GetAttribute("CrossgroundsTransition") then return end
+  if context:GetMode(player)=="hub" then context:ReloadHubCharacter(player)
+  elseif context:GetMode(player)=="ctf" and player:GetAttribute("InMatch") and workspace:GetAttribute("RoundState")=="LoadFailed" then
+   workspace:SetAttribute("CTFLoadRetry",(workspace:GetAttribute("CTFLoadRetry") or 0)+1)
+  end
  end)
  Players.PlayerRemoving:Connect(function(player)pending[player]=nil retryRates[player]=nil end)
 end
@@ -31,7 +36,10 @@ function Service:Wait(players,roots,anchors,canContinue,minSeconds,terrain)
  local states={}local started=os.clock()local deadline=started+30 local nextSend=0
  local function finish(ok,message)
   for player,state in states do if pending[player]==state then pending[player]=nil
-   if player.Parent then player:SetAttribute("SceneLoading",false)player:SetAttribute("SceneLoadingError",self.context:GetMode(player)==state.mode and message or nil)end
+   if player.Parent then
+    player:SetAttribute("SceneLoading",false)player:SetAttribute("SceneLoadingError",self.context:GetMode(player)==state.mode and message or nil)
+    self.finished:FireClient(player,token,ok,message)
+   end
   end end
   return ok,message
  end
@@ -40,7 +48,7 @@ function Service:Wait(players,roots,anchors,canContinue,minSeconds,terrain)
   local current=typeof(players)=="function"and players()or players local allReady=true
   local present={}for _,player in current do present[player]=true end
   for player,state in states do if not present[player]then
-   if pending[player]==state then pending[player]=nil if player.Parent then player:SetAttribute("SceneLoading",false)player:SetAttribute("SceneLoadingError",nil)end end
+   if pending[player]==state then pending[player]=nil if player.Parent then player:SetAttribute("SceneLoading",false)player:SetAttribute("SceneLoadingError",nil)self.finished:FireClient(player,token,false)end end
    states[player]=nil
   end end
   for _,player in current do if player.Parent then
@@ -52,7 +60,7 @@ function Service:Wait(players,roots,anchors,canContinue,minSeconds,terrain)
    if not state.ready then allReady=false end
   end end
   if allReady and os.clock()-started>=(minSeconds or 0)then return finish(true)end
-  if os.clock()>=deadline then return finish(false,"O cenário não terminou de carregar. Volte ao lobby e tente novamente.")end
+  if os.clock()>=deadline then return finish(false,"O mapa não ficou pronto. Tente carregar novamente ou volte ao lobby pelo menu.")end
   if os.clock()>=nextSend then nextSend=os.clock()+1 for _,player in current do local state=states[player]if player.Parent and state and not state.ready then self.prepare:FireClient(player,payload)end end end
   task.wait(.1)
  end

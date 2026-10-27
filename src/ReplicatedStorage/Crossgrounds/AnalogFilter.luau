@@ -21,4 +21,13 @@ end
 function Filter.TouchRadians(delta,width,sensitivity,ads)
  return delta*(math.rad(240)/math.max(width,320))*sensitivity*(ads or 1)
 end
+
+-- Schmitt gate avoids flicker on the deadzone boundary; never retains a direction.
+function Filter.Stick(state,value,deadzone)
+ deadzone=math.clamp(deadzone or 0,0,.4)
+ local length=value.Magnitude
+ if length<=deadzone or length<.00001 then state.active=false return Vector2.zero end
+ if not state.active and length<=deadzone+.015 then return Vector2.zero end
+ state.active=true return Filter.Radial(value,deadzone)
+end
 return Filter

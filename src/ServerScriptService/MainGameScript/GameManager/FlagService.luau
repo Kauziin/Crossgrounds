@@ -7,9 +7,22 @@ local arena = workspace:WaitForChild("CTFInfrastructure")
 local flags = {}
 local connections = {}
 local active = false
+local alert=Events:FindFirstChild("CTFFlagAlert") or Instance.new("RemoteEvent") alert.Name="CTFFlagAlert" alert.Parent=Events
+local function notify(flag,kind,character)
+ local actor=character and Players:GetPlayerFromCharacter(character)
+ local name=actor and actor.DisplayName or character and (character:GetAttribute("DisplayName") or character.Name) or ""
+ for _,viewer in Players:GetPlayers() do
+  if viewer:GetAttribute("CrossgroundsMode")=="ctf" and viewer:GetAttribute("InMatch") then
+   alert:FireClient(viewer,{kind=kind,team=flag.team.Name,carrier=name,self=actor==viewer})
+  end
+ end
+end
 local function publish(flag)
  if not flag.base then return end
  flag.base:SetAttribute("FlagState",flag.state)
+ local ref=flag.base:FindFirstChild("FlagCarrier") or Instance.new("ObjectValue") ref.Name="FlagCarrier" ref.Value=flag.carrier ref.Parent=flag.base
+ local actor=flag.carrier and Players:GetPlayerFromCharacter(flag.carrier)
+ flag.base:SetAttribute("FlagCarrierName",actor and actor.DisplayName or flag.carrier and (flag.carrier:GetAttribute("DisplayName") or flag.carrier.Name) or nil)
  flag.base:SetAttribute("FlagReturnAt",flag.state=="dropped" and workspace:GetServerTimeNow()+Config.FLAG_RESPAWN_TIME or 0)
 end
 
@@ -43,6 +56,7 @@ end
 local function clearCarry(flag)
  for _,c in flag.carryConnections or {} do c:Disconnect() end flag.carryConnections=nil
  if flag.carryVisual then flag.carryVisual:Destroy() flag.carryVisual = nil end
+ if flag.carrier then flag.carrier:SetAttribute("CarryingFlag",nil) end
  flag.carrier = nil
 end
 
@@ -53,7 +67,7 @@ function FlagService:Return(flag, silent)
  flag.state = "home"
  showFlag(flag, flag.home)
  publish(flag)
- if active and wasAway and not silent then Events.ReturnFlag:Fire(flag.team.TeamColor) end
+ if active and wasAway and not silent then Events.ReturnFlag:Fire(flag.team.TeamColor) notify(flag,"return") end
 end
 
 function FlagService:DropCarrier(character)
@@ -64,6 +78,7 @@ function FlagService:DropCarrier(character)
    flag.returnToken += 1
    clearCarry(flag)
    flag.state = "dropped"
+   notify(flag,"drop",character)
    publish(flag)
    showFlag(flag, Vector3.new(dropAt.X, math.max(dropAt.Y - 3, 13), dropAt.Z))
    local token = flag.returnToken
@@ -80,8 +95,10 @@ local function carryFlag(flag, character, humanoid)
  flag.returnToken += 1
  flag.state = "carried"
  flag.carrier = character
+ character:SetAttribute("CarryingFlag",flag.team.Name)
  publish(flag)
  hideFlag(flag)
+ notify(flag,"pickup",character)
  local root = character:FindFirstChild("HumanoidRootPart")
  if root then
   local pole = Instance.new("Part")
@@ -127,6 +144,7 @@ function FlagService:TryInteract(character)
  end
  if enemy.carrier == character and near(root.Position, own.home, 7) then
   if not Config.REQUIRE_RETURN_BEFORE_CAP or own.state == "home" then
+   notify(enemy,"capture",character)
    self:Return(enemy, true)
    Events.CaptureFlag:Fire(player, team.TeamColor)
   end

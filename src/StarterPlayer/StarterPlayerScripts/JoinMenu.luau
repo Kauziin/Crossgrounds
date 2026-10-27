@@ -29,6 +29,7 @@ local details=browser:Info("KitDetails","Weapons","",100)
 browser:Button("KitDetails","JoinSelected","Entrar com este kit",request)
 browser:Button("KitDetails","StayLobby","Permanecer no lobby",stay)
 local status=browser:Info("KitDetails","Status","",0) status.LayoutOrder=-1
+local rootStatus=browser:Info("RootPane","Status","Você entra automaticamente com seu kit atual. Use este menu para trocar de kit ou permanecer no lobby.",74) rootStatus.LayoutOrder=-1
 local cards={}
 local function select(id,notify)
  selected=id local profile=Kits.Profiles[id]
@@ -44,11 +45,10 @@ show=function(on)
  gui.Enabled=on browser:SetOpen(on) player:SetAttribute("CTFKitMenuOpen",on)
 end
 Nav:SetBack(browser.Panel,function() if #browser.Stack>1 then browser:Push({"RootPane"}) else stay() end end,keep)
-joinResult.OnClientEvent:Connect(function(success,message) joining=false status.Text=message or "" status.Size=UDim2.new(1,-8,0,success and 0 or 62) if success then show(false) else browser:Push({"RootPane","Loadouts","KitDetails"}) end end)
+joinResult.OnClientEvent:Connect(function(success,message) joining=false status.Text=message or "" status.Size=UDim2.new(1,-8,0,success and 0 or 62) if success then show(false) else browser:Push({"RootPane","Loadouts","KitDetails"}) show(true) end end)
 Router:Register("KitMenu",function(state) if state==Enum.UserInputState.Begin and not player:GetAttribute("InArena") and not player:GetAttribute("ExperienceMenuOpen") then show(not gui.Enabled) end end,{allowMenus=true})
 game:GetService("ProximityPromptService").PromptTriggered:Connect(function(prompt) if prompt.Name=="KitPrompt" then browser:Push({"RootPane","Loadouts"}) show(true) end end)
 player:GetAttributeChangedSignal("InArena"):Connect(function() if player:GetAttribute("InArena") then show(false) end end)
-Scope.Changed:Connect(function() joining=false browser:Push({"RootPane"}) show(Scope:IsCTF()) end)
+Scope.Changed:Connect(function() joining=false browser:Push({"RootPane"}) show(false) end)
 Nav.MenuRequested:Connect(function(id) if id=="CTFKits" and Scope:IsCTF() then browser:Push({"RootPane","Loadouts"}) show(true) elseif id=="Resume" or id=="Settings" or id=="Main" then show(false) end end)
-select(selected,false) browser:Push({"RootPane"}) show(Scope:IsCTF())
-
+select(selected,false) browser:Push({"RootPane"}) show(false)

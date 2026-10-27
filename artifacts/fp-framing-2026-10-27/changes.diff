@@ -1,0 +1,54 @@
+--- before/StarterPlayer\StarterPlayerScripts\FirstPersonRenderer.luau
++++ after/StarterPlayer\StarterPlayerScripts\FirstPersonRenderer.luau
+@@ -40,10 +40,7 @@
+   -- Classic shirt is applied by the R6-named parts; source meshes are intentionally absent.
+   local grip=handle:FindFirstChild(side=="Right" and "RightHandGrip" or "SupportGrip")
+ 
+-  if grip then
+-   local forearm=part(side.."Forearm",Vector3.new(.39,.7,.42),color)
+-   table.insert(self.arms,{part=arm,forearm=forearm,side=side,hand=grip.Position})
+-  else arm.Transparency=1 end
++  if grip then table.insert(self.arms,{part=arm,side=side,hand=grip.Position}) else arm.Transparency=1 end
+  end
+  local flash=Instance.new("Part") flash.Name="MuzzleFlash" flash.Size=Vector3.new(.18,.18,.55) flash.Color=Color3.fromRGB(255,222,123) flash.Material=Enum.Material.Neon flash.Transparency=1 safePart(flash) flash.Parent=model self.flash=flash
+  return self
+@@ -67,8 +64,9 @@
+  local t=reloading and math.clamp((workspace:GetServerTimeNow()-(self.tool:GetAttribute("ReloadStartedAt") or workspace:GetServerTimeNow()))/duration,0,1) or 0
+  local reload=Reload.Sample(t,self.tool:GetAttribute("CosmeticId") or self.tool:GetAttribute("WeaponId"))
+  local pistol=self.tool:GetAttribute("WeaponId")=="ArenaPistol" local gun=self.tool:GetAttribute("WeaponKind")=="Gun"
+- local lower=pistol and -.65 or gun and -.85 or -1.1
+- local base=CFrame.new(pistol and .55 or .65,lower,pistol and -1.7 or -2.1)
++ local lower=pistol and -.98 or gun and -1.18 or -1.30
++ -- Counter the shared ADS lift only in the FP display, keeping the sightline open.
++ local base=CFrame.new(pistol and .55 or .65,lower-.24*(params.ads or 0),pistol and -1.7 or -2.1)
+  local arc=params.arc or 0
+  local action=params.action or {weapon=CFrame.new(),slide=CFrame.new(),support=Vector3.zero}
+  local cf=base*action.weapon*(params.runPose or CFrame.new())*reload.weapon*CFrame.new(-arc*.7,self.wall*.12-arc*.35,self.wall*.45+(params.recoil or 0))*CFrame.Angles(math.rad((params.pitch or 0)+self.wall*55-arc*65),0,math.rad((params.roll or 0)-arc*55))
+@@ -82,13 +80,9 @@
+   local hand=arm.hand+(side<0 and reload.hand+(action.support or Vector3.zero) or Vector3.zero)
+   local elbow=Vector3.new(side*(.9+(.18+.36*math.sin(params.runPhase or 0))*(params.runWeight or 0)),-.65,1.25)
+ 
+-  local a=cf:PointToWorldSpace(hand) local shoulder=Vector3.new(side*.78,-1.18,.25)
+-  local b=cf:PointToWorldSpace(elbow*self.scale)
+-  b=b:Lerp((a+shoulder)*.5,.32)
+-  arm.forearm.Size=Vector3.new(.39,math.max(.05,(a-b).Magnitude),.42)
+-  arm.forearm.CFrame=CFrame.lookAt((a+b)*.5,a)*CFrame.Angles(math.pi/2,0,0)
+-  arm.part.Size=Vector3.new(.43,math.max(.05,(b-shoulder).Magnitude),.46)
+-  arm.part.CFrame=CFrame.lookAt((b+shoulder)*.5,b)*CFrame.Angles(math.pi/2,0,0)
++  local a=cf:PointToWorldSpace(hand) local b=cf:PointToWorldSpace(elbow*self.scale)
++  arm.part.Size=Vector3.new(.43,(a-b).Magnitude,.46)
++  arm.part.CFrame=CFrame.lookAt((a+b)*.5,a)*CFrame.Angles(math.pi/2,0,0)
+  end
+  local muzzle=self.handle:FindFirstChild("Muzzle")
+  if muzzle then
+--- before/StarterPlayer\StarterPlayerScripts\CombatPresentation.luau
++++ after/StarterPlayer\StarterPlayerScripts\CombatPresentation.luau
+@@ -463,7 +463,7 @@
+   local arc=data.Kind~="Gun" and ActionMotion.Melee(os.clock()-swingAt,data) or 0
+   local action=ActionMotion.Sample({equippedFor=os.clock()-equippedAt,ads=adsWeight,slide=loco.slide,land=loco.land,vertical=localMove.Y,firedAgo=os.clock()-firedAt})
+   action.weapon=loco.weapon*action.weapon
+-  renderer:Render(deltaTime,camera,character,{runPose=runPose,runWeight=runWeight,runPhase=runPhase,recoil=recoil,pitch=recoilPitch,roll=roll,arc=arc,action=action})
++  renderer:Render(deltaTime,camera,character,{runPose=runPose,runWeight=runWeight,runPhase=runPhase,recoil=recoil,pitch=recoilPitch,roll=roll,arc=arc,action=action,ads=adsWeight})
+  elseif renderer then renderer:SetVisible(false) end
+  player:SetAttribute("CombatCameraActive",true) player:SetAttribute("CameraLocked",locked) player:SetAttribute("FirstPerson",firstPerson) player:SetAttribute("CameraShoulder",shoulder) player:SetAttribute("CombatAiming",aiming) player:SetAttribute("UsingXboxCursor",false)
+  player:SetAttribute("VisualWeaponRecoil",recoil) player:SetAttribute("VisualWeaponPitch",recoilPitch)

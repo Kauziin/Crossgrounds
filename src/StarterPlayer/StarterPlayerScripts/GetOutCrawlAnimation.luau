@@ -2,6 +2,7 @@
 -- Joint poses are evaluated after Animator for R6, R15 and AnimationConstraint rigs.
 local Animation={}
 local Players=game:GetService("Players")local Run=game:GetService("RunService")
+local Preferences=require(game.ReplicatedStorage.Crossgrounds.MotionPreferences)
 local T=require(game.ReplicatedStorage.Crossgrounds.GetOutPrototype)
 local function angles(x,y,z)return CFrame.Angles(math.rad(x or 0),math.rad(y or 0),math.rad(z or 0))end
 local frames={
@@ -33,6 +34,7 @@ function Animation:Start()
      local function add(joint)if joint:IsA("Motor6D")or joint:IsA("AnimationConstraint")then table.insert(rig.joints,joint)end end
      for _,joint in character:GetDescendants()do add(joint)end rig.connection=character.DescendantAdded:Connect(add)
     end
+    local intensity=Preferences.CharacterWeight(Players.LocalPlayer)
     local posture=player:GetAttribute("GetOutPosture")local crawling=posture=="Crawling"
     local low=crawling or posture=="Downed"or posture=="Dragged"
     if low then rig.lastClip=crawling and"crawl"or"limp"end
@@ -58,15 +60,15 @@ function Animation:Start()
        if floor then lift+=(1-weight)*math.max(0,rig.standingHeight-(root.Position.Y-floor.Position.Y))end
       end
       local offset=rotation:VectorToObjectSpace(Vector3.new(0,lift,0))
-      target=CFrame.new(offset)*rotation:Inverse()*CFrame.Angles(-math.pi/2*weight,0,math.sin(rig.phase*math.pi*2)*.045*rig.movement*weight)*rotation
+      target=CFrame.new(offset)*rotation:Inverse()*CFrame.Angles(-math.pi/2*weight,0,math.sin(rig.phase*math.pi*2)*.045*rig.movement*weight*intensity)*rotation
       blend=1
      elseif weight>0 then
-      target=clipCrawl and sample(name,rig.phase,rig.movement)or limp[name]or CFrame.identity
-      if name=="waist"then target=angles(0,math.sin(rig.phase*math.pi*2)*6*rig.movement,0)
+      target=clipCrawl and sample(name,rig.phase,rig.movement*intensity)or limp[name]or CFrame.identity
+      if name=="waist"then target=angles(0,math.sin(rig.phase*math.pi*2)*6*rig.movement*intensity,0)
       elseif name=="rightknee"or name=="leftknee"then target*=angles(-transition*45)
       elseif name=="neck"then target=clipCrawl and rest.neck or limp.neck end
      elseif player:GetAttribute("GetOutHacking")and name:find("shoulder",1,true)then
-      local phase=name:find("right",1,true)and 0 or math.pi target=angles(-65+math.sin(workspace:GetServerTimeNow()*12+phase)*5)blend=1
+      local phase=name:find("right",1,true)and 0 or math.pi target=angles(-65+math.sin(workspace:GetServerTimeNow()*12+phase)*5*intensity)blend=1
      end
      if target then
       local old=applied[joint]local base=old and joint.Transform==old.value and old.base or joint.Transform

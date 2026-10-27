@@ -38,6 +38,48 @@ function Maps:Catalog()
  table.sort(list,function(a,b) return a.id<b.id end)
  return list
 end
+-- Map geometry may be raised during authoring. Keep objectives, spawn markers and
+-- bot navigation in the same vertical frame as the actual foundation.
+function Maps:AlignInfrastructure()
+ local arena=workspace:FindFirstChild("CTFInfrastructure")
+ local expected=arena and arena:GetAttribute("NavigationFloorY")
+ local base=arena and arena:FindFirstChild("BlueBase")local stand=base and base:FindFirstChild("FlagStand")
+ if typeof(expected)~="number" or not stand then return end
+ local floorY
+ for _,root in owned do
+  for _,part in root:GetDescendants() do
+   if part:IsA("BasePart") and part.Name=="Foundation" and part.CanCollide then
+    local localPoint=part.CFrame:PointToObjectSpace(stand.Position)
+    if math.abs(localPoint.X)<=part.Size.X*.5 and math.abs(localPoint.Z)<=part.Size.Z*.5 then
+     local top=part.Position.Y+part.Size.Y*.5
+     floorY=math.max(floorY or top,top)
+    end
+   end
+  end
+ end
+ if not floorY or math.abs(floorY-expected)<.01 then return end
+ local delta=Vector3.new(0,floorY-expected,0)
+ for index,part in arena:GetDescendants() do
+  if part:IsA("BasePart") then part.CFrame+=delta end
+  if index%500==0 then task.wait() end
+ end
+ local center=arena:GetAttribute("PlayRegionCenter")
+ if typeof(center)=="Vector3" then arena:SetAttribute("PlayRegionCenter",center+delta) end
+ arena:SetAttribute("NavigationFloorY",floorY)
+ arena:SetAttribute("ClientSceneRevision",nil) arena:SetAttribute("ClientSceneIndex",nil)
+end
+function Maps:ValidateSpawns()
+ local include=self:SceneRoots()table.insert(include,workspace.Terrain)
+ local params=RaycastParams.new()params.FilterType=Enum.RaycastFilterType.Include params.FilterDescendantsInstances=include params.RespectCanCollide=true
+ local anchors=self:SceneAnchors()
+ if #anchors==0 then return false,"O mapa não possui pontos de nascimento." end
+ for _,position in anchors do
+  if not workspace:Raycast(position+Vector3.new(0,1,0),Vector3.new(0,-14,0),params) then
+   return false,"Há um ponto de nascimento sem chão no mapa. Volte ao lobby e avise o desenvolvedor."
+  end
+ end
+ return true
+end
 function Maps:Initialize()
  if not storage:FindFirstChild("riverside") then
   local model=Instance.new("Model") model.Name="riverside" model:SetAttribute("DisplayName","Travessia") model:SetAttribute("Description","Três rotas entre duas bases") model:SetAttribute("TerrainOrigin",Vector3.new(-66,-16,-66))
@@ -48,6 +90,7 @@ function Maps:Initialize()
  end
  owned={}
  for _,v in workspace:GetChildren() do if v:GetAttribute("CTFMapGeometry") then table.insert(owned,v) end end
+ self:AlignInfrastructure()
  current=workspace:GetAttribute("CurrentMapId") or "riverside"
  workspace:SetAttribute("CurrentMapId",current)
  local m=storage:FindFirstChild(current) workspace:SetAttribute("CurrentMapName",m and (m:GetAttribute("DisplayName") or m.Name) or current)
@@ -78,6 +121,7 @@ function Maps:Load(id)
  local old=workspace:FindFirstChild("CTFInfrastructure") if old then dispose(old) end
  publish(stagedArena,workspace)
  for _,v in stagedGeometry:GetChildren() do v:SetAttribute("CTFMapGeometry",true) publish(v,workspace) table.insert(owned,v) end stagedGeometry:Destroy()
+ self:AlignInfrastructure()
  current=id workspace:SetAttribute("CurrentMapId",id) workspace:SetAttribute("CurrentMapName",source:GetAttribute("DisplayName") or id)
  return true
 end

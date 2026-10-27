@@ -3,6 +3,7 @@ local Renderer={} Renderer.__index=Renderer
 local Probe=require(script.Parent:WaitForChild("LocalLightingProbe"))
 local Reload=require(game.ReplicatedStorage.Crossgrounds.WeaponReloadMotion)
 local player=game.Players.LocalPlayer
+local Motion=require(game.ReplicatedStorage.Crossgrounds.MotionPreferences)
 local function safePart(p)
  p.Anchored=true p.CanCollide=false p.CanTouch=false p.CanQuery=false p.CastShadow=false p.LocalTransparencyModifier=0
 end
@@ -39,6 +40,7 @@ function Renderer.new(tool)
   local arm=part(side.." Arm",Vector3.new(.43,1.5,.46),color)
   -- Classic shirt is applied by the R6-named parts; source meshes are intentionally absent.
   local grip=handle:FindFirstChild(side=="Right" and "RightHandGrip" or "SupportGrip")
+
   if grip then table.insert(self.arms,{part=arm,side=side,hand=grip.Position}) else arm.Transparency=1 end
  end
  local flash=Instance.new("Part") flash.Name="MuzzleFlash" flash.Size=Vector3.new(.18,.18,.55) flash.Color=Color3.fromRGB(255,222,123) flash.Material=Enum.Material.Neon flash.Transparency=1 safePart(flash) flash.Parent=model self.flash=flash
@@ -48,6 +50,10 @@ function Renderer:SetVisible(on) if self.gui then self.gui.Enabled=on end end
 function Renderer:Flash() self.flashUntil=os.clock()+.045 end
 function Renderer:Render(dt,camera,character,params)
  self:SetVisible(true)
+ local weight=Motion.WeaponWeight(player)
+ local projection,depth=Motion.WeaponProjection(camera.FieldOfView,Motion.Get(player,"WeaponFOVScale",1))
+ self.camera.FieldOfView=projection
+ local function softened(cf) return Motion.Transform(cf,weight) end
  self.lightElapsed=(self.lightElapsed or 0)+dt
  if self.lightElapsed>.15 then
   self.lightElapsed=0 self.ambient,self.sunTint,self.sunDirection=Probe.Sample(camera,character)
@@ -62,20 +68,24 @@ function Renderer:Render(dt,camera,character,params)
  local duration=self.tool:GetAttribute("ReloadDuration") or .9
  local t=reloading and math.clamp((workspace:GetServerTimeNow()-(self.tool:GetAttribute("ReloadStartedAt") or workspace:GetServerTimeNow()))/duration,0,1) or 0
  local reload=Reload.Sample(t,self.tool:GetAttribute("CosmeticId") or self.tool:GetAttribute("WeaponId"))
+ for key,value in reload do if typeof(value)=="CFrame" then reload[key]=softened(value) elseif typeof(value)=="Vector3" then reload[key]=value*weight end end
  local pistol=self.tool:GetAttribute("WeaponId")=="ArenaPistol" local gun=self.tool:GetAttribute("WeaponKind")=="Gun"
- local lower=pistol and -.65 or gun and -.85 or -1.1
- local base=CFrame.new(pistol and .55 or .65,lower,pistol and -1.7 or -2.1)
- local arc=params.arc or 0
- local cf=base*(params.runPose or CFrame.new())*reload.weapon*CFrame.new(-arc*.7,self.wall*.12-arc*.35,self.wall*.45+(params.recoil or 0))*CFrame.Angles(math.rad((params.pitch or 0)+self.wall*55-arc*65),0,math.rad((params.roll or 0)-arc*55))
+ local lower=pistol and -.98 or gun and -1.18 or -1.30
+ -- Counter the shared ADS lift only in the FP display, keeping the sightline open.
+ local base=CFrame.new(pistol and .55 or .65,lower-.24*(params.ads or 0),(pistol and -1.7 or -2.1)*depth)
+ local arc=(params.arc or 0)*weight
+ local action=params.action or {weapon=CFrame.new(),slide=CFrame.new(),support=Vector3.zero}
+ local cf=base*softened(action.weapon)*softened(params.runPose or CFrame.new())*reload.weapon*CFrame.new(-arc*.7,self.wall*.12-arc*.35,self.wall*.45+(params.recoil or 0)*weight)*CFrame.Angles(math.rad((params.pitch or 0)*weight+self.wall*55-arc*65),0,math.rad((params.roll or 0)*weight-arc*55))
  for _,entry in self.parts do
-  local transform=entry.group=="Magazine" and reload.magazine or entry.group=="Cylinder" and reload.cylinder or entry.group=="Slide" and reload.slide or entry.group=="Toggle" and reload.toggle or entry.group=="BreakAction" and reload.breakAction or entry.group=="Shell" and reload.breakAction*reload.shell or entry.group=="TubeShell" and reload.tubeShell or CFrame.new()
+  local transform=entry.group=="Magazine" and reload.magazine or entry.group=="Cylinder" and reload.cylinder or entry.group=="Slide" and reload.slide*softened(action.slide) or entry.group=="Toggle" and reload.toggle or entry.group=="BreakAction" and reload.breakAction or entry.group=="Shell" and reload.breakAction*reload.shell or entry.group=="TubeShell" and reload.tubeShell or CFrame.new()
   entry.part.CFrame=cf*transform*entry.rest
   if entry.reloadOnly then entry.part.Transparency=reload.active>.02 and 0 or 1 end
  end
  for _,arm in self.arms do
   local side=arm.side=="Right" and 1 or -1
-  local hand=arm.hand+(side<0 and reload.hand or Vector3.zero)
-  local elbow=Vector3.new(side*(.9+(.18+.36*math.sin(params.runPhase or 0))*(params.runWeight or 0)),-.65,1.25)
+  local hand=arm.hand+(side<0 and reload.hand+(action.support or Vector3.zero)*weight or Vector3.zero)
+  local elbow=Vector3.new(side*(.9+(.18+.36*math.sin(params.runPhase or 0))*(params.runWeight or 0)*weight),-.65,1.25)
+
   local a=cf:PointToWorldSpace(hand) local b=cf:PointToWorldSpace(elbow*self.scale)
   arm.part.Size=Vector3.new(.43,(a-b).Magnitude,.46)
   arm.part.CFrame=CFrame.lookAt((a+b)*.5,a)*CFrame.Angles(math.pi/2,0,0)

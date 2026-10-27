@@ -35,10 +35,18 @@ function GameManager:RunIntermission()
  if Player:GetJoinedCount()>=Config.MIN_PLAYERS then
   workspace:SetAttribute("RoundState","Loading")
   Time:StartTimer(MapLoadGate.Seconds)
-  self.loadReady=SceneLoad:Wait(function()
+  local safe,mapError=Maps:ValidateSpawns()
+  if not safe then
+   for _,p in game.Players:GetPlayers() do if p:GetAttribute("CrossgroundsMode")=="ctf" and p:GetAttribute("InMatch") then p:SetAttribute("SceneLoadingError",mapError) end end
+  end
+  self.loadReady=safe and SceneLoad:Wait(function()
    local list={}for _,p in game.Players:GetPlayers()do if p:GetAttribute("CrossgroundsMode")=="ctf"and p:GetAttribute("InMatch")then table.insert(list,p)end end return list
   end,Maps:SceneRoots(),Maps:SceneAnchors(),function()return Player:GetJoinedCount()>=Config.MIN_PLAYERS end,MapLoadGate.Seconds,true)
-  if not self.loadReady then workspace:SetAttribute("RoundState","LoadFailed")task.wait(2)end
+  if not self.loadReady and Player:GetJoinedCount()>=Config.MIN_PLAYERS then
+   workspace:SetAttribute("RoundState","LoadFailed")
+   local retry=workspace:GetAttribute("CTFLoadRetry") or 0
+   repeat task.wait(.2) until Player:GetJoinedCount()<Config.MIN_PLAYERS or (workspace:GetAttribute("CTFLoadRetry") or 0)~=retry
+  end
  end
 end
 function GameManager:GameReady() return self.loadReady==true and Player:GetJoinedCount()>=Config.MIN_PLAYERS end

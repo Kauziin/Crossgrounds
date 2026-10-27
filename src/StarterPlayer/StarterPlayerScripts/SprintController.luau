@@ -9,6 +9,7 @@ local function requestJump()
  if Router:IsBlocked() then held=false bufferedUntil=0 return end
  local h=player.Character and player.Character:FindFirstChildOfClass("Humanoid")
  if not h or h.Health<=0 or not h:GetStateEnabled(Enum.HumanoidStateType.Jumping) then return end
+ if player:GetAttribute("SlideActive") then game.ReplicatedStorage.Events.CombatSlide:FireServer(false) end
  h.Jump=true
  local state=h:GetState()
  if h.FloorMaterial~=Enum.Material.Air and state~=Enum.HumanoidStateType.Jumping and state~=Enum.HumanoidStateType.Seated then
@@ -29,4 +30,3 @@ Run.PreSimulation:Connect(function()
  if held or os.clock()<bufferedUntil then requestJump() end
 end)
 game:GetService("UserInputService").WindowFocusReleased:Connect(function() held=false bufferedUntil=0 end)
-

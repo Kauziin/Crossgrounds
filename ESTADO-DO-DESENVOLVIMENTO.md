@@ -316,6 +316,8 @@ As prioridades abaixo são uma avaliação de desenvolvimento, sem estimativa de
 | P1 | Completar poses de armas | Apoio de duas mãos já implementado; faltam mira vertical e validação ampla de avatares/jogadores/bots. |
 | P1 | Animações de combate | Equipar, mirar, atirar, recarregar e melee com mãos/arma sincronizadas aos eventos reais. |
 | P1 | Validação de controle físico | Percorrer todos os fluxos de menu e combate em Xbox/PlayStation, incluindo edição e remapeamento. |
+| P1 | Refinar Aim Assist com base no Projectile Test | Revisar Friction/Tracking contra o pipeline atual; preservar intenção real, anti-drift e validação touch/gamepad; sem importar Centering ou regras balísticas. Plano registrado em `docs/PLANO-AIM-ASSIST-PROJECTILE-TEST-2026-10-27.md`; nenhuma implementação nesta etapa. |
+| P2 | Modos gráficos por perfil | Direção visual do Projectile Test registrada; Equilibrado será o padrão proposto e Visual será opt-in. Perfis e desempenho ainda não implementados ou medidos. Plano em `docs/PLANO-AIM-ASSIST-PROJECTILE-TEST-2026-10-27.md`. |
 | P1, antes do segundo mapa | Navegação de bots por dados do mapa | Novo cenário jogável sem depender das coordenadas fixas de Travessia. |
 | P2 | Refinar percepção e movimento dos bots | Menos giros/travamentos artificiais, busca após perder alvo e melhor distribuição de papéis. |
 | P2 | Completar áudio e efeitos | Interface, objetivos, recarga, impactos e efeitos locais de primeira pessoa consistentes. |

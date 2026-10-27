@@ -1,0 +1,51 @@
+[
+  {
+    "name": "ReplicatedFirst.CrossgroundsLoading",
+    "conflict": false
+  },
+  {
+    "name": "StarterPlayer.StarterPlayerScripts.CTFFlagLabels",
+    "conflict": false
+  },
+  {
+    "name": "StarterPlayer.StarterPlayerScripts.JoinMenu",
+    "conflict": false
+  },
+  {
+    "name": "ServerScriptService.Crossgrounds.CTFAdapter",
+    "conflict": false
+  },
+  {
+    "name": "ServerScriptService.Crossgrounds.ProgressionBalance",
+    "conflict": false
+  },
+  {
+    "name": "ServerScriptService.Crossgrounds.ProgressionService",
+    "conflict": false
+  },
+  {
+    "name": "ServerScriptService.Crossgrounds.SceneLoadService",
+    "conflict": false
+  },
+  {
+    "name": "ServerScriptService.MainGameScript.GameManager",
+    "conflict": false
+  },
+  {
+    "name": "ServerScriptService.MainGameScript.GameManager.FlagService",
+    "conflict": false
+  },
+  {
+    "name": "ServerScriptService.MainGameScript.GameManager.MapManager",
+    "conflict": false
+  },
+  {
+    "name": "ServerScriptService.MainGameScript.GameManager.PlayerManager",
+    "conflict": false
+  },
+  {
+    "name": "ServerScriptService.MainGameScript.GameManager.SettingsService",
+    "conflict": false,
+    "resolution": "Kept existing equivalent Studio DataStore guard; preserved other local code."
+  }
+]

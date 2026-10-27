@@ -6,15 +6,17 @@ local defaults = {
 }
 local values={}
 local snapshot
-local ok, result = pcall(function() return game:GetService("ConfigService"):GetConfigAsync() end)
-if ok then
- snapshot = result
+-- Remote reward config must never block character creation or the round loop.
+-- Local unpublished places have no universe config; use the existing defaults.
+if game.GameId~=0 then task.defer(function()
+ local ok,result=pcall(function() return game:GetService("ConfigService"):GetConfigAsync() end)
+ if not ok then warn("Crossgrounds reward config unavailable; using defaults.") return end
+ snapshot=result values={}
  snapshot.UpdateAvailable:Connect(function()
-  local refreshed, err = pcall(function() snapshot:Refresh() end)
-  if refreshed then values={} end
-  if not refreshed then warn("Crossgrounds reward config refresh: " .. tostring(err)) end
+  local refreshed,err=pcall(function() snapshot:Refresh() end)
+  if refreshed then values={} else warn("Crossgrounds reward config refresh: "..tostring(err)) end
  end)
-end
+end) end
 function Balance.Get(key)
  local fallback = assert(defaults[key], "Unknown reward " .. tostring(key))
  if values[key]~=nil then return values[key] end

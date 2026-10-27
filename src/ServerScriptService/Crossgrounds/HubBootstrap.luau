@@ -44,6 +44,7 @@ function Bootstrap:Start(ctfRoot)
   local getOut=require(script.Parent.GetOutAdapter).new(context,config)
   coordinator:Register(getOut) getOut:Start(ctfAdapter and ctfAdapter.players)
  end
+ require(script.Parent.CombatMovementService):Start()
  require(script.Parent.SpawnProtectionService):Start()
  require(script.Parent.ComfortLighting):Start()
  coordinator:Start()
@@ -58,4 +59,3 @@ function Bootstrap:Start(ctfRoot)
  workspace:SetAttribute("CrossgroundsBootReady",true)
 end
 return Bootstrap
-

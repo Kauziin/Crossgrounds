@@ -9,7 +9,7 @@ local player=game.Players.LocalPlayer
 -- Reuse four local voices and give action feedback priority over focus sounds.
 local Audio={}
 local soundDefinitions={
- Focus={id="75458150587771",gain=.6},
+ Focus={id="10066931761",gain=.6},
  Confirm={id="10066968815",gain=.75}, -- Roblox: RBLX UI Select 02
  Back={id="10066914500",gain=.65}, -- Roblox: RBLX UI Back
  Step={id="10066936758",gain=.4}, -- Roblox: RBLX UI Hover 02
@@ -57,7 +57,8 @@ local function nativePolicy()
   disableNative()
  end
 end
-local registered={} local back={} local defaults={}
+local Router=require(script.Parent:WaitForChild("ControlRouter"))
+local registered={} local back={} local defaults={} local categoryHandlers={}
 local focused local root local point=Vector2.zero local stick=Vector2.zero local scrollStick=0 local keyboardStick=Vector2.zero
 local keyboardNavigation=false
 local dragging=false local repeatAt=0 local heldDirection local analog=false
@@ -81,6 +82,15 @@ local glowStroke=Instance.new("UIStroke") glowStroke.Thickness=10 glowStroke.Tra
 local focusFrame=Instance.new("Frame") focusFrame.Name="FocusOutline" focusFrame.BackgroundTransparency=1 focusFrame.Visible=false focusFrame.Active=false focusFrame.ZIndex=2 focusFrame.Parent=screen
 local focusCorner=Instance.new("UICorner") focusCorner.Parent=focusFrame
 local focusStroke=Instance.new("UIStroke") focusStroke.Parent=focusFrame focusStroke.Name="AccessibleFocus" focusStroke.Thickness=4 focusStroke.Transparency=.04 focusStroke.Color=Color3.fromRGB(220,243,255) focusStroke.ApplyStrokeMode=Enum.ApplyStrokeMode.Border
+-- Contextual category help follows the same remapped bindings as the dispatcher.
+local previousGlyph=Icons:Glyph(footer,"PreviousCategory",function() return Router:Key("MenuPrevious","Gamepad") end,26)
+previousGlyph.Position=UDim2.fromOffset(340,3)
+local nextGlyph=Icons:Glyph(footer,"NextCategory",function() return Router:Key("MenuNext","Gamepad") end,26)
+nextGlyph.Position=UDim2.fromOffset(370,3)
+local categoryHelp=Instance.new("TextLabel")
+categoryHelp.BackgroundTransparency=1 categoryHelp.Position=UDim2.fromOffset(402,0) categoryHelp.Size=UDim2.fromOffset(120,32)
+categoryHelp.Font=Enum.Font.GothamMedium categoryHelp.TextSize=13 categoryHelp.TextColor3=Color3.fromRGB(228,238,250)
+categoryHelp.Text="CATEGORIAS" categoryHelp.TextXAlignment=Enum.TextXAlignment.Left categoryHelp.Parent=footer
 local function navigationSound(object)
  local entry=registered[object]
  if not object or not root or Gui.MenuIsOpen or not (object:IsA("GuiButton") or object:IsA("TextBox") or entry and entry.adjust) then return end
@@ -145,14 +155,22 @@ function Navigation:Focus(object,moveCursor)
  end
 end
 function Navigation:GetFocus() return focused end
+function Navigation:SetCategories(container,callback)
+ categoryHandlers[container]=callback
+ container.Destroying:Connect(function() categoryHandlers[container]=nil end)
+end
 function Navigation:SetBack(container,callback,default) back[container]=callback defaults[container]=default end
 function Navigation:Register(object,callback,adjust)
- registered[object]={activate=callback,adjust=adjust}
+ registered[object]={activate=callback and function()
+  if not object:GetAttribute("MenuAudioConnected") then Audio:Play(adjust and "Step" or "Confirm") end
+  callback()
+ end,adjust=adjust}
  object.Destroying:Connect(function() registered[object]=nil if focused==object then Navigation:Focus(nil,false) end end)
  object.MouseEnter:Connect(function() if root and Mode:Get()~=Enum.PreferredInput.Gamepad then self:Focus(object,false) end end)
  return object
 end
 function Navigation:Connect(object,callback)
+ object:SetAttribute("MenuAudioConnected",true)
  local function activate()
   local kind=object:GetAttribute("MenuSoundKind") or ((object.Name=="Back" or object.Name=="Close" or object.Name=="Cancel") and "Back" or "Confirm")
   if kind~="Silent" then Audio:Play(kind) end
@@ -196,6 +214,15 @@ end
 local function syncRoot()
  local nextRoot=modal()
  if nextRoot~=root then root=nextRoot Navigation:Focus(nil) heldDirection=nil if root then Navigation:Focus(first()) end end
+end
+for action,step in {MenuPrevious=-1,MenuNext=1} do
+ Router:Register(action,function(state)
+  if state~=Enum.UserInputState.Begin then return Enum.ContextActionResult.Sink end
+  syncRoot()
+  local handler=root and categoryHandlers[root]
+  if handler then Audio:Play("Focus") handler(step) end
+  return Enum.ContextActionResult.Sink
+ end,{scope="menu"})
 end
 CAS:BindActionAtPriority("CTFAccessibleMenu",function(_,state,input)
  syncRoot()
@@ -259,7 +286,11 @@ Run:BindToRenderStep("CTFMenuCursor",Enum.RenderPriority.Last.Value,function(dt)
   local ok,v=pcall(function() return game.StarterGui:GetCoreGuiEnabled(Enum.CoreGuiType.PlayerList) end)
   if ok then savedPlayerList=v pcall(function() game.StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.PlayerList,false) end) end
  elseif not root and savedPlayerList~=nil then local previous=savedPlayerList savedPlayerList=nil pcall(function() game.StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.PlayerList,previous) end) end
- if controls and movementDisabled~=(root~=nil and not Gui.MenuIsOpen) then movementDisabled=root~=nil and not Gui.MenuIsOpen if movementDisabled then controls:Disable() else controls:Enable() end end
+ local disableMovement=not Router:CanMove()
+ if controls and movementDisabled~=disableMovement then movementDisabled=disableMovement if movementDisabled then controls:Disable() else controls:Enable() end end
+ local hasCategories=root~=nil and categoryHandlers[root]~=nil
+ footer.Size=UDim2.fromOffset(hasCategories and 530 or 340,32)
+ previousGlyph.Visible=hasCategories nextGlyph.Visible=hasCategories categoryHelp.Visible=hasCategories
  cursor.Visible=gamepad and root~=nil and not Gui.MenuIsOpen footer.Visible=cursor.Visible and not player:GetAttribute("Rebinding")
  focusStroke.Enabled=(cursor.Visible or root~=nil and keyboardNavigation) and not Gui.MenuIsOpen
  focusFrame.Visible=focusStroke.Enabled and focused~=nil and visible(focused,true)

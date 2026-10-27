@@ -1,0 +1,18 @@
+{
+  "file": "CrossgroundsAlphaCopy-CTF.rbxl",
+  "sources": [
+    "ReplicatedFirst\\CrossgroundsLoading.luau",
+    "ServerScriptService\\Crossgrounds\\CTFAdapter.luau",
+    "ServerScriptService\\Crossgrounds\\ProgressionBalance.luau",
+    "ServerScriptService\\Crossgrounds\\ProgressionService.luau",
+    "ServerScriptService\\Crossgrounds\\SceneLoadService.luau",
+    "ServerScriptService\\MainGameScript\\GameManager\\FlagService.luau",
+    "ServerScriptService\\MainGameScript\\GameManager\\MapManager.luau",
+    "ServerScriptService\\MainGameScript\\GameManager\\PlayerManager.luau",
+    "ServerScriptService\\MainGameScript\\GameManager\\SettingsService.luau",
+    "ServerScriptService\\MainGameScript\\GameManager.luau",
+    "StarterPlayer\\StarterPlayerScripts\\CTFFlagLabels.luau",
+    "StarterPlayer\\StarterPlayerScripts\\JoinMenu.luau"
+  ],
+  "backupSHA256": "a342202208a556d4abcf371d64e44bbd0e35a2181507fe8ee9b9cf9eba93c009"
+}

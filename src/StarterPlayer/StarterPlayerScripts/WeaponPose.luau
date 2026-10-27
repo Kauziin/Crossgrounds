@@ -1,8 +1,13 @@
 -- Evaluate every visible R15 wielder locally, after animation evaluation.
 local Pose=require(game.ReplicatedStorage:WaitForChild("Crossgrounds"):WaitForChild("ArmPose"))
 local Carry=require(game.ReplicatedStorage.Crossgrounds.WeaponLocomotion)
+local Action=require(game.ReplicatedStorage.Crossgrounds.WeaponActionMotion)
+local Reload=require(game.ReplicatedStorage.Crossgrounds.WeaponReloadMotion)
+local Locomotion=require(game.ReplicatedStorage.Crossgrounds.LocomotionMotion)
 local Players=game:GetService("Players")
 local Run=game:GetService("RunService")
+local Preferences=require(game.ReplicatedStorage.Crossgrounds.MotionPreferences)
+local viewer=Players.LocalPlayer
 local active={} local pending={} local necks={} local gait=setmetatable({},{__mode="k"})
 workspace.DescendantRemoving:Connect(function(v) necks[v]=nil end)
 local function register(tool)
@@ -12,7 +17,7 @@ local function register(tool)
   pending[tool]=nil local c=tool.Parent local h=c and c:FindFirstChildOfClass("Humanoid")
   local handle=tool:FindFirstChild("Handle") if not h or not handle or h.RigType~=Enum.HumanoidRigType.R15 then return end
   local left=Pose.Chain(c,"Left") local right=handle:FindFirstChild("RightHandGrip") and Pose.Chain(c,"Right") or nil
-  active[tool]={character=c,humanoid=h,carry=Carry.new(),player=Players:GetPlayerFromCharacter(c),left=left,right=right,support=handle:FindFirstChild("SupportGrip"),grip=handle:FindFirstChild("RightHandGrip")}
+  active[tool]={character=c,humanoid=h,carry=Carry.new(),equippedAt=os.clock(),locomotion=Locomotion.new(),kick=0,player=Players:GetPlayerFromCharacter(c),left=left,right=right,support=handle:FindFirstChild("SupportGrip"),grip=handle:FindFirstChild("RightHandGrip")}
  end)
 end
 local function added(value)
@@ -26,11 +31,12 @@ for _,value in workspace:GetDescendants() do added(value) end
 Run.PreSimulation:Connect(function(dt)
  local bots=workspace:FindFirstChild("CTFBots")
  if bots then for _,bot in bots:GetChildren() do
+  local simple=Preferences.CharacterWeight(viewer)
   local neck=necks[bot] if not neck or not neck.Parent then neck=bot:FindFirstChild("Neck",true) necks[bot]=neck end
   if neck and neck:IsA("Motor6D") then
    local phase=os.clock()*.7+(bot:GetAttribute("BotScanSeed") or 0)
    local alert=bot:GetAttribute("BotAlert")
-   neck.Transform=CFrame.Angles(math.sin(phase*1.8)*.025,alert and 0 or math.sin(phase)*.18,math.sin(phase*.6)*.025)
+   neck.Transform=Preferences.Transform(CFrame.Angles(math.sin(phase*1.8)*.025,alert and 0 or math.sin(phase)*.18,math.sin(phase*.6)*.025),simple)
   end
   local h=bot:FindFirstChildOfClass("Humanoid") local root=bot:FindFirstChild("HumanoidRootPart")
   if h and h.Health>0 and root then
@@ -44,13 +50,13 @@ Run.PreSimulation:Connect(function(dt)
    local weight=h.FloorMaterial~=Enum.Material.Air and math.clamp(speed/16,0,1) or 0
    g.phase+=dt*math.clamp(speed*.7,0,14)
    for _,side in {"Left","Right"} do
-    local swing=math.sin(g.phase+(side=="Left" and 0 or math.pi))*weight
+    local swing=math.sin(g.phase+(side=="Left" and 0 or math.pi))*weight*simple
     local hip=g[side.."Hip"] local knee=g[side.."Knee"] local ankle=g[side.."Ankle"]
     if hip then hip.Transform=CFrame.Angles(swing*.55,0,0) end
     if knee then knee.Transform=CFrame.Angles(math.max(0,-swing)*.85,0,0) end
     if ankle then ankle.Transform=CFrame.Angles(-swing*.20,0,0) end
    end
-   if g.Waist then g.Waist.Transform=CFrame.new(0,math.sin(g.phase*2)*.025*weight,0)*CFrame.Angles(weight*.07,math.sin(g.phase)*.035*weight,0) end
+   if g.Waist then g.Waist.Transform=Preferences.Transform(CFrame.new(0,math.sin(g.phase*2)*.025*weight,0)*CFrame.Angles(weight*.07,math.sin(g.phase)*.035*weight,0),simple) end
   end
  end end
  for tool,r in active do
@@ -62,18 +68,31 @@ Run.PreSimulation:Connect(function(dt)
    end
    local torso=r.character:FindFirstChild("UpperTorso") local root=r.character:FindFirstChild("HumanoidRootPart")
    local mount=torso and torso:FindFirstChild("CrossgroundsWeaponMount") r.mount=mount
-   local desired
+   local desired local reload
    if mount and mount.Part1==tool.Handle and root then
     local velocity=root.CFrame:VectorToObjectSpace(root.AssemblyLinearVelocity)
     local amount=r.player and r.player:GetAttribute("SettingCameraMotion") if amount==nil then amount=.35 end
     local running=r.player and r.player:GetAttribute("SprintActive")==true
     local aiming=r.player and r.player:GetAttribute("CombatAiming")==true
     local firing=r.player and r.player:GetAttribute("CombatFiring")==true
+    local visualWeight=Preferences.WeaponWeight(viewer)
     local pose=r.carry:Update(dt,velocity,r.humanoid.FloorMaterial~=Enum.Material.Air,running,aiming,firing or tool:GetAttribute("Reloading") or tool:GetAttribute("Attacking"),amount)
+
+    local now=workspace:GetServerTimeNow()
+    local duration=math.max(.1,tool:GetAttribute("ReloadDuration") or 1)
+    local t=tool:GetAttribute("Reloading") and math.clamp((now-(tool:GetAttribute("ReloadStartedAt") or now))/duration,0,1) or 0
+    reload=Reload.Sample(t,tool:GetAttribute("CosmeticId") or tool:GetAttribute("WeaponId"))
+    local loco=r.locomotion:Update(dt,velocity,r.humanoid.FloorMaterial~=Enum.Material.Air,r.character:GetAttribute("SlideActive")==true)
+    local action=Action.Sample({equippedFor=os.clock()-r.equippedAt,slide=loco.slide,land=loco.land})
+    local shot=tool:GetAttribute("PresentationShotAt") or -100
+    local kick=math.exp(-math.max(0,now-shot)*22)
+    local pitch=r.character:GetAttribute("CombatAimPitch") or 0
+    pose=CFrame.Angles(math.clamp(pitch,-1.15,1.15)*.8,0,0)*pose*action.weapon*reload.weapon*CFrame.new(0,0,kick*.10)*CFrame.Angles(kick*.04,0,0)
+    pose=CFrame.Angles(math.clamp(pitch,-1.15,1.15)*.8,0,0)*Preferences.Transform(CFrame.Angles(-math.clamp(pitch,-1.15,1.15)*.8,0,0)*pose,visualWeight)
     mount.Transform=pose desired=torso.CFrame*mount.C0*pose*mount.C1:Inverse()
    end
    if r.right and r.grip and r.grip.Parent then Pose.Solve(r.right,r.grip,desired and desired*r.grip.CFrame) end
-   if r.left and r.support and r.support.Parent then Pose.Solve(r.left,r.support,desired and desired*r.support.CFrame) end
+   if r.left and r.support and r.support.Parent then Pose.Solve(r.left,r.support,desired and desired*CFrame.new(reload and reload.hand*Preferences.WeaponWeight(viewer) or Vector3.zero)*r.support.CFrame) end
   end
  end
 end)

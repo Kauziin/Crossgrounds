@@ -1,0 +1,128 @@
+[
+  {
+    "path": "ReplicatedStorage.ControlDefinitions",
+    "new": false,
+    "mainChanged": true,
+    "conflict": false
+  },
+  {
+    "path": "ReplicatedStorage.ControlPolicy",
+    "new": false,
+    "mainChanged": false,
+    "conflict": false
+  },
+  {
+    "path": "StarterPlayer.StarterPlayerScripts.AnalogMovement",
+    "new": false,
+    "mainChanged": false,
+    "conflict": false
+  },
+  {
+    "path": "StarterPlayer.StarterPlayerScripts.CombatLocomotionPose",
+    "new": true,
+    "mainChanged": false,
+    "conflict": false
+  },
+  {
+    "path": "StarterPlayer.StarterPlayerScripts.CombatMovementController",
+    "new": true,
+    "mainChanged": false,
+    "conflict": false
+  },
+  {
+    "path": "StarterPlayer.StarterPlayerScripts.CombatPresentation",
+    "new": false,
+    "mainChanged": false,
+    "conflict": false
+  },
+  {
+    "path": "StarterPlayer.StarterPlayerScripts.ControlRouter",
+    "new": false,
+    "mainChanged": true,
+    "conflict": false
+  },
+  {
+    "path": "StarterPlayer.StarterPlayerScripts.FirstPersonRenderer",
+    "new": false,
+    "mainChanged": false,
+    "conflict": false
+  },
+  {
+    "path": "StarterPlayer.StarterPlayerScripts.InputMode",
+    "new": false,
+    "mainChanged": false,
+    "conflict": false
+  },
+  {
+    "path": "StarterPlayer.StarterPlayerScripts.MobileHUD",
+    "new": false,
+    "mainChanged": true,
+    "conflict": false
+  },
+  {
+    "path": "StarterPlayer.StarterPlayerScripts.SprintController",
+    "new": false,
+    "mainChanged": false,
+    "conflict": false
+  },
+  {
+    "path": "StarterPlayer.StarterPlayerScripts.TouchActionIcons",
+    "new": false,
+    "mainChanged": false,
+    "conflict": false
+  },
+  {
+    "path": "StarterPlayer.StarterPlayerScripts.WeaponPose",
+    "new": false,
+    "mainChanged": false,
+    "conflict": false
+  },
+  {
+    "path": "ServerScriptService.Crossgrounds.CombatMovementService",
+    "new": true,
+    "mainChanged": false,
+    "conflict": false
+  },
+  {
+    "path": "ServerScriptService.Crossgrounds.HubBootstrap",
+    "new": false,
+    "mainChanged": true,
+    "conflict": false
+  },
+  {
+    "path": "ReplicatedStorage.Crossgrounds.AimAssist",
+    "new": false,
+    "mainChanged": false,
+    "conflict": false
+  },
+  {
+    "path": "ReplicatedStorage.Crossgrounds.AnalogFilter",
+    "new": false,
+    "mainChanged": false,
+    "conflict": false
+  },
+  {
+    "path": "ReplicatedStorage.Crossgrounds.CombatMovement",
+    "new": true,
+    "mainChanged": false,
+    "conflict": false
+  },
+  {
+    "path": "ReplicatedStorage.Crossgrounds.LocomotionMotion",
+    "new": true,
+    "mainChanged": false,
+    "conflict": false
+  },
+  {
+    "path": "ReplicatedStorage.Crossgrounds.MobileLayout",
+    "new": false,
+    "mainChanged": true,
+    "conflict": false
+  },
+  {
+    "path": "ReplicatedStorage.Crossgrounds.WeaponActionMotion",
+    "new": true,
+    "mainChanged": false,
+    "conflict": false
+  }
+]

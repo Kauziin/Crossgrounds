@@ -7,9 +7,10 @@ local player=Players.LocalPlayer
 local gui=Instance.new("ScreenGui")
 gui.Name="CrossgroundsLoading"gui.ResetOnSpawn=false gui.IgnoreGuiInset=true gui.DisplayOrder=10000
 gui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling
+local coverGroup=Instance.new("CanvasGroup") coverGroup.Name="Transition" coverGroup.Size=UDim2.fromScale(1,1) coverGroup.BackgroundTransparency=1 coverGroup.Parent=gui
 local background=Instance.new("TextButton")background.Name="Cover"background.Size=UDim2.fromScale(1,1)
 background.BackgroundColor3=Color3.fromRGB(9,15,24)background.BorderSizePixel=0 background.Text=""
-background.AutoButtonColor=false background.Modal=true background.Active=true background.Parent=gui
+background.AutoButtonColor=false background.Modal=true background.Active=true background.Parent=coverGroup
 local gradient=Instance.new("UIGradient")gradient.Color=ColorSequence.new(Color3.fromRGB(20,37,55),Color3.fromRGB(7,12,20))gradient.Rotation=35 gradient.Parent=background
 local panel=Instance.new("Frame")panel.AnchorPoint=Vector2.new(.5,.5)panel.Position=UDim2.fromScale(.5,.5)
 panel.Size=UDim2.new(.86,0,0,270)panel.BackgroundTransparency=1 panel.Parent=background
@@ -43,8 +44,17 @@ local cosmeticDone=false local cosmeticStarted=false
 local function block()return Enum.ContextActionResult.Sink end
 Input:BindActionAtPriority("CrossgroundsLoadingMovement",block,false,10000,Enum.PlayerActions.CharacterForward,Enum.PlayerActions.CharacterBackward,Enum.PlayerActions.CharacterLeft,Enum.PlayerActions.CharacterRight,Enum.PlayerActions.CharacterJump)
 player:SetAttribute("ClientLoading",true)
+local fade local fadeSerial=0
 local function show(value)
- if value==visible then return end visible=value gui.Enabled=value player:SetAttribute("ClientLoading",value)
+ if value==visible then return end visible=value fadeSerial+=1 local serial=fadeSerial
+ if fade then fade:Cancel() end
+ player:SetAttribute("ClientLoading",value)
+ if value then gui.Enabled=true coverGroup.GroupTransparency=0
+ elseif player:GetAttribute("SettingReducedMenuMotion") then gui.Enabled=false
+ else
+  fade=game:GetService("TweenService"):Create(coverGroup,TweenInfo.new(.22,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{GroupTransparency=1})
+  fade:Play() task.delay(.22,function() if serial==fadeSerial and not visible then gui.Enabled=false end end)
+ end
  if value then
   opened=os.clock()clearSince=nil arrivalReady=false
   Input:BindActionAtPriority("CrossgroundsLoadingMovement",block,false,10000,Enum.PlayerActions.CharacterForward,Enum.PlayerActions.CharacterBackward,Enum.PlayerActions.CharacterLeft,Enum.PlayerActions.CharacterRight,Enum.PlayerActions.CharacterJump)
@@ -124,7 +134,7 @@ Run.RenderStepped:Connect(function(dt)
  if mode~=currentMode then mode=currentMode phase=""request=nil arrivalReady=false cosmeticStarted=false cosmeticDone=false prepared={} retired={}end
  local boot=workspace:GetAttribute("CrossgroundsBootReady")==true
  local mapBusy=phase=="loading"or phase=="deploying"or phase=="preparing"or(mode=="ctf"and player:GetAttribute("InMatch")==true and workspace:GetAttribute("RoundState")=="Loading")
- local demand=not game:IsLoaded()or not boot or mode=="loading"or player:GetAttribute("CrossgroundsTransition")==true or player:GetAttribute("SceneLoading")==true or mapBusy or request~=nil
+ local demand=not game:IsLoaded()or not boot or mode=="loading"or player:GetAttribute("CrossgroundsTransition")==true or player:GetAttribute("SceneLoading")==true or mapBusy or request~=nil or player:GetAttribute("SceneLoadingError")~=nil
  local serial=player:GetAttribute("CharacterReadySerial")
  if charRevision~=serial then charRevision=serial arrivalReady=false end
  if demand then show(true)clearSince=nil end
