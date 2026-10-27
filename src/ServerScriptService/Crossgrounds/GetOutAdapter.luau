@@ -316,6 +316,7 @@ end
 
 function Adapter:BeginResults()
  if self.phase=="results" then return end
+ require(script.Parent.ProgressionService).GetOutResult(self.round)
  self.phase="results" self.endsAt=workspace:GetServerTimeNow()+P.ResultsSeconds
  self.gameplay:Reset()
  for player in self.members do

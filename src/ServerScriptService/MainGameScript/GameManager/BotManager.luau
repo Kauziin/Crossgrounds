@@ -7,6 +7,7 @@ local Avatar=require(script.Parent.AvatarService)
 local Spawn=require(script.Parent.SpawnService)
 local Damage=require(script.Parent.DamageService)
 local Factory=require(script.Parent.WeaponFactory)
+local MatchStats=require(game.ServerScriptService.Crossgrounds.CTFMatchStats)
 local template=game.ServerStorage.CTFBotTemplate
 local folder=workspace:FindFirstChild("CTFBots") or Instance.new("Folder",workspace) folder.Name="CTFBots"
 local bots={Blue={},Red={}} local respawn={Blue={},Red={}} local active=false local serial=0
@@ -19,6 +20,7 @@ local function create(team,slot)
  m.Parent=folder
  local h=m:FindFirstChildOfClass("Humanoid") h.MaxHealth=200 h.Health=200 h.DisplayDistanceType=Enum.HumanoidDisplayDistanceType.None
  Avatar:Apply(m,slot+(team.Name=="Red" and 6 or 0),team)
+ MatchStats.Attach(m)
  Spawn:Place(m,team)
  local root=m:FindFirstChild("HumanoidRootPart") if root then pcall(function() root:SetNetworkOwner(nil) end) end
  local tool=Factory:Create(role=="Runner" and "SMG" or role=="Soldier" and "Rifle" or "Sniper")
@@ -38,7 +40,7 @@ function Bots:Reconcile()
   local list=bots[team.Name] local humans=0
   for _,p in Players:GetPlayers() do if p:GetAttribute("InMatch") and p.Team==team then humans+=1 end end
   local needed=math.max(0,6-humans)
-  for slot=6,needed+1,-1 do if list[slot] then Flags:DropCarrier(list[slot]) Brain:Stop(list[slot]) Damage:Unwatch(list[slot]) list[slot]:Destroy() list[slot]=nil respawn[team.Name][slot]=0 end end
+  for slot=6,needed+1,-1 do if list[slot] then MatchStats.Remove(list[slot]) Flags:DropCarrier(list[slot]) Brain:Stop(list[slot]) Damage:Unwatch(list[slot]) list[slot]:Destroy() list[slot]=nil respawn[team.Name][slot]=0 end end
   for slot=1,needed do
    if not alive(list[slot]) and os.clock()>=(respawn[team.Name][slot] or 0) then
     if list[slot] then Brain:Stop(list[slot]) Damage:Unwatch(list[slot]) list[slot]:Destroy() end
@@ -47,7 +49,7 @@ function Bots:Reconcile()
   end
  end
 end
-function Bots:StartRound() active=true respawn={Blue={},Red={}} self:Reconcile() end
+function Bots:StartRound() MatchStats.Reset() active=true respawn={Blue={},Red={}} self:Reconcile() end
 function Bots:StopRound()
  active=false
  for _,list in pairs(bots) do for slot=1,6 do if list[slot] then Flags:DropCarrier(list[slot]) Brain:Stop(list[slot]) Damage:Unwatch(list[slot]) list[slot]:Destroy() list[slot]=nil end end end

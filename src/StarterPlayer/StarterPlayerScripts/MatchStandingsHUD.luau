@@ -1,3 +1,4 @@
+local Prestige=require(script.Parent:WaitForChild("PrestigeStyle"))
 local Players=game:GetService("Players") local player=Players.LocalPlayer
 local Scope=require(script.Parent:WaitForChild("ModeScope"))
 local gui=Instance.new("ScreenGui") gui.Name="MatchStandings" gui.ResetOnSpawn=false gui.IgnoreGuiInset=true gui.DisplayOrder=44 gui.Parent=player.PlayerGui
@@ -19,6 +20,7 @@ game.ReplicatedStorage:WaitForChild("Crossgrounds"):WaitForChild("Remotes"):Wait
  for i,entry in data.entries or {} do
   local r=rows[i] or row(i) r.frame.Visible=true r.frame.LayoutOrder=i r.stroke.Color=colors[entry.medal] or colors.standard
   r.text.Text="#"..entry.rank.."  "..entry.name.."\n"..entry.kills.." K  ·  "..entry.deaths.." D"
+  Prestige.Apply(r.text,entry.prestige)
   r.portrait.Image=entry.userId>0 and ("rbxthumb://type=AvatarHeadShot&id="..entry.userId.."&w=100&h=100") or "rbxasset://textures/ui/GuiImagePlaceholder.png"
  end
  for i=#(data.entries or {})+1,#rows do rows[i].frame.Visible=false end

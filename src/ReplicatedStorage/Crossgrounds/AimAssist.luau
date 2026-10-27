@@ -57,9 +57,8 @@ function Assist.NewState() return {friction=1,age=0,velocity=Vector2.zero} end
 function Assist.Reset(state)
  table.clear(state) state.friction=1 state.age=0 state.velocity=Vector2.zero
 end
-function Assist.Step(state,window,context)
- local dt=context.dt or 0 local strength=math.clamp(context.strength or 0,0,1)
- if not window or strength<=0 or dt<=0 or dt>.075 then Assist.Reset(state) return 1,Vector2.zero end
+function Assist.Friction(state,window,context)
+ local dt=context.dt local strength=math.clamp(context.strength or 0,0,1)
  local input=context.look or Vector2.zero
  local magnitude=math.min(1,input.Magnitude)
  local frictionRange,trackingRange=Assist.Distance(window.distance)
@@ -69,6 +68,19 @@ function Assist.Step(state,window,context)
  local goal=1-Assist.Tuning.MaxSlowdown*strength*slowdown*window.weight*frictionRange*escape
  local response=goal>state.friction and .025 or .055
  state.friction+=(goal-state.friction)*(1-math.exp(-dt/response))
+ return state.friction,trackingRange,escape
+end
+function Assist.Step(state,window,context)
+ local dt=context.dt or 0 local strength=math.clamp(context.strength or 0,0,1)
+ if not window or strength<=0 or dt<=0 or dt>.075 then Assist.Reset(state) return 1,Vector2.zero end
+ local input=context.look or Vector2.zero
+ local magnitude=math.min(1,input.Magnitude)
+ local friction,trackingRange,escape=Assist.Friction(state,window,context)
+ -- Releasing intent cannot retain tracking velocity or acquisition time.
+ if magnitude<=.025 then
+  state.target=nil state.anchor=nil state.velocity=Vector2.zero state.age=0
+  return friction,Vector2.zero
+ end
  local origin=context.origin
  local same=state.target==window.candidate.id and state.anchor~=nil
  local previousOrigin,previousAnchor,previousCenter=state.origin,state.anchor,state.center

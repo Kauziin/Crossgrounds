@@ -1,0 +1,34 @@
+[
+  {
+    "path": "StarterPlayer\\StarterPlayerScripts\\CTFFlagLabels.luau",
+    "conflict": false
+  },
+  {
+    "path": "StarterPlayer\\StarterPlayerScripts\\CTFFlagNotice.luau",
+    "conflict": false
+  },
+  {
+    "path": "StarterPlayer\\StarterPlayerScripts\\HeldStandings.luau",
+    "conflict": false
+  },
+  {
+    "path": "ServerScriptService\\Crossgrounds\\CTFMatchStats.luau",
+    "conflict": false
+  },
+  {
+    "path": "ServerScriptService\\Crossgrounds\\StandingsService.luau",
+    "conflict": false
+  },
+  {
+    "path": "ServerScriptService\\MainGameScript\\GameManager\\BotManager.luau",
+    "conflict": false
+  },
+  {
+    "path": "ServerScriptService\\MainGameScript\\GameManager\\DamageService.luau",
+    "conflict": false
+  },
+  {
+    "path": "ServerScriptService\\MainGameScript\\GameManager\\FlagService.luau",
+    "conflict": false
+  }
+]

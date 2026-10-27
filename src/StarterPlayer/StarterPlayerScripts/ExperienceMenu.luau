@@ -4,6 +4,9 @@ local Theme=require(script.Parent:WaitForChild("MenuTheme"))
 local Scope=require(script.Parent:WaitForChild("ModeScope")) local Nav=require(script.Parent:WaitForChild("MenuNavigation"))
 local Router=require(script.Parent:WaitForChild("ControlRouter")) local Icons=require(script.Parent:WaitForChild("InputIcons"))
 local Mode=require(script.Parent:WaitForChild("InputMode")) local Bridge=require(script.Parent:WaitForChild("HubBridge"))
+local Card=require(script.Parent:WaitForChild("SettingsCard"))
+local Visual=require(script.Parent:WaitForChild("SettingsVisual"))
+local Palette=Theme.Settings
 local Preferences=require(script.Parent:WaitForChild("PreferenceClient"))
 local Reticle=require(root.Crossgrounds.Reticle)
 local Settings=require(root.ExperienceSettings) local Controls=require(root.ControlDefinitions)
@@ -33,7 +36,12 @@ for _,id in {"Main","Options","Categories","Detail"} do
 end
 local page="Main" local category="Options" local connections={} local detailRows={} local mainButtons={}
 local activeLoadoutView
-local show,render,resize
+local show,render,resize,confirm,switchCategory
+local pageState={} local navSelection={} local pendingConfirmation
+local paneTweens={}
+local function remember()
+ if panes.Detail.Visible then local focused=Nav:GetFocus() pageState[page]={scroll=lists.Detail.CanvasPosition,focus=focused and focused:IsDescendantOf(lists.Detail) and focused.Name or nil} end
+end
 local editScope="Global"
 local bindingDevice="Keyboard"
 local bindingTabs=Instance.new("Frame") bindingTabs.Name="InputTabs" bindingTabs.BackgroundTransparency=1 bindingTabs.Position=UDim2.fromOffset(8,50) bindingTabs.Size=UDim2.new(1,-16,0,30) bindingTabs.Visible=false bindingTabs.Parent=panes.Detail
@@ -44,13 +52,13 @@ for index,entry in {{"Keyboard","Teclado & Mouse"},{"Gamepad","Controle"},{"Touc
  Nav:Connect(b,function() if not player:GetAttribute("Rebinding") then bindingDevice=entry[1] render("Bindings") Nav:Focus(b) end end)
 end
 local categories={
- Options={{"Gameplay","Geral"},{"Controls","Controles"},{"Camera","Mira e Câmera"},{"Interface","Interface"},{"Accessibility","Acessibilidade"},{"Audio","Áudio"},{"Progress","Progresso"},{"Maps","Votação de mapa"},{"AdminMaps","Admin · mapas e capturas"},{"Development","Desenvolvimento · Studio"}},
+ Options={{"Gameplay","Geral"},{"Controls","Controles"},{"Camera","Mira e Câmera"},{"Interface","Interface"},{"Graphics","Gráficos"},{"Accessibility","Acessibilidade"},{"Audio","Áudio"},{"Progress","Progresso"},{"Maps","Votação de mapa"},{"AdminMaps","Admin · mapas e capturas"},{"Development","Desenvolvimento · Studio"}},
  Controls={{"Analog","Analógicos"},{"Bindings","Remapear comandos"},{"HUDSettings","Toque · editar HUD"}},
  Camera={{"CameraCore","Câmera e perspectiva"},{"Aim","Mira e sensibilidade"},{"Reticle","Retículo"}},
 }
 local leafParent={Aim="Camera",Reticle="Camera",CameraCore="Camera",Analog="Controls",Bindings="Controls",HUDSettings="Controls"}
-local keys={Gameplay=Settings.Categories.Gameplay,CameraCore=Settings.Categories.Camera,Aim=Settings.Categories.Aim,Analog=Settings.Categories.Analog,Interface=Settings.Categories.Interface,Accessibility=Settings.Categories.Accessibility,Audio=Settings.Categories.Audio,Reticle=Settings.Categories.Reticle}
-local titles={AdminMaps="ADMIN · MAPAS E CAPTURAS",Gameplay="GERAL",Controls="CONTROLES",Camera="MIRA E CÂMERA",CameraCore="CÂMERA",Aim="MIRA",Reticle="RETÍCULO",Interface="INTERFACE",Analog="ANALÓGICOS",Accessibility="ACESSIBILIDADE",Audio="ÁUDIO",Bindings="REMAPEAR COMANDOS",HUDSettings="TOQUE · HUD",Options="OPÇÕES",Loadout="LOADOUT",Maps="MAPAS",Development="DESENVOLVIMENTO",Surrender="RENDER-SE",Exit="SAIR"}
+local keys={Graphics=Settings.Categories.Graphics,Gameplay=Settings.Categories.Gameplay,CameraCore=Settings.Categories.Camera,Aim=Settings.Categories.Aim,Analog=Settings.Categories.Analog,Interface=Settings.Categories.Interface,Accessibility=Settings.Categories.Accessibility,Audio=Settings.Categories.Audio,Reticle=Settings.Categories.Reticle}
+local titles={Graphics="GRÁFICOS",AdminMaps="ADMIN · MAPAS E CAPTURAS",Gameplay="GERAL",Controls="CONTROLES",Camera="MIRA E CÂMERA",CameraCore="CÂMERA",Aim="MIRA",Reticle="RETÍCULO",Interface="INTERFACE",Analog="ANALÓGICOS",Accessibility="ACESSIBILIDADE",Audio="ÁUDIO",Bindings="REMAPEAR COMANDOS",HUDSettings="TOQUE · HUD",Options="OPÇÕES",Loadout="LOADOUT",Maps="MAPAS",Development="DESENVOLVIMENTO",Surrender="RENDER-SE",Exit="SAIR"}
 local function get(key) local v=player:GetAttribute("Setting"..key) if v==nil then return Settings.Rules[key].Default end return v end
 local function cleanDetail()
  if activeLoadoutView then activeLoadoutView:Destroy() activeLoadoutView=nil end
@@ -71,119 +79,22 @@ local function commit(key,value)
  Preferences:Edit(key,context(key),value,"set")
 end
 local function settingRow(key)
- local rule=Settings.Rules[key] local numeric=rule.Min~=nil
- local row=Instance.new("Frame") row.Name=key row.Size=UDim2.new(1,-8,0,76) row.BackgroundColor3=Theme.Colors.Surface row.BorderSizePixel=0 row.Parent=lists.Detail
- local name=label(row,"Label",rule.Label,UDim2.new(1,-20,0,30)) name.Position=UDim2.fromOffset(10,3) name.TextSize=16 name.TextWrapped=true
- local origin=label(row,"Origin","",UDim2.new(1,-20,0,20)) origin.Position=UDim2.fromOffset(10,32) origin.TextSize=11 origin.TextColor3=muted
- local value=Instance.new(numeric and "TextBox" or "TextButton") value.Name="Value" value.BackgroundTransparency=1 value.Position=UDim2.new(.2,0,0,55) value.Size=UDim2.new(.6,0,0,38) value.Font=Enum.Font.GothamBold value.TextSize=15 value.TextColor3=white value.Parent=row
- local left=btn(row,"Minus","−") left.Position=UDim2.fromOffset(8,53) left.Size=UDim2.fromOffset(44,44)
- local right=btn(row,"Plus","+") right.AnchorPoint=Vector2.new(1,0) right.Position=UDim2.new(1,-8,0,53) right.Size=UDim2.fromOffset(44,44)
- local lg=Icons:Glyph(left,"DPadLeft","DPadLeft",28) lg.Position=UDim2.fromOffset(6,6) lg.Visible=false
- local rg=Icons:Glyph(right,"DPadRight","DPadRight",28) rg.Position=UDim2.fromOffset(6,6) rg.Visible=false
- local factor=(rule.Percent or key=="MenuVolume" or key=="MenuSFXVolume" or key=="DamageFlash" or key=="CameraMotion") and 100 or 1
- local divider=Instance.new("Frame") divider.Name="Divider" divider.BackgroundColor3=muted divider.BackgroundTransparency=.55 divider.BorderSizePixel=0 divider.Parent=row
- local slider,fill,thumb,track
- if numeric then
-  slider=Instance.new("TextButton") slider.Name="Slider" slider.Text="" slider.Position=UDim2.fromOffset(12,101) slider.Size=UDim2.new(1,-24,0,12) slider.BackgroundColor3=muted slider.BorderSizePixel=0 slider.Parent=row
-  slider.BackgroundTransparency=1
-  track=Instance.new("Frame") track.Name="Track" track.BackgroundColor3=Color3.fromRGB(55,57,65) track.BorderSizePixel=0 track.Position=UDim2.new(0,0,.5,-5) track.Size=UDim2.new(1,0,0,10) track.Parent=slider
-  local tc=Instance.new("UICorner") tc.CornerRadius=UDim.new(1,0) tc.Parent=track
-  fill=Instance.new("Frame") fill.Name="Fill" fill.BackgroundColor3=Color3.fromRGB(171,208,228) fill.BorderSizePixel=0 fill.Parent=track
-  local fc=tc:Clone() fc.Parent=fill
-  thumb=Instance.new("Frame") thumb.Name="Thumb" thumb.AnchorPoint=Vector2.new(.5,.5) thumb.Size=UDim2.fromOffset(20,20) thumb.BackgroundColor3=fill.BackgroundColor3 thumb.BorderSizePixel=0 thumb.Parent=track
-  local kc=tc:Clone() kc.Parent=thumb value.ClearTextOnFocus=false
- end
- local customize=btn(row,"Inheritance","") customize.Position=UDim2.new(0,8,1,-48) customize.Size=UDim2.new(.6,-12,0,44) customize.TextSize=11
- local reset=btn(row,"Default","") reset:SetAttribute("AccessibleLabel","Restaurar "..rule.Label.." ao padrão")
- -- Draw the reset icon with UI primitives: Gotham has no reliable circular-arrow glyph.
- local ring=Instance.new("Frame") ring.Name="ResetIcon" ring.BackgroundTransparency=1 ring.Position=UDim2.fromOffset(13,13) ring.Size=UDim2.fromOffset(18,18) ring.Parent=reset
- local round=Instance.new("UICorner") round.CornerRadius=UDim.new(1,0) round.Parent=ring
- local outline=Instance.new("UIStroke") outline.Color=white outline.Thickness=2 outline.Parent=ring
- local gap=Instance.new("UIGradient") gap.Rotation=135 gap.Transparency=NumberSequence.new({NumberSequenceKeypoint.new(0,1),NumberSequenceKeypoint.new(.2,1),NumberSequenceKeypoint.new(.21,0),NumberSequenceKeypoint.new(1,0)}) gap.Parent=outline
- for _,size in {Vector2.new(8,2),Vector2.new(2,8)} do local line=Instance.new("Frame") line.BackgroundColor3=white line.BorderSizePixel=0 line.Position=UDim2.fromOffset(10,10) line.Size=UDim2.fromOffset(size.X,size.Y) line.Parent=reset end
- for _,button in {left,right,reset} do button.TextXAlignment=Enum.TextXAlignment.Center button.UIPadding.PaddingLeft=UDim.new() button.UIPadding.PaddingRight=UDim.new() end
- origin.TextWrapped=true
- local reflow
- local function read() return Preferences:Value(key,context(key)) end
- local function refresh()
-  local v,custom,scope=read()
-  if UIS:GetFocusedTextBox()~=value then value.Text=numeric and string.format(factor==100 and "%.0f" or "%.2f",v*factor) or Settings:Format(key,v) end
-  if fill then local ratio=math.clamp((v-rule.Min)/(rule.Max-rule.Min),0,1) fill.Size=UDim2.fromScale(ratio,1) thumb.Position=UDim2.fromScale(ratio,.5) end
-  local mode=scope:match("^Mode:(.+)$")
-  origin.Text=mode and (custom and "Personalizado neste modo · "..mode:upper() or "Global (herdado) · "..mode:upper()) or scope:match("Device:") and "Dispositivo · "..scope:sub(8) or "Global · compartilhado entre modos"
-  customize.Visible=mode~=nil customize.Text=custom and "Herdar Global" or "Personalizar neste modo"
-  if reflow then reflow() end
- end
- local function adjust(d)
-  local v=read()
-  if numeric then v+=d*rule.Step elseif rule.Choices then local index=table.find(rule.Choices,v) or 1 v=rule.Choices[(index-1+d)%#rule.Choices+1] else v=not v end
-  v=Settings:Sanitize(key,v)
-  if v~=read() then Nav:PlaySound("Step") end
-  if commit(key,v)~=false then refresh() end
- end
- Nav:Register(row,function() if numeric then value:CaptureFocus() else adjust(1) end end,adjust)
- Nav:Connect(left,function() adjust(-1) end) Nav:Connect(right,function() adjust(1) end)
- Nav:Connect(reset,function() Preferences:Edit(key,context(key),nil,"default") refresh() end)
- Nav:Connect(customize,function() local v,custom=read() Preferences:Edit(key,context(key),v,custom and "inherit" or "set") refresh() end)
- left:SetAttribute("MenuSoundKind","Silent") right:SetAttribute("MenuSoundKind","Silent")
- if not numeric then value:SetAttribute("MenuSoundKind","Silent") end
- -- Horizontal adjustments remain available when the cursor lands on a subcontrol.
- Nav:Register(left,function() adjust(-1) end,adjust) Nav:Register(right,function() adjust(1) end,adjust)
- if numeric then Nav:Register(value,function() value:CaptureFocus() end,adjust) Nav:Register(slider,function() value:CaptureFocus() end,adjust) end
- if numeric then
-  hook(value.Focused,function() task.defer(function() if value.Parent then value.CursorPosition=#value.Text+1 value.SelectionStart=1 end end) end)
-  hook(value.FocusLost,function() local n=tonumber((value.Text:gsub(",","."))) if n then commit(key,n/factor) end refresh() end)
-  local dragging
-  local function drag(input) if slider.AbsoluteSize.X>0 then local a=math.clamp((input.Position.X-slider.AbsolutePosition.X)/slider.AbsoluteSize.X,0,1) local nextValue=Settings:Sanitize(key,rule.Min+a*(rule.Max-rule.Min)) if nextValue~=read() then Nav:PlaySound("Step") commit(key,nextValue) refresh() end end end
-  hook(slider.InputBegan,function(i) if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then dragging=i drag(i) end end)
-  hook(UIS.InputChanged,function(i) if dragging and (i==dragging or i.UserInputType==Enum.UserInputType.MouseMovement) then drag(i) end end)
-  hook(UIS.InputEnded,function(i) if i==dragging then dragging=nil end end)
- else Nav:Connect(value,function() adjust(1) end) Nav:Register(value,function() adjust(1) end,adjust) end
- local function focusIcons()
-  local selected=Nav:GetFocus() local focused=selected and (selected==row or selected:IsDescendantOf(row))
-  local visible=Mode:Get()==Enum.PreferredInput.Gamepad and focused or false
-  lg.Visible=visible rg.Visible=visible left.Text=visible and "" or "−" right.Text=visible and "" or "+"
- end
- reflow=function()
-  if not row.Parent then return end
-  local textService=game:GetService("TextService")
-  local preferenceScale=panel:FindFirstChild("PreferenceScale")
-  local w=row.AbsoluteSize.X/(preferenceScale and preferenceScale.Scale or 1) local narrow=w<620
-  local labelWidth=narrow and math.max(100,w-28) or math.floor(w*.38)-28
-  local labelHeight=math.max(22,textService:GetTextSize(rule.Label,name.TextSize,name.Font,Vector2.new(labelWidth,math.huge)).Y+4)
-  local originHeight=math.max(18,textService:GetTextSize(origin.Text,origin.TextSize,origin.Font,Vector2.new(labelWidth,math.huge)).Y+4)
-  local textHeight=labelHeight+originHeight
-  local y=narrow and textHeight+18 or math.max(12,(textHeight-44)/2+12)
-  local x=narrow and 12 or math.floor(w*.38)+12
-  local controlsWidth=math.max(1,w-x-12) local centerWidth=math.max(1,controlsWidth-164)
-  name.Position=UDim2.fromOffset(14,12) name.Size=UDim2.fromOffset(labelWidth,labelHeight)
-  origin.Position=UDim2.fromOffset(14,12+labelHeight) origin.Size=UDim2.fromOffset(labelWidth,originHeight)
-  divider.Visible=not narrow divider.Position=UDim2.fromOffset(x-12,14) divider.Size=UDim2.fromOffset(1,math.max(44,textHeight-4))
-  left.AnchorPoint=Vector2.zero left.Position=UDim2.fromOffset(x,y) left.Size=UDim2.fromOffset(44,44)
-  right.AnchorPoint=Vector2.zero right.Position=UDim2.fromOffset(x+56+centerWidth+12,y) right.Size=UDim2.fromOffset(44,44)
-  reset.Position=UDim2.fromOffset(w-56,y) reset.Size=UDim2.fromOffset(44,44)
-  value.Position=UDim2.fromOffset(x+56,y+(numeric and -4 or 0)) value.Size=UDim2.fromOffset(centerWidth,numeric and 24 or 44)
-  if slider then slider.Position=UDim2.fromOffset(x+66,y+18) slider.Size=UDim2.fromOffset(math.max(1,centerWidth-20),30) end
-  local base=math.max(76,y+56,textHeight+24)
-  customize.Position=UDim2.fromOffset(14,base) customize.Size=UDim2.new(1,-28,0,36)
-  row.Size=UDim2.new(1,-8,0,base+(customize.Visible and 44 or 0))
-  local focused=Nav:GetFocus()
-  if Mode:Get()==Enum.PreferredInput.Gamepad and focused and (focused==row or focused:IsDescendantOf(row)) then
-   task.defer(function() if row.Parent and focused.Parent then Nav:Focus(focused) end end)
-  end
- end
- hook(name:GetPropertyChangedSignal("TextSize"),reflow) hook(origin:GetPropertyChangedSignal("TextSize"),reflow) hook(row:GetPropertyChangedSignal("AbsoluteSize"),reflow)
- hook(game:GetService("GuiService"):GetPropertyChangedSignal("PreferredTextSize"),reflow) reflow()
- hook(Nav.FocusChanged,focusIcons) hook(Mode.Changed,focusIcons)
- hook(Preferences.Changed,function(changes) if not changes or changes[key] then refresh() end end)
- refresh() focusIcons() table.insert(detailRows,row)
+ local row=Card.new(lists.Detail,key,{Settings=Settings,Preferences=Preferences,Nav=Nav,Context=context,Commit=commit,Scale=function() return get("MenuScale") end})
+ table.insert(detailRows,row)
+end
+confirm=function(message,callback)
+ remember() cleanDetail() pendingConfirmation=page
+ info(message)
+ action("ConfirmReset","CONFIRMAR RESTAURAÇÃO",function() local target=pendingConfirmation pendingConfirmation=nil callback() render(target) end)
+ action("CancelReset","Cancelar",function() local target=pendingConfirmation pendingConfirmation=nil render(target) end)
+ resize(true)
 end
 local function dev(actionName,payload)
  local remote=remotes:FindFirstChild("DevelopmentCommand") if not remote then status.Text="Ferramentas disponíveis somente no Studio." return end
  task.spawn(function() local ok,success,message=pcall(function() return remote:InvokeServer(actionName,payload) end) status.Text=ok and message or "Falha na solicitação." end)
 end
 render=function(id)
- page=id cleanDetail() panes.Detail.Back.Text="‹  "..(titles[id] or id)
+ remember() page=id navSelection[leafParent[id] or "Options"]=id pendingConfirmation=nil cleanDetail() panes.Detail.Back.Text="‹  "..(titles[id] or id)
  if keys[id] then
   local modeFields=false for _,key in keys[id] do if Settings.Rules[key].ModeOverride then modeFields=true end end
   if modeFields then
@@ -198,12 +109,13 @@ render=function(id)
    hook(Preferences.Changed,updatePreview) Nav:Connect(preview,function() moving=not moving updatePreview() end) updatePreview()
   end
   for _,key in keys[id] do if not (Scope:IsArena() and table.find({"FirstPerson","ShiftLock","Shoulder"},key)) then settingRow(key) end end
-  action("ResetCategory","Restaurar padrões desta categoria",function() Preferences:Reset(modeFields and editScope~="Global" and editScope or context(keys[id][1]),Settings.Rules[keys[id][1]].Category,false) end)
-  if modeFields and editScope~="Global" then action("InheritCategory","Voltar a herdar Global nesta categoria",function() Preferences:Reset(editScope,Settings.Rules[keys[id][1]].Category,true) end) end
+  action("ResetCategory","Restaurar padrões desta categoria",function() confirm("Restaurar os padrões desta categoria no escopo selecionado?",function() Preferences:Reset(modeFields and editScope~="Global" and editScope or context(keys[id][1]),Settings.Rules[keys[id][1]].Category,false) end) end)
+  if modeFields and editScope~="Global" then action("InheritCategory","Voltar a herdar Global nesta categoria",function() confirm("Remover as personalizações desta categoria e herdar Global?",function() Preferences:Reset(editScope,Settings.Rules[keys[id][1]].Category,true) end) end) end
   if id=="Interface" then
-   action("ResetAllPreferences","Restaurar preferências globais",function() Preferences:Reset("Global","All",true) end)
-   action("ResetEveryScope","Restaurar tudo: global, modos e dispositivos",function() for _,scope in {"Global","Mode:ctf","Mode:arena","Device:Keyboard","Device:Gamepad","Device:Touch"} do Preferences:Reset(scope,"All",true) end end)
+   action("ResetAllPreferences","Restaurar preferências globais",function() confirm("Restaurar todas as preferências globais?",function() Preferences:Reset("Global","All",true) end) end)
+   action("ResetEveryScope","Restaurar tudo: global, modos e dispositivos",function() confirm("Restaurar todas as preferências, incluindo modos e dispositivos?",function() for _,scope in {"Global","Mode:ctf","Mode:arena","Device:Keyboard","Device:Gamepad","Device:Touch"} do Preferences:Reset(scope,"All",true) end end) end)
   end
+  if id=="Graphics" then info("Equilibrado é o padrão. Alto e Visual acrescentam efeitos; Desempenho reduz sombras e pós-processamento. A qualidade global do Roblox continua sob seu controle. Profundidade de campo fica restrita à câmera de fotografia no perfil Visual.") end
   if id=="Aim" then info("Desaceleração reduz a sensibilidade perto do corpo. Acompanhamento ajuda uma parte do movimento visível, sem centralizar a mira; diminui com a distância.") end
   if id=="Audio" then action("Playlist","GERENCIAR PLAYLIST DO LOBBY  ›",function() show(false) Nav:OpenMenu("Playlist") end) end
   if id=="Gameplay" then info("Corrida automática: ativa no toque ao avançar; para ao recuar ou abrir menus. Usa estamina.") end
@@ -310,8 +222,10 @@ render=function(id)
   info(Scope:IsHub() and "Você já está no hub." or "Sair da modalidade atual e voltar ao hub?")
   if not Scope:IsHub() then action("ExitConfirm","CONFIRMAR SAÍDA",function() show(false) Bridge:Send("returnHub") end) end
  end
- lists.Detail.CanvasPosition=Vector2.zero resize(true)
+ lists.Detail.CanvasPosition=pageState[id] and pageState[id].scroll or Vector2.zero resize(true)
 end
+local siblingTabs=Instance.new("Frame") siblingTabs.Name="SiblingCategories" siblingTabs:SetAttribute("SettingsStyled",true) siblingTabs.BackgroundTransparency=1 siblingTabs.Parent=panes.Detail
+local subtitle=label(panes.Detail,"Description","",UDim2.new(1,-36,0,25)) subtitle:SetAttribute("SettingsStyled",true) subtitle.TextColor3=Palette.Muted subtitle.TextSize=12 subtitle.Position=UDim2.fromOffset(18,49)
 local categoryButtons={}
 local function buildCategories(id)
  local target=id=="Options" and "Options" or "Categories"
@@ -325,7 +239,7 @@ local function buildCategories(id)
    local b=btn(lists[target],item[1],item[2].."  ›") table.insert(categoryButtons[id],b)
    Nav:Connect(b,function()
     if item[1]=="Progress" then show(false) player:SetAttribute("ProgressionMenuOpen",true)
-    elseif categories[item[1]] then category=item[1] page=item[1] buildCategories(item[1]) resize(true)
+    elseif categories[item[1]] then remember() category=item[1] page=item[1] buildCategories(item[1]) resize(true)
     else category=id render(item[1]) end
    end)
   end
@@ -334,7 +248,7 @@ local function buildCategories(id)
 end
 local function chooseCategory(id)
  if not categoryButtons.Options then buildCategories("Options") end
- category=id page=id buildCategories(id) resize(true)
+ remember() category=id page=id if id~="Options" then navSelection.Options=id end buildCategories(id) resize(true)
 end
 resize=function(animate)
  bindingTabs.Visible=page=="Bindings"
@@ -343,6 +257,75 @@ resize=function(animate)
  local v=shade.AbsoluteSize if v.X<200 or v.Y<150 then v=workspace.CurrentCamera.ViewportSize end
  local scale=get("MenuScale") local modifier=panel:FindFirstChild("PreferenceScale") or Instance.new("UIScale") modifier.Name="PreferenceScale" modifier.Scale=scale modifier.Parent=panel
  local w=math.min(1280,(v.X-24)/scale) local h=math.min(720,(v.Y-20)/scale) panel.Size=UDim2.fromOffset(w,h)
+ for f,t in paneTweens do t:Cancel() paneTweens[f]=nil end
+ local configActive=page~="Main" and not table.find({"Loadout","Exit","Surrender"},page)
+ panel:SetAttribute("SettingsOverhaul",configActive)
+ for _,f in panes do f:SetAttribute("SettingsOverhaul",configActive) end
+ siblingTabs.Visible=configActive subtitle.Visible=configActive
+ if configActive then
+  local stack={"Main","Options"}
+  if page=="Controls" or page=="Camera" or leafParent[page] then table.insert(stack,"Categories") end
+  if not categories[page] then table.insert(stack,"Detail") end
+  if not categoryButtons.Options then buildCategories("Options") end
+  if leafParent[page] and not categoryButtons[leafParent[page]] then buildCategories(leafParent[page]) end
+  local content=#stack local contextIndex=stack[content]=="Detail" and content-1 or content
+  local rail=w<620 and 30 or 48 local gap=7
+  local contextWidth=w<620 and 50 or math.clamp(w*.20,156,215)
+  local used=0 panel:SetAttribute("CascadeDepth",#stack)
+  for _,f in panes do f.Visible=false end
+  for i,id in stack do
+   local f=panes[id] f.Visible=true f.ZIndex=i f.Active=true
+   local collapsed=i<contextIndex or w<620 and i==contextIndex and i<content
+   local width=i==content and w-used or collapsed and rail or contextWidth
+   local target=UDim2.fromOffset(used,40) local size=UDim2.fromOffset(width,h-78)
+   if paneTweens[f] then paneTweens[f]:Cancel() paneTweens[f]=nil end
+   Theme.CascadeDepth(f,0,false)
+   if animate and not Theme.ReducedMotion() then local t=Tween:Create(f,TweenInfo.new(.22,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{Position=target,Size=size}) paneTweens[f]=t t:Play() else f.Position=target f.Size=size end
+   local back=f.Back back.Visible=id~="Main" back.Text=collapsed and "<" or "<  "..(id=="Detail" and titles[page] or id=="Categories" and titles[leafParent[page] or page] or "CONFIGURAÇÕES") back.TextSize=id=="Detail" and 20 or 15
+   back.Position=UDim2.fromOffset(4,8) back.Size=UDim2.new(1,-8,0,36)
+   lists[id].Position=UDim2.fromOffset(collapsed and 2 or 6,id=="Main" and 8 or 52) lists[id].Size=UDim2.new(1,collapsed and -4 or -12,1,id=="Main" and -16 or -60)
+   for _,button in lists[id]:GetChildren() do if button:IsA("TextButton") then
+    if not button:GetAttribute("CompactRail") then button:SetAttribute("ExpandedText",button.Text) end
+    local full=button:GetAttribute("ExpandedText") or button.Name
+    button:SetAttribute("CompactRail",collapsed) button.Text=collapsed and "" or full button.TextTruncate=Enum.TextTruncate.None button.TextWrapped=true button.TextSize=14
+    local icon=button:FindFirstChild("CategoryIcon") or Visual.Icon(button,button.Name,24)
+    icon.Visible=id~="Detail" icon.Size=UDim2.fromOffset(collapsed and 20 or 24,collapsed and 20 or 24) icon.Position=collapsed and UDim2.new(.5,-10,.5,-10) or UDim2.new(0,-30,.5,-12)
+    button.Size=UDim2.new(1,-2,0,collapsed and 46 or 58)
+    local pad=button:FindFirstChildOfClass("UIPadding") if pad then pad.PaddingLeft=UDim.new(0,collapsed and 0 or id=="Detail" and 12 or 39) pad.PaddingRight=UDim.new(0,4) end
+    local selected=id=="Main" and button.Name=="Options" or id=="Options" and button.Name==(leafParent[page] or page) or id=="Categories" and button.Name==page
+    button:SetAttribute("MenuSelected",selected)
+    local edge=button:FindFirstChild("AcrylicEdge") if edge then edge.Color=selected and Palette.Accent or Palette.Border edge.Thickness=selected and 2 or 1 edge.Transparency=selected and .1 or .7 end
+   end end
+   used+=width+gap
+  end
+  subtitle.Text=Visual.Descriptions[page] or "Personalize suas preferências."
+  local detail=panes.Detail
+  siblingTabs.Position=UDim2.fromOffset(10,78) siblingTabs.Size=UDim2.new(1,-20,0,34)
+  for _,child in siblingTabs:GetChildren() do child:Destroy() end
+  local group=leafParent[page] or "Options" local siblings={}
+  for _,entry in categories[group] or {} do if entry[1]~="Progress" and (entry[1]~="Development" or workspace:GetAttribute("DevelopmentToolsAvailable")) and (entry[1]~="AdminMaps" or player:GetAttribute("CrossgroundsAdmin")==true) then table.insert(siblings,entry) end end
+  local previous=btn(siblingTabs,"Previous","LB") previous.Size=UDim2.fromOffset(34,34) previous.TextSize=11 previous.UIPadding.PaddingLeft=UDim.new() previous.UIPadding.PaddingRight=UDim.new()
+  Nav:Connect(previous,function() switchCategory(-1) end)
+  local nextButton=btn(siblingTabs,"Next","RB") nextButton.AnchorPoint=Vector2.new(1,0) nextButton.Position=UDim2.fromScale(1,0) nextButton.Size=UDim2.fromOffset(34,34) nextButton.TextSize=11 nextButton.UIPadding.PaddingLeft=UDim.new() nextButton.UIPadding.PaddingRight=UDim.new()
+  Nav:Connect(nextButton,function() switchCategory(1) end)
+  local tabList=Instance.new("ScrollingFrame") tabList.Name="Tabs" tabList.BackgroundTransparency=1 tabList.BorderSizePixel=0 tabList.Position=UDim2.fromOffset(40,0) tabList.Size=UDim2.new(1,-80,1,0) tabList.AutomaticCanvasSize=Enum.AutomaticSize.X tabList.CanvasSize=UDim2.new() tabList.ScrollBarThickness=2 tabList.Parent=siblingTabs
+  for i,entry in siblings do
+   local id=entry[1] local b=btn(tabList,id,entry[2]) b.TextSize=11 b.TextTruncate=Enum.TextTruncate.AtEnd b.TextWrapped=false b.Size=#siblings<=3 and UDim2.new(1/#siblings,-3,1,0) or UDim2.fromOffset(145,32) b.Position=#siblings<=3 and UDim2.fromScale((i-1)/#siblings,0) or UDim2.fromOffset((i-1)*148,0)
+   b.TextColor3=id==page and Palette.Accent or Palette.Muted
+   Nav:Connect(b,function() if categories[id] then chooseCategory(id) else category=group render(id) end end)
+  end
+  siblingTabs.Visible=stack[content]=="Detail"
+  local top=siblingTabs.Visible and 120 or 78
+  bindingTabs.Position=UDim2.fromOffset(8,top)
+  lists.Detail.Position=UDim2.fromOffset(8,top+(page=="Bindings" and 36 or 0)) lists.Detail.Size=UDim2.new(1,-16,1,-top-(page=="Bindings" and 44 or 8))
+ else
+  for id,list in lists do for _,button in list:GetChildren() do if button:IsA("TextButton") then
+   if button:GetAttribute("CompactRail") then button.Text=button:GetAttribute("ExpandedText") or button.Name end
+   button:SetAttribute("CompactRail",false)
+   local icon=button:FindFirstChild("CategoryIcon") if icon then icon.Visible=false end
+   local pad=button:FindFirstChildOfClass("UIPadding") if pad then pad.PaddingLeft=UDim.new(0,12) end
+   local edge=button:FindFirstChild("AcrylicEdge") if edge then edge.Color=Color3.new(1,1,1) edge.Transparency=.85 edge.Thickness=1 end
+  end end end
  local narrow=w<760
  local controlLeaf=leafParent[page]~=nil
  local simple=table.find({"Loadout","Exit","Surrender"},page)~=nil
@@ -370,14 +353,19 @@ resize=function(animate)
   Theme.CascadeDepth(f,#stack-i,animate and not Theme.ReducedMotion())
   for _,b in lists[id]:GetChildren() do if b:IsA("TextButton") then b.TextWrapped=i==#stack b.TextTruncate=i==#stack and Enum.TextTruncate.None or Enum.TextTruncate.AtEnd end end
   local target=UDim2.fromOffset(x,y)
-  if animate and not Theme.ReducedMotion() then f.Position=target+UDim2.fromOffset(18,0) Tween:Create(f,TweenInfo.new(.17,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{Position=target}):Play() else f.Position=target end
+  if animate and not Theme.ReducedMotion() then f.Position=target+UDim2.fromOffset(18,0) local t=Tween:Create(f,TweenInfo.new(.22,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{Position=target}) paneTweens[f]=t t:Play() else f.Position=target end
  end
- header.Text="CROSSGROUNDS  /  "..(page=="Main" and "PAUSA" or titles[page] or page)
- panes.Main.Back.Visible=false lists.Main.Position=UDim2.fromOffset(8,8) lists.Main.Size=UDim2.new(1,-16,1,-16)
- for _,b in mainButtons do b.Size=UDim2.new(1,-4,0,math.clamp((h-110)/5,48,62)) end
+ end
+ header.Text="CROSSGROUNDS  /  "..(configActive and "CONFIGURAÇÕES" or page=="Main" and "PAUSA" or titles[page] or page)
+ panes.Main.Back.Visible=false if not configActive then lists.Main.Position=UDim2.fromOffset(8,8) lists.Main.Size=UDim2.new(1,-16,1,-16) end
+ local visibleCount=0 for _,b in mainButtons do if b.Visible then visibleCount+=1 end end
+ for _,b in mainButtons do b.Size=UDim2.new(1,-4,0,math.clamp((h-110)/math.max(1,visibleCount),48,62)) end
  if animate then
-  local activeList=lists[stack[#stack]] local target=panes[stack[#stack]].Back
+  local activeId=panes.Detail.Visible and "Detail" or panes.Categories.Visible and "Categories" or panes.Options.Visible and "Options" or "Main"
+  local activeList=lists[activeId] local target=panes[activeId].Back
   for _,child in activeList:GetChildren() do if child:IsA("GuiButton") or child:IsA("Frame") and Settings.Rules[child.Name] then target=child break end end
+  local saved=pageState[page] if saved and saved.focus and panes.Detail.Visible then target=lists.Detail:FindFirstChild(saved.focus) or target
+  elseif categories[page] and navSelection[page] then target=activeList:FindFirstChild(navSelection[page]) or target end
   if page=="Loadout" and activeLoadoutView then
    target=activeLoadoutView:DefaultFocus()
    task.delay(.08,function() if page=="Loadout" and shade.Visible and target.Parent then Nav:Focus(target) end end)
@@ -388,7 +376,8 @@ resize=function(animate)
 end
 show=function(on,id)
  shade.Visible=on player:SetAttribute("ExperienceMenuOpen",on)
- if on then status.Text="Selecione uma opção. Analógico esquerdo: cursor; direito: rolagem."
+ if not on then remember() end
+ if on then status.Text="Analógico: cursor · D-pad: navegar / ajustar · X: valor · Y: padrão"
   local target=id or "Main"
   if target=="Main" then page="Main" resize(true)
   elseif categories[target] then chooseCategory(target)
@@ -396,23 +385,17 @@ show=function(on,id)
  else resize(false) end
 end
 panes.Main.Back.Text="MENU"
-for _,a in {{"Resume","Continuar"},{"Loadout","Loadout"},{"Options","Opções"},{"Surrender","Render-se"},{"Exit","Sair"}} do
- local b=btn(lists.Main,a[1],a[2]) mainButtons[a[1]]=b
+for index,a in {{"Resume","Continuar"},{"Loadout","Loadout"},{"Progress","Progressão"},{"Options","Opções"},{"Surrender","Render-se"},{"Exit","Sair"}} do
+ local b=btn(lists.Main,a[1],a[2]) b.LayoutOrder=index mainButtons[a[1]]=b
  Nav:Connect(b,function() if a[1]=="Resume" then show(false) if Scope:IsHub() then Nav:OpenMenu("Resume") end elseif a[1]=="Progress" then show(false) player:SetAttribute("ProgressionMenuOpen",true) elseif a[1]=="Options" then chooseCategory("Options") elseif a[1]=="Loadout" and Scope:IsHub() then show(false) Nav:OpenMenu("Hub") else category="Main" render(a[1]) end end)
 end
 Nav:Connect(panes.Options.Back,function() page="Main" resize(true) end)
 Nav:Connect(panes.Categories.Back,function() chooseCategory("Options") end)
-Nav:Connect(panes.Detail.Back,function() if page=="Loadout" or page=="Exit" or page=="Surrender" then page="Main" resize(true) elseif leafParent[page] then chooseCategory(leafParent[page]) else chooseCategory("Options") end end)
+Nav:Connect(panes.Detail.Back,function() if pendingConfirmation then local target=pendingConfirmation pendingConfirmation=nil render(target) return end if page=="Loadout" or page=="Exit" or page=="Surrender" then page="Main" resize(true) elseif leafParent[page] then chooseCategory(leafParent[page]) else chooseCategory("Options") end end)
 Nav:Connect(panes.Main.Back,function() show(false) end)
 -- Bumpers share gameplay shoulder/shift-lock inputs; the modal context owns them.
-Nav:SetCategories(panel,function(step)
- if page=="Bindings" then
-  local devices={"Keyboard","Gamepad","Touch"}
-  local index=table.find(devices,bindingDevice) or 1
-  bindingDevice=devices[(index-1+step)%#devices+1] render("Bindings")
-  Nav:Focus(tabButtons[bindingDevice])
-  return
- end
+switchCategory=function(step)
+ if pendingConfirmation then return end
  local group=leafParent[page] or (categories[page] and page~="Options" and page) or "Options"
  local entries=categories[group] or categories.Options local eligible={}
  for _,entry in entries do
@@ -424,10 +407,10 @@ Nav:SetCategories(panel,function(step)
  local index=table.find(eligible,page) or table.find(eligible,category) or (step>0 and 0 or 1)
  local id=eligible[(index-1+step)%#eligible+1]
  if categories[id] then chooseCategory(id) else category=group render(id) end
- local pane=categories[id] and panes.Categories or panes.Detail
- Nav:Focus(pane.Back)
-end)
-Nav:SetBack(panel,function() if page=="Main" then show(false) elseif categories[page] then if page~="Options" then chooseCategory("Options") else page="Main" resize(true) end else
+ -- resize restores this category's last focus.
+end
+Nav:SetCategories(panel,switchCategory)
+Nav:SetBack(panel,function() if pendingConfirmation then local target=pendingConfirmation pendingConfirmation=nil render(target) return end remember() if page=="Main" then show(false) elseif categories[page] then if page~="Options" then chooseCategory("Options") else page="Main" resize(true) end else
  if leafParent[page] then chooseCategory(leafParent[page]) elseif table.find({"Loadout","Exit","Surrender"},page) then page="Main" resize(true) else chooseCategory("Options") end end end,mainButtons.Resume)
 Nav:Connect(launch,function() show(true,"Main") end)
 Nav.MenuRequested:Connect(function(id)
@@ -442,7 +425,8 @@ Router:Register("Menu",function(s) if s==Enum.UserInputState.Begin then show(not
 Router:Register("VoteMenu",function(s) if s==Enum.UserInputState.Begin then if Scope:IsArena() then show(false) Nav:OpenMenu("ArenaVote") else show(true,"Maps") end end end,{allowMenus=true,scope="global"})
 Router.CaptureChanged:Connect(function(active,message) status.Text=active and "PRESSIONE UM NOVO BOTÃO · 5s" or message end)
 local function scopeLabels()
- mainButtons.Resume.Text=Scope:IsHub() and "Permanecer no lobby" or "Continuar"
+ mainButtons.Resume.Text="Continuar"
+ mainButtons.Loadout.Visible=not Scope:IsHub()
  mainButtons.Loadout.Text=Scope:IsHub() and "Jogar / Modalidades" or "Loadout"
  if Scope:IsGetOut() then mainButtons.Loadout.Text="Papéis do Get Out" end
 end

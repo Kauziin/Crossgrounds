@@ -1,0 +1,81 @@
+{
+  "roundReset": true,
+  "checks": [
+    {
+      "case": "roster",
+      "passed": true,
+      "detail": {
+        "botRows": 11
+      }
+    },
+    {
+      "passed": true,
+      "case": "human-hit-bot"
+    },
+    {
+      "passed": true,
+      "case": "human-bot-credit"
+    },
+    {
+      "passed": true,
+      "case": "bot-death-recorded"
+    },
+    {
+      "passed": true,
+      "case": "duplicate-death-guard"
+    },
+    {
+      "passed": true,
+      "case": "friendly-fire-rejected"
+    },
+    {
+      "passed": true,
+      "case": "bot-hit-bot"
+    },
+    {
+      "passed": true,
+      "case": "bot-bot-credit"
+    },
+    {
+      "passed": true,
+      "case": "bot-hit-player"
+    },
+    {
+      "passed": true,
+      "case": "bot-player-credit"
+    },
+    {
+      "passed": true,
+      "case": "player-death-once"
+    },
+    {
+      "passed": true,
+      "case": "killer-can-die"
+    },
+    {
+      "passed": true,
+      "case": "bot-respawn"
+    },
+    {
+      "passed": true,
+      "case": "score-survives-respawn"
+    }
+  ],
+  "finalRound": "Playing",
+  "placeId": 4375993208,
+  "passed": true,
+  "botCapture": true,
+  "visual": {
+    "eventHeight": 40,
+    "previousMinimumHeight": 110,
+    "carrierHeight": 18,
+    "backgroundTransparency": 1,
+    "simulatedDevice": "Samsung Galaxy A06",
+    "viewport": "705 x 338",
+    "orientation": "LandscapeSensor",
+    "insets": "CoreUISafeInsets",
+    "botRowsReceived": 11,
+    "totalRowsReceived": 12,
+    "botRowsRenderedInControlledPreview": 11
+  }
+}

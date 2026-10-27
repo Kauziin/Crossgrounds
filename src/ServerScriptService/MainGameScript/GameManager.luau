@@ -11,7 +11,7 @@ local Flags=require(script.FlagService)
 local Bots=require(script.BotManager)
 local MapLoadGate=require(game.ServerScriptService.Crossgrounds.MapLoadGate)
 local SceneLoad=require(game.ServerScriptService.Crossgrounds.SceneLoadService)
-local active=false local lastReconcile=0
+local active=false local lastReconcile=0 local resultRecorded=false
 local Events=game.ReplicatedStorage.Events
 function GameManager:Initialize()
  workspace:SetAttribute("RoundState","Lobby")
@@ -53,7 +53,7 @@ function GameManager:GameReady() return self.loadReady==true and Player:GetJoine
 function GameManager:StopIntermission() Display:UpdateTimerInfo(false,false) Display:StopIntermission() end
 function GameManager:StartRound()
  Team:ClearTeamScores() Player:ClearPlayerScores()
- active=true workspace:SetAttribute("DevelopmentEndCTF",false) workspace:SetAttribute("RoundState","Playing")
+ resultRecorded=false active=true workspace:SetAttribute("DevelopmentEndCTF",false) workspace:SetAttribute("RoundState","Playing")
  Player:SetGameRunning(true)
  Flags:StartRound() Player:LoadPlayers() Bots:StartRound()
  lastReconcile=os.clock() Time:StartTimer(Config.ROUND_DURATION)
@@ -61,12 +61,22 @@ end
 function GameManager:Update()
  if os.clock()-lastReconcile>=.5 then Bots:Reconcile() lastReconcile=os.clock() end
 end
+local function recordResult(winner)
+ if resultRecorded or not winner or winner=="Tie" then return end
+ resultRecorded=true
+ local progress=require(game.ServerScriptService.Crossgrounds.ProgressionService)
+ for _,p in game.Players:GetPlayers() do
+  if p:GetAttribute("CrossgroundsMode")=="ctf" and p:GetAttribute("InMatch") then
+   progress.Result(p,"ctf",p.TeamColor==winner or p.Team==winner or (p.Team and p.Team.Name==tostring(winner)))
+  end
+ end
+end
 function GameManager:RoundOver()
  if game:GetService("RunService"):IsStudio() and workspace:GetAttribute("DevelopmentEndCTF") then return true end
  local winner=Team:HasTeamWon()
- if winner then Display:DisplayVictory(winner) return true end
+ if winner then recordResult(winner) Display:DisplayVictory(winner) return true end
  if Time:TimerDone() or Player:GetJoinedCount()==0 then
-  Display:DisplayVictory(Team:AreTeamsTied() and "Tie" or Team:GetWinningTeam()) return true
+  local result=Team:AreTeamsTied() and "Tie" or Team:GetWinningTeam() recordResult(result) Display:DisplayVictory(result) return true
  end
  return false
 end

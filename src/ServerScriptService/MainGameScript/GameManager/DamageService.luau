@@ -3,6 +3,7 @@ local Players=game:GetService("Players")
 local Teams=game:GetService("Teams")
 local Kits=require(game.ReplicatedStorage.KitDefinitions)
 local Progress=require(game.ServerScriptService.Crossgrounds.ProgressionService)
+local MatchStats=require(game.ServerScriptService.Crossgrounds.CTFMatchStats)
 local practice=setmetatable({},{__mode="k"})
 local events=game.ReplicatedStorage.Events
 local function remote(name)
@@ -49,15 +50,26 @@ function Damage:Watch(model)
  table.insert(watch.connections,h.HealthChanged:Connect(function(v) if v<health then hurt=os.clock() end health=v end))
  task.spawn(function() while not watch.stopped and model.Parent and h.Health>0 do task.wait(1) if not watch.stopped and model.Parent and h.Health>0 and os.clock()-hurt>8 then h.Health=math.min(h.MaxHealth,h.Health+4) end end end)
  table.insert(watch.connections,h.Died:Connect(function()
-  local team=Damage:Team(model)
+  self:ResolveDeath(model,h)
+ end))
+end
+-- Resolve before cleanup as well as on Died. The per-humanoid guard prevents
+-- deferred Died handlers and Unwatch from granting a second elimination.
+function Damage:ResolveDeath(model,h)
+ local watch=watched[h]
+ if not watch or watch.resolved or h.Health>0 then return end
+ watch.resolved=true
+  local team=self:Team(model)
   if not team then return end
   local victimPlayer=Players:GetPlayerFromCharacter(model)
+  if not victimPlayer then MatchStats.Add(model,"Deaths") end
   if victimPlayer and victimPlayer:FindFirstChild("leaderstats") and victimPlayer.leaderstats:FindFirstChild("Deaths") then victimPlayer.leaderstats.Deaths.Value+=1 end
   local c=credits[h]
   local killer=c and os.clock()-c.time<=10 and c.model
-  local killerTeam=killer and Damage:Team(killer)
+  local killerTeam=killer and self:Team(killer)
   if killer and killerTeam and killerTeam~=team then
    local p=Players:GetPlayerFromCharacter(killer)
+   if not p then MatchStats.Add(killer,"Kills") end
    local xp=p and Progress.CTFKill(p,model:GetAttribute("CTFBot")==true) or 0
    if p and p:FindFirstChild("leaderstats") and p.leaderstats:FindFirstChild("Kills") then p.leaderstats.Kills.Value+=1 end
    local data=Kits.Weapons[c.weapon]
@@ -68,7 +80,6 @@ function Damage:Watch(model)
    feed:FireAllClients({victim=name(model),victimTeam=team.Name,weapon="Eliminado"})
   end
   credits[h]=nil
- end))
 end
 function Damage:Practice(player,model,amount,weapon,headshot)
  if not model:GetAttribute("PracticeDummy") or not (amount>0 and amount<10000) then return false end
@@ -88,6 +99,7 @@ function Damage:Practice(player,model,amount,weapon,headshot)
 end
 function Damage:Unwatch(model)
  local h=model and model:FindFirstChildOfClass("Humanoid") local watch=h and watched[h]
+ if watch and h.Health<=0 then self:ResolveDeath(model,h) end
  if watch then watch.stopped=true for _,c in watch.connections do c:Disconnect() end watched[h]=nil end
  if h then credits[h]=nil end
 end
@@ -107,6 +119,7 @@ function Damage:Deal(attacker,victim,amount,weapon,headshot)
  credits[victim]={model=attacker,time=os.clock(),weapon=weapon,headshot=headshot}
  local actual=math.min(amount,victim.Health)
  victim:TakeDamage(amount)
+ if victim.Health<=0 then self:ResolveDeath(target,victim) end
  local player=Players:GetPlayerFromCharacter(attacker)
  if player then
   local root=target:FindFirstChild("HumanoidRootPart")

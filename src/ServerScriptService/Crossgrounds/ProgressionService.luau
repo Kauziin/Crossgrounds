@@ -5,7 +5,12 @@ local Balance = require(script.Parent.ProgressionBalance)
 local Policy = require(script.Parent.ProgressionPolicy)
 local store = not RunService:IsStudio() and game:GetService("DataStoreService"):GetDataStore("CrossgroundsProgression_v1") or nil
 local fields = {"XP","Coins","Kills","Deaths","Captures","PlaySeconds","BotKills","TrainingKills"}
+local Schema=require(game.ReplicatedStorage.Crossgrounds.ProgressionSchema)
+for _,key in Schema.Fields do if not table.find(fields,key) then table.insert(fields,key) end end
+for _,mode in Schema.Modes do if mode~="general" then for _,key in Schema.Fields do table.insert(fields,Schema.Key(mode,key)) end end end
+local Ranking=require(script.Parent.ProgressionRanking)
 local savedFriends={}
+local friendResults={}
 local state = {}
 local friendRate = {}
 local function blank()
@@ -32,22 +37,31 @@ local function publish(player, record)
  player:SetAttribute("ProgressLevel", level(record.base.XP + record.pending.XP))
  player:SetAttribute("ProgressionReady", record.loaded)
 end
-local function award(player, amounts)
+local function award(player, amounts, mode)
  local record = state[player]
  if not record then return end
  for key, value in pairs(amounts) do
   if record.pending[key] and type(value) == "number" and value > 0 then
    record.pending[key] += math.floor(value)
+   local modeKey=mode and Schema.Key(mode,key)
+   if modeKey and mode~="general" and record.pending[modeKey] then record.pending[modeKey]+=math.floor(value) end
   end
  end
  publish(player, record)
 end
+local function tick(player)
+ local record=state[player] if not record then return end
+ local time=os.clock() local elapsed=math.max(0,math.floor(time-record.lastTick))
+ record.lastTick+=elapsed
+ if elapsed>0 then award(player,{PlaySeconds=elapsed},record.mode) end
+ record.mode=player:GetAttribute("CrossgroundsMode")
+end
 function Service.Kill(player,kind,headshot)
  local amounts=Policy.Reward(kind,headshot)
- award(player,amounts)
+ award(player,amounts,(kind=="arena" or kind=="training") and "arena" or (kind=="ctf" or kind=="bot") and "ctf" or nil)
  return amounts.XP
 end
-function Service.ArenaDeath(player) award(player,{Deaths=1}) end
+function Service.ArenaDeath(player) award(player,{Deaths=1},"arena") end
 function Service.ArenaKill(player,headshot) return Service.Kill(player,"arena",headshot) end
 function Service.CTFKill(player,isBot) return Service.Kill(player,isBot and "bot" or "ctf",false) end
 local function save(player)
@@ -56,7 +70,7 @@ local function save(player)
  local delta = {}
  local dirty = false
  for _, key in fields do delta[key] = record.pending[key] if delta[key] > 0 then dirty = true end end
- if not dirty and record.visitSaved then return end
+ if not dirty and record.visitSaved then Ranking.Index(player.UserId,record.base) return end
  record.saving = true
  local ok, saved = pcall(function()
   return store:UpdateAsync("u" .. player.UserId, function(previous)
@@ -71,6 +85,7 @@ local function save(player)
   record.base = clean(saved)
   for _, key in fields do record.pending[key] = math.max(0, record.pending[key] - delta[key]) end
   publish(player, record)
+  Ranking.Index(player.UserId,record.base)
  else
   warn("Crossgrounds progression save: " .. tostring(saved))
  end
@@ -95,15 +110,16 @@ local function watchStats(player, record, folder)
     for key, amount in pairs(rule) do
      amounts[key] = type(amount) == "string" and Balance.Get(amount) * gained or amount * gained
     end
-    award(player, amounts)
+    award(player, amounts,"ctf")
    end))
   end
  end
 end
 local function added(player)
  if state[player] then return end
- local record = {base = blank(), pending = blank(), loaded = false, saving = false, watched = {}, connections = {}}
+ local record = {lastTick=os.clock(),lastSave=os.clock(),mode=player:GetAttribute("CrossgroundsMode"),base = blank(), pending = blank(), loaded = false, saving = false, watched = {}, connections = {}}
  state[player] = record
+ table.insert(record.connections,player:GetAttributeChangedSignal("CrossgroundsMode"):Connect(function() tick(player) end))
  publish(player, record)
  table.insert(record.connections, player.ChildAdded:Connect(function(child)
   if child.Name == "leaderstats" then watchStats(player, record, child) end
@@ -112,12 +128,43 @@ local function added(player)
  task.spawn(function()
   if not RunService:IsStudio() and player.UserId > 0 then
    local ok, data = pcall(function() return store:GetAsync("u" .. player.UserId) end)
-   if ok then record.base = clean(data) record.visitSaved=Policy.HasPlayed(data) else warn("Crossgrounds progression load: " .. tostring(data)) end
+   if ok then record.base = clean(data) record.visitSaved=Policy.HasPlayed(data)
+   else
+    warn("Crossgrounds progression load: " .. tostring(data))
+    player:SetAttribute("ProgressionLoadError",true)
+    return -- Never overwrite an unread profile with a blank record.
+   end
   end
-  if state[player] == record then record.loaded = true publish(player, record) end
+  if state[player] == record then record.loaded = true publish(player, record) Ranking.Index(player.UserId,record.base) end
  end)
 end
+function Service.Snapshot(player)
+ local record=state[player] if not record then return nil end
+ local data={userId=player.UserId,name=player.DisplayName,ready=record.loaded}
+ for _,key in fields do data[key]=record.base[key]+record.pending[key] end
+ data.Level=level(data.XP) return data
+end
+function Service.Result(player,mode,won,extra)
+ if not Schema.Primary[mode] then return end
+ local amounts=table.clone(extra or {})
+ amounts[won and "Wins" or "Losses"]=1
+ award(player,amounts,mode)
+end
+function Service.GetOutResult(round)
+ if not round or round.progressRecorded then return end
+ round.progressRecorded=true
+ if round.ending and round.ending:find("technical",1,true) then return end
+ local escaped=0
+ for p,result in round.status do
+  local won=result=="escaped" or result=="beast_contained"
+  if won then escaped+=1 end
+  if result~="disconnected" then Service.Result(p,"get_out",won,won and {SurvivorWins=1,Escapes=result=="escaped" and 1 or 0} or nil) end
+ end
+ if round.beast and round.beast.Parent then Service.Result(round.beast,"get_out",escaped==0,escaped==0 and {BeastWins=1} or nil) end
+end
 local function friends(player)
+ local cached=friendResults[player]
+ if cached and os.clock()-cached.at<120 then return cached.rows,cached.message end
  local rows={}
  local function row(userId,name,data,isSelf)
   data=clean(data)
@@ -129,7 +176,7 @@ local function friends(player)
   for _,key in fields do data[key]=record.base[key]+record.pending[key] end
   return data
  end
- if state[player] then row(player.UserId,player.DisplayName,live(state[player]),true) end
+ if state[player] and state[player].loaded then row(player.UserId,player.DisplayName,live(state[player]),true) end
  local ok,pages=pcall(function() return Players:GetFriendsAsync(player.UserId) end)
  local candidates={}
  if ok then
@@ -144,13 +191,14 @@ local function friends(player)
  end
  local function resolve(id)
   local online=Players:GetPlayerByUserId(id)
-  if online and state[online] then return live(state[online]) end
+  if online and state[online] and state[online].loaded then return live(state[online]) end
   if RunService:IsStudio() then return nil end
   local cached=savedFriends[id]
   if cached and os.clock()-cached.at<120 then return cached.data end
   local read,saved=pcall(function() return store:GetAsync("u"..id) end)
   if not read then return nil end
   local data=Policy.HasPlayed(saved) and saved or nil
+  if data then Ranking.Index(id,data) end
   savedFriends[id]={at=os.clock(),data=data}
   return data
  end
@@ -158,16 +206,21 @@ local function friends(player)
   row(match.friend.Id,match.friend.DisplayName or match.friend.Username,match.data,false)
  end
  table.sort(rows,function(a,b) if a.XP~=b.XP then return a.XP>b.XP end return a.userId<b.userId end)
- local message
+ local message="Até 8 amigos com histórico, entre os 60 contatos consultados."
  if not ok then message="Lista de amigos indisponível no momento."
  elseif RunService:IsStudio() then message="Studio: somente amigos presentes nesta sessão. Dados offline exigem servidor publicado."
  elseif #candidates>=60 then message="Até 8 amigos com histórico, entre os 60 contatos consultados." end
+ friendResults[player]={at=os.clock(),rows=rows,message=message}
  return rows,message
 end
 function Service:Start()
  if self.started then return end
  self.started = true
  local remotes = game.ReplicatedStorage.Crossgrounds.Remotes
+ Ranking.Start(Service.Snapshot,friends)
+ local profile=remotes:FindFirstChild("GetProgressProfile") or Instance.new("RemoteFunction")
+ profile.Name="GetProgressProfile" profile.Parent=remotes
+ profile.OnServerInvoke=function(player) return Service.Snapshot(player) end
  local compare = remotes:FindFirstChild("GetFriendProgress") or Instance.new("RemoteFunction")
  compare.Name = "GetFriendProgress"
  compare.Parent = remotes
@@ -179,10 +232,10 @@ function Service:Start()
  end
  Players.PlayerAdded:Connect(added)
  Players.PlayerRemoving:Connect(function(player)
-  save(player)
+  tick(player) save(player)
   local record = state[player]
   if record then for _, connection in ipairs(record.connections) do connection:Disconnect() end end
-  state[player] = nil friendRate[player] = nil
+  state[player] = nil friendRate[player] = nil friendResults[player]=nil
  end)
  for _, player in Players:GetPlayers() do added(player) end
  task.spawn(function()
@@ -203,15 +256,16 @@ function Service:Start()
  end)
  task.spawn(function()
   while true do
-   task.wait(60)
+   task.wait(10)
    for _, player in Players:GetPlayers() do
-    award(player, {PlaySeconds = 60})
-    save(player)
+    tick(player)
+    local record=state[player]
+    if record and os.clock()-record.lastSave>=60 then record.lastSave=os.clock() save(player) end
    end
   end
  end)
  game:BindToClose(function()
-  for _, player in Players:GetPlayers() do save(player) end
+  for _, player in Players:GetPlayers() do tick(player) save(player) end
  end)
 end
 return Service

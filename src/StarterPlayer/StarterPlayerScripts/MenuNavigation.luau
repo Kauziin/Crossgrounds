@@ -91,6 +91,7 @@ local categoryHelp=Instance.new("TextLabel")
 categoryHelp.BackgroundTransparency=1 categoryHelp.Position=UDim2.fromOffset(402,0) categoryHelp.Size=UDim2.fromOffset(120,32)
 categoryHelp.Font=Enum.Font.GothamMedium categoryHelp.TextSize=13 categoryHelp.TextColor3=Color3.fromRGB(228,238,250)
 categoryHelp.Text="CATEGORIAS" categoryHelp.TextXAlignment=Enum.TextXAlignment.Left categoryHelp.Parent=footer
+local settingHelp=Instance.new("TextLabel") settingHelp.Name="SettingCommands" settingHelp.BackgroundTransparency=1 settingHelp.Position=UDim2.fromOffset(530,0) settingHelp.Size=UDim2.fromOffset(350,32) settingHelp.Font=Enum.Font.GothamMedium settingHelp.TextSize=12 settingHelp.TextColor3=Color3.fromRGB(228,238,250) settingHelp.Text="← → AJUSTAR  ·  X VALOR  ·  Y PADRÃO" settingHelp.Parent=footer
 local function navigationSound(object)
  local entry=registered[object]
  if not object or not root or Gui.MenuIsOpen or not (object:IsA("GuiButton") or object:IsA("TextBox") or entry and entry.adjust) then return end
@@ -179,6 +180,13 @@ function Navigation:Connect(object,callback)
  self:Register(object,activate)
  return object.Activated:Connect(activate)
 end
+function Navigation:SetActions(object,actions)
+ local entry=registered[object] if entry then entry.actions=actions end
+end
+function Navigation:ContextAction(action)
+ local entry=focused and registered[focused] local callback=entry and entry.actions and entry.actions[action]
+ if not callback then return false end Audio:Play(action=="reset" and "Back" or "Confirm") callback() return true
+end
 function Navigation:Activate()
  local entry=focused and registered[focused]
  if entry and entry.activate then entry.activate() end
@@ -241,11 +249,13 @@ CAS:BindActionAtPriority("CTFAccessibleMenu",function(_,state,input)
    table.sort(ordered,function(a,b) local x,y=a.AbsolutePosition,b.AbsolutePosition return math.abs(x.Y-y.Y)<3 and x.X<y.X or math.abs(x.Y-y.Y)>=3 and x.Y<y.Y end)
    if #ordered>0 then local index=table.find(ordered,focused) or 0 local step=(UIS:IsKeyDown(Enum.KeyCode.LeftShift) or UIS:IsKeyDown(Enum.KeyCode.RightShift)) and -1 or 1 Navigation:Focus(ordered[(index-1+step)%#ordered+1]) end
   elseif key==Enum.KeyCode.ButtonA then Navigation:Activate()
+  elseif key==Enum.KeyCode.ButtonX or key==Enum.KeyCode.X then if not Navigation:ContextAction("custom") then return Enum.ContextActionResult.Pass end
+  elseif key==Enum.KeyCode.ButtonY or key==Enum.KeyCode.Y then if not Navigation:ContextAction("reset") then return Enum.ContextActionResult.Pass end
   elseif key==Enum.KeyCode.ButtonB then local callback=back[root] if callback then Audio:Play("Back") callback() end
   else direction(key) heldDirection=key repeatAt=os.clock()+.4 end
  elseif state==Enum.UserInputState.End or state==Enum.UserInputState.Cancel then heldDirection=nil end
  return Enum.ContextActionResult.Sink
-end,false,6000,Enum.KeyCode.ButtonA,Enum.KeyCode.ButtonB,Enum.KeyCode.Thumbstick1,Enum.KeyCode.Thumbstick2,Enum.KeyCode.DPadLeft,Enum.KeyCode.DPadRight,Enum.KeyCode.DPadUp,Enum.KeyCode.DPadDown,Enum.KeyCode.Up,Enum.KeyCode.Down,Enum.KeyCode.Left,Enum.KeyCode.Right,Enum.KeyCode.Return,Enum.KeyCode.KeypadEnter,Enum.KeyCode.Escape,Enum.KeyCode.Tab)
+end,false,6000,Enum.KeyCode.ButtonA,Enum.KeyCode.ButtonB,Enum.KeyCode.Thumbstick1,Enum.KeyCode.Thumbstick2,Enum.KeyCode.DPadLeft,Enum.KeyCode.DPadRight,Enum.KeyCode.DPadUp,Enum.KeyCode.DPadDown,Enum.KeyCode.Up,Enum.KeyCode.Down,Enum.KeyCode.Left,Enum.KeyCode.Right,Enum.KeyCode.Return,Enum.KeyCode.KeypadEnter,Enum.KeyCode.Escape,Enum.KeyCode.Tab,Enum.KeyCode.ButtonX,Enum.KeyCode.ButtonY,Enum.KeyCode.X,Enum.KeyCode.Y)
 local fake={Thumbstick1Right=Vector2.new(1,0),Thumbstick1Left=Vector2.new(-1,0),Thumbstick1Up=Vector2.new(0,1),Thumbstick1Down=Vector2.new(0,-1)}
 local textFocusAt=0
 UIS.TextBoxFocused:Connect(function() textFocusAt=os.clock() end)
@@ -289,7 +299,14 @@ Run:BindToRenderStep("CTFMenuCursor",Enum.RenderPriority.Last.Value,function(dt)
  local disableMovement=not Router:CanMove()
  if controls and movementDisabled~=disableMovement then movementDisabled=disableMovement if movementDisabled then controls:Disable() else controls:Enable() end end
  local hasCategories=root~=nil and categoryHandlers[root]~=nil
- footer.Size=UDim2.fromOffset(hasCategories and 530 or 340,32)
+ local settingsRoot=root and root:GetAttribute("SettingsOverhaul")==true
+ local tokens=settingsRoot and require(script.Parent.MenuTheme).Settings
+ if tokens then focusStroke.Color=tokens.Focus glowStroke.Color=tokens.Accent else focusStroke.Color=Color3.fromRGB(220,243,255) glowStroke.Color=Color3.fromRGB(116,193,255) end
+ settingHelp.Visible=settingsRoot==true
+ settingHelp.Text="← → AJUSTAR  ·  "..Icons:Name("ButtonX").." VALOR  ·  "..Icons:Name("ButtonY").." PADRÃO"
+ local footerWidth=settingsRoot and 890 or hasCategories and 530 or 340
+ footer.Size=UDim2.fromOffset(footerWidth,32)
+ local footerScale=footer:FindFirstChild("Fit") or Instance.new("UIScale") footerScale.Name="Fit" footerScale.Scale=math.min(1,(workspace.CurrentCamera.ViewportSize.X-24)/footerWidth) footerScale.Parent=footer
  previousGlyph.Visible=hasCategories nextGlyph.Visible=hasCategories categoryHelp.Visible=hasCategories
  cursor.Visible=gamepad and root~=nil and not Gui.MenuIsOpen footer.Visible=cursor.Visible and not player:GetAttribute("Rebinding")
  focusStroke.Enabled=(cursor.Visible or root~=nil and keyboardNavigation) and not Gui.MenuIsOpen

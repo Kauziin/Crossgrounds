@@ -1,5 +1,7 @@
+local Prestige=require(script.Parent:WaitForChild("PrestigeStyle"))
 local Players = game:GetService("Players")
 local CAS = game:GetService("ContextActionService")
+local Router=require(script.Parent:WaitForChild("ControlRouter"))
 local player = Players.LocalPlayer
 local Theme=require(script.Parent:WaitForChild("MenuTheme"))
 local Table=require(script.Parent:WaitForChild("StatsTable"))
@@ -36,20 +38,22 @@ local current = {mode = nil, entries = {}}
 local function render()
  if board then board.Holder:Destroy() end
  local mode=player:GetAttribute("CrossgroundsMode")
- title.Text=mode=="ctf" and "PLACAR · CAPTURE A BANDEIRA" or "PLACAR · ARENA"
+ title.Text=mode=="ctf" and "PLACAR · CAPTURE A BANDEIRA" or mode=="arena" and "PLACAR · ARENA" or "JOGADORES · "..string.upper(mode or "")
  board=Table.new(list,"Statistics",columns(mode))
  for i,entry in ipairs(current.entries or {}) do
   local row=board:Add({rank="#"..(entry.rank or i),name=entry.name,kills=entry.kills,deaths=entry.deaths,score=entry.score},i)
   row.Frame.Size=UDim2.new(1,0,0,50)
-  if entry.userId==player.UserId then row.Frame.BackgroundColor3=Theme.Colors.Selected row.Frame.BackgroundTransparency=.15 end
+  Prestige.Apply(row.Fields.name,entry.prestige)
+  if not entry.isBot and entry.userId==player.UserId then row.Frame.BackgroundColor3=Theme.Colors.Selected row.Frame.BackgroundTransparency=.15 end
   row.Fields.rank.TextColor3=({Color3.fromRGB(244,205,109),Color3.fromRGB(204,217,231),Color3.fromRGB(208,155,111)})[i] or Theme.Colors.Muted
-  local avatar=Instance.new("ImageLabel") avatar.Name="Avatar" avatar.BackgroundTransparency=1 avatar.Size=UDim2.fromOffset(32,32) avatar.Position=UDim2.new(.08,8,.5,-16) avatar.Image="rbxthumb://type=AvatarHeadShot&id="..entry.userId.."&w=100&h=100" avatar.Parent=row.Frame
+  local avatar=Instance.new("ImageLabel") avatar.Name="Avatar" avatar.BackgroundTransparency=1 avatar.Size=UDim2.fromOffset(32,32) avatar.Position=UDim2.new(.08,8,.5,-16) local portraitId=entry.avatarUserId or entry.userId avatar.Image=portraitId>0 and ("rbxthumb://type=AvatarHeadShot&id="..portraitId.."&w=100&h=100") or "rbxasset://textures/ui/GuiImagePlaceholder.png" avatar.Parent=row.Frame
   row.Fields.name.Position+=UDim2.fromOffset(40,0) row.Fields.name.Size-=UDim2.fromOffset(40,0)
  end
 end
 local function refresh()
+ if Router:IsBlocked() then holding=false end
  local mode = player:GetAttribute("CrossgroundsMode")
- gui.Enabled = holding and (mode == "ctf" or mode == "arena") and
+ gui.Enabled = holding and (mode == "ctf" or mode == "arena" or mode == "get_out" or mode == "duels") and
   not player:GetAttribute("ExperienceMenuOpen") and
   not player:GetAttribute("ProgressionMenuOpen") and
   not player:GetAttribute("HUDLayoutEditing") and not player:GetAttribute("LobbyMusicMenuOpen")
@@ -61,6 +65,7 @@ remote.OnClientEvent:Connect(function(data)
 end)
 local function action(_,state)
  if state == Enum.UserInputState.Begin then
+  if Router:IsBlocked() then return Enum.ContextActionResult.Pass end
   holding = true render() refresh()
  elseif state == Enum.UserInputState.End or state == Enum.UserInputState.Cancel then
   holding = false refresh()
@@ -77,4 +82,6 @@ local function resize()
  title.Size=UDim2.new(1,-44,0,38) title.TextSize=math.clamp(v.X/33,18,28)
 end
 workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(resize)
+Router.ContextChanged:Connect(refresh)
+game:GetService("RunService").Heartbeat:Connect(function() if holding and Router:IsBlocked() then holding=false refresh() end end)
 resize() refresh()

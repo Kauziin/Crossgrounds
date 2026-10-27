@@ -1,4 +1,6 @@
-+# Plano — integração do Aim Assist do Projectile Test
+# Plano — integração do Aim Assist do Projectile Test
+
+**Implementação posterior em 27/10/2026:** assistência e perfis gráficos incorporados ao principal. Este documento mantém o planejamento histórico; resultados e limitações estão em [PORTE-PROJECTILE-TEST-2026-10-27.md](PORTE-PROJECTILE-TEST-2026-10-27.md).
 
 **27/10/2026 — somente planejamento.** Nenhuma fonte, configuração ou comportamento de jogo foi alterado nesta etapa.
 

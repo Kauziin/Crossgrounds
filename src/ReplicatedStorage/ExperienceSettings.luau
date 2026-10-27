@@ -24,6 +24,7 @@ Settings.Rules={
 }
 Settings.Version=2
 local extra={
+ GraphicsQuality={Label="Qualidade gráfica",Default=2,Choices={1,2,3,4},Labels={[1]="DESEMPENHO",[2]="EQUILIBRADO",[3]="ALTO",[4]="VISUAL"},Category="Graphics"},
  SimpleAnimations={Label="Animações simples",Default=false,Category="Accessibility"},
  WeaponAnimationIntensity={Label="Movimento das armas",Default=1,Min=0,Max=1,Step=.05,Percent=true,Category="Accessibility"},
  FOVTransitionSpeed={Label="Velocidade do FOV",Default=1,Min=.15,Max=1,Step=.05,Percent=true,Category="Accessibility"},
@@ -65,9 +66,10 @@ for action,data in pairs(Controls.Actions) do
 end
 local categories={Gameplay={"AutoSprint"},Camera={"FieldOfView","WeaponFOVScale","FirstPerson","ShiftLock","Shoulder","CameraMotion"},Aim={"LookSensitivity","AimSensitivity","AimAssist","AimAssistStrength","AimAssistSlowdown","AimAssistTracking"},Analog={"LeftStickDeadzone","RightStickDeadzone","StickCurve","StickCurveStrength"},Audio={"MenuVolume","MenuSFXVolume","GameSFXVolume","BeastProximityVolume"},Accessibility={"FontScale","HighContrast","ReducedMenuMotion","SimpleAnimations","WeaponAnimationIntensity","FOVTransitionSpeed","DamageFlash"},Interface={"MenuScale","HUDScale","KillFeedVisible"}}
 categories.Reticle={"ReticleColor","ReticleSize","ReticleThickness","ReticleGap","ReticleDot","ReticleOutline","ReticleOpacity","ReticleDynamic"}
+categories.Graphics={"GraphicsQuality"}
 Settings.Categories=categories
 Settings.Groups={}
-for _,entry in {{"Gameplay","GERAL"},{"Camera","CÂMERA"},{"Aim","MIRA"},{"Reticle","RETÍCULO"},{"Analog","ANALÓGICOS"},{"Interface","INTERFACE"},{"Audio","ÁUDIO"},{"Accessibility","ACESSIBILIDADE"}} do table.insert(Settings.Groups,{Label=entry[2],Keys=categories[entry[1]]}) end
+for _,entry in {{"Gameplay","GERAL"},{"Camera","CÂMERA"},{"Aim","MIRA"},{"Reticle","RETÍCULO"},{"Analog","ANALÓGICOS"},{"Interface","INTERFACE"},{"Audio","ÁUDIO"},{"Graphics","GRÁFICOS"},{"Accessibility","ACESSIBILIDADE"}} do table.insert(Settings.Groups,{Label=entry[2],Keys=categories[entry[1]]}) end
 for category,keys in categories do for _,key in keys do Settings.Rules[key].Category=category end end
 for key,rule in Settings.Rules do
  rule.Id=key rule.Category=rule.Category or (rule.MobileLayout and "Touch" or rule.Device and "Bindings" or "Gameplay")

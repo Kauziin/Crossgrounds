@@ -24,6 +24,8 @@ local touchIntent=Vector2.zero local touchSampleAt=0
 local aiming,firing=false,false
 local locked,firstPerson,shoulder=true,false,1
 local CameraPolicy=require(game.ReplicatedStorage.Crossgrounds.CombatCameraPolicy)
+local Intent=require(game.ReplicatedStorage.Crossgrounds.AimAssistIntent)
+local windowFocused=true
 local Analog=require(game.ReplicatedStorage.Crossgrounds.AnalogFilter)
 local Assist=require(script.Parent:WaitForChild("TargetingAssist"))
 local assistFriction=1
@@ -306,7 +308,7 @@ UIS.InputChanged:Connect(function(input,processed)
  elseif input.UserInputType==Enum.UserInputType.Touch and touchLook==input then
   local position=Vector2.new(input.Position.X,input.Position.Y)
   local delta=touchPosition and position-touchPosition or Vector2.zero touchPosition=position
-  touchDelta+=delta
+  touchDelta+=delta touchSampleAt=os.clock()
  end
 end)
 UIS.TouchStarted:Connect(function(input,processed)
@@ -321,7 +323,8 @@ end)
 UIS.TouchEnded:Connect(function(input) if touchLook==input then clearLook() end end)
 UIS.TouchTapInWorld:Connect(function(point,processed) if not processed and not locked then freePoint=point end end)
 UIS.GamepadDisconnected:Connect(clearLook)
-UIS.WindowFocusReleased:Connect(function() clearLook() aiming=false firing=false end)
+UIS.WindowFocusReleased:Connect(function() windowFocused=false clearLook() aiming=false firing=false end)
+UIS.WindowFocused:Connect(function() windowFocused=true clearLook() end)
 GuiService.MenuOpened:Connect(function() clearLook() aiming=false firing=false end)
 InputMode.Changed:Connect(function() clearLook() if owned then cursorMode() end end)
 player.CharacterRemoving:Connect(clearLook)
@@ -346,6 +349,7 @@ RunService:BindToRenderStep("CTFCombatPresentation",Enum.RenderPriority.Camera.V
  local blocked=Presentation:IsBlocked()
  locked,firstPerson=CameraPolicy.Resolve(Scope:Get(),data and data.Kind,setting("ShiftLock"),setting("FirstPerson"))
  if not character then
+  if owned then clearLook() end
   release() currentTool=nil
   local camera=workspace.CurrentCamera local target=setting("FieldOfView")
   camera.FieldOfView+=(target-camera.FieldOfView)*MotionPreferences.FOVAlpha(deltaTime,setting("FOVTransitionSpeed"),10)
@@ -353,10 +357,11 @@ RunService:BindToRenderStep("CTFCombatPresentation",Enum.RenderPriority.Camera.V
  end
  locked,firstPerson=CameraPolicy.Resolve(Scope:Get(),data.Kind,setting("ShiftLock"),setting("FirstPerson"))
  if tool~=currentTool then
+  clearLook()
   currentTool=tool equippedAt=os.clock() firedAt=-100 adsWeight=0 locomotion=Locomotion.new() removeViewmodel()
   if owned then buildViewmodel(tool) end
  end
- if blocked then
+ if blocked or not windowFocused then
   clearLook()
   motion:Reset() carry:Reset() previousYaw=nil assistFriction=1 Assist:Reset() player:SetAttribute("WeaponRunWeight",0) player:SetAttribute("CombatFiring",false) player:SetAttribute("CameraMotionPitch",0) player:SetAttribute("CameraMotionOffset",Vector3.zero) player:SetAttribute("CameraMotionRoll",0) if aimFrame then workspace.CurrentCamera.CFrame=aimFrame end
   firing=false aiming=false
@@ -377,13 +382,13 @@ RunService:BindToRenderStep("CTFCombatPresentation",Enum.RenderPriority.Camera.V
  end
  local clean=Analog.Stick(stickGate,stick,setting("RightStickDeadzone"))
  local movement=setting("StickCurve")==1 and Analog.Dynamic(clean,setting("StickCurveStrength")) or clean
- local pixels=touchDelta touchDelta=Vector2.zero
+ local pixels=os.clock()-touchSampleAt<=Intent.TouchTimeout and touchDelta or Vector2.zero touchDelta=Vector2.zero
  local touchRadians=input==Enum.PreferredInput.Touch and touchLook and Analog.TouchRadians(pixels,camera.ViewportSize.X,setting("LookSensitivity"),aiming and setting("AimSensitivity") or 1) or Vector2.zero
  touchIntent=touchRadians.Magnitude>0 and Vector2.new(-touchRadians.X,-touchRadians.Y)/(math.max(deltaTime,.001)*2.4) or Vector2.zero
  if touchIntent.Magnitude>1 then touchIntent=touchIntent.Unit end
  local assisted local tracking=Vector2.zero
  assistFriction=1
- local lookIntent=input==Enum.PreferredInput.Gamepad and Vector2.new(-movement.X,movement.Y) or touchIntent
+ local lookIntent=Intent.Resolve({device=input==Enum.PreferredInput.Gamepad and "gamepad" or input==Enum.PreferredInput.Touch and "touch" or "mouse",focused=windowFocused,blocked=blocked,look=input==Enum.PreferredInput.Gamepad and Vector2.new(-movement.X,movement.Y) or touchIntent,touchOwned=touchLook~=nil,touchAt=touchSampleAt,now=os.clock()})
  assisted,assistFriction,tracking=Assist:Target(aimFrame or camera.CFrame,Presentation:GetAimViewport(),camera,data.Range,setting("AimAssist"),setting("AimAssistStrength"),data.Kind=="Gun",viewmodel,aiming,{
   dt=deltaTime,look=lookIntent,strafe=humanoid.MoveDirection:Dot((aimFrame or camera.CFrame).RightVector),
   slowdown=setting("AimAssistSlowdown"),tracking=setting("AimAssistTracking"),

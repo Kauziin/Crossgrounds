@@ -1,0 +1,492 @@
+--- before/ServerScriptService\Crossgrounds\CTFMatchStats.luau
++++ after/ServerScriptService\Crossgrounds\CTFMatchStats.luau
+@@ -0,0 +1,41 @@
++-- Per-round bot participants, keyed by team/slot rather than disposable characters.
++local Stats={}
++local records={}
++local function id(model)
++ if not model or not model:GetAttribute("CTFBot") then return end
++ local team=model:GetAttribute("CTFTeam") local slot=model:GetAttribute("CTFSlot")
++ if (team~="Blue" and team~="Red") or typeof(slot)~="number" then return end
++ return -(team=="Blue" and 100 or 200)-slot,team
++end
++local function sync(record)
++ local model=record.model
++ if model and model.Parent then
++  record.name=model:GetAttribute("BotAlias") or record.name
++  record.avatarUserId=model:GetAttribute("AvatarUserId") or record.avatarUserId
++  for _,key in {"Kills","Deaths","Captures"} do model:SetAttribute("CTF"..key,record[key]) end
++ end
++end
++function Stats.Attach(model)
++ local key,team=id(model) if not key then return end
++ local record=records[key] or {id=key,team=team,Kills=0,Deaths=0,Captures=0,name=model:GetAttribute("BotAlias") or model.Name}
++ records[key]=record record.model=model sync(record)
++end
++function Stats.Add(model,field)
++ local key=id(model) local record=key and records[key]
++ if not record or (field~="Kills" and field~="Deaths" and field~="Captures") then return end
++ record[field]+=1 sync(record)
++end
++function Stats.Remove(model)
++ local key=id(model) local record=key and records[key]
++ if record and record.model==model then records[key]=nil end
++end
++function Stats.Reset() table.clear(records) end
++function Stats.Snapshot()
++ local rows={}
++ for _,record in records do
++  sync(record)
++  table.insert(rows,{userId=record.id,avatarUserId=record.avatarUserId or 0,isBot=true,name=record.name.." · IA",team=record.team,kills=record.Kills,deaths=record.Deaths,score=record.Captures})
++ end
++ return rows
++end
++return Stats
+--- before/ServerScriptService\Crossgrounds\StandingsService.luau
++++ after/ServerScriptService\Crossgrounds\StandingsService.luau
+@@ -1,5 +1,6 @@
+ local Service={}
+ local Players=game:GetService("Players")
++local MatchStats=require(script.Parent.CTFMatchStats)
+ local Sort=require(game.ReplicatedStorage.Crossgrounds.Standings)
+ function Service:Start()
+  if self.started then return end self.started=true
+@@ -16,6 +17,7 @@
+     table.insert(group,{userId=p.UserId,name=p.DisplayName,prestige=p:GetAttribute("Prestige_"..mode),kills=kills,deaths=mode=="arena" and (p:GetAttribute("ArenaDeaths") or 0) or value("Deaths"),score=mode=="arena" and kills or value("Captures")})
+    end
+   end
++  for _,row in MatchStats.Snapshot() do table.insert(groups.ctf,row) end
+   for _,rows in groups do Sort.Sort(rows) end
+   for _,p in Players:GetPlayers() do local mode=p:GetAttribute("CrossgroundsMode") if groups[mode] then event:FireClient(p,{mode=mode,entries=groups[mode]}) end end
+   task.wait(1)
+--- before/ServerScriptService\MainGameScript\GameManager\BotManager.luau
++++ after/ServerScriptService\MainGameScript\GameManager\BotManager.luau
+@@ -7,6 +7,7 @@
+ local Spawn=require(script.Parent.SpawnService)
+ local Damage=require(script.Parent.DamageService)
+ local Factory=require(script.Parent.WeaponFactory)
++local MatchStats=require(game.ServerScriptService.Crossgrounds.CTFMatchStats)
+ local template=game.ServerStorage.CTFBotTemplate
+ local folder=workspace:FindFirstChild("CTFBots") or Instance.new("Folder",workspace) folder.Name="CTFBots"
+ local bots={Blue={},Red={}} local respawn={Blue={},Red={}} local active=false local serial=0
+@@ -19,6 +20,7 @@
+  m.Parent=folder
+  local h=m:FindFirstChildOfClass("Humanoid") h.MaxHealth=200 h.Health=200 h.DisplayDistanceType=Enum.HumanoidDisplayDistanceType.None
+  Avatar:Apply(m,slot+(team.Name=="Red" and 6 or 0),team)
++ MatchStats.Attach(m)
+  Spawn:Place(m,team)
+  local root=m:FindFirstChild("HumanoidRootPart") if root then pcall(function() root:SetNetworkOwner(nil) end) end
+  local tool=Factory:Create(role=="Runner" and "SMG" or role=="Soldier" and "Rifle" or "Sniper")
+@@ -38,7 +40,7 @@
+   local list=bots[team.Name] local humans=0
+   for _,p in Players:GetPlayers() do if p:GetAttribute("InMatch") and p.Team==team then humans+=1 end end
+   local needed=math.max(0,6-humans)
+-  for slot=6,needed+1,-1 do if list[slot] then Flags:DropCarrier(list[slot]) Brain:Stop(list[slot]) Damage:Unwatch(list[slot]) list[slot]:Destroy() list[slot]=nil respawn[team.Name][slot]=0 end end
++  for slot=6,needed+1,-1 do if list[slot] then MatchStats.Remove(list[slot]) Flags:DropCarrier(list[slot]) Brain:Stop(list[slot]) Damage:Unwatch(list[slot]) list[slot]:Destroy() list[slot]=nil respawn[team.Name][slot]=0 end end
+   for slot=1,needed do
+    if not alive(list[slot]) and os.clock()>=(respawn[team.Name][slot] or 0) then
+     if list[slot] then Brain:Stop(list[slot]) Damage:Unwatch(list[slot]) list[slot]:Destroy() end
+@@ -47,7 +49,7 @@
+   end
+  end
+ end
+-function Bots:StartRound() active=true respawn={Blue={},Red={}} self:Reconcile() end
++function Bots:StartRound() MatchStats.Reset() active=true respawn={Blue={},Red={}} self:Reconcile() end
+ function Bots:StopRound()
+  active=false
+  for _,list in pairs(bots) do for slot=1,6 do if list[slot] then Flags:DropCarrier(list[slot]) Brain:Stop(list[slot]) Damage:Unwatch(list[slot]) list[slot]:Destroy() list[slot]=nil end end end
+--- before/ServerScriptService\MainGameScript\GameManager\DamageService.luau
++++ after/ServerScriptService\MainGameScript\GameManager\DamageService.luau
+@@ -3,6 +3,7 @@
+ local Teams=game:GetService("Teams")
+ local Kits=require(game.ReplicatedStorage.KitDefinitions)
+ local Progress=require(game.ServerScriptService.Crossgrounds.ProgressionService)
++local MatchStats=require(game.ServerScriptService.Crossgrounds.CTFMatchStats)
+ local practice=setmetatable({},{__mode="k"})
+ local events=game.ReplicatedStorage.Events
+ local function remote(name)
+@@ -49,15 +50,26 @@
+  table.insert(watch.connections,h.HealthChanged:Connect(function(v) if v<health then hurt=os.clock() end health=v end))
+  task.spawn(function() while not watch.stopped and model.Parent and h.Health>0 do task.wait(1) if not watch.stopped and model.Parent and h.Health>0 and os.clock()-hurt>8 then h.Health=math.min(h.MaxHealth,h.Health+4) end end end)
+  table.insert(watch.connections,h.Died:Connect(function()
+-  local team=Damage:Team(model)
++  self:ResolveDeath(model,h)
++ end))
++end
++-- Resolve before cleanup as well as on Died. The per-humanoid guard prevents
++-- deferred Died handlers and Unwatch from granting a second elimination.
++function Damage:ResolveDeath(model,h)
++ local watch=watched[h]
++ if not watch or watch.resolved or h.Health>0 then return end
++ watch.resolved=true
++  local team=self:Team(model)
+   if not team then return end
+   local victimPlayer=Players:GetPlayerFromCharacter(model)
++  if not victimPlayer then MatchStats.Add(model,"Deaths") end
+   if victimPlayer and victimPlayer:FindFirstChild("leaderstats") and victimPlayer.leaderstats:FindFirstChild("Deaths") then victimPlayer.leaderstats.Deaths.Value+=1 end
+   local c=credits[h]
+   local killer=c and os.clock()-c.time<=10 and c.model
+-  local killerTeam=killer and Damage:Team(killer)
++  local killerTeam=killer and self:Team(killer)
+   if killer and killerTeam and killerTeam~=team then
+    local p=Players:GetPlayerFromCharacter(killer)
++   if not p then MatchStats.Add(killer,"Kills") end
+    local xp=p and Progress.CTFKill(p,model:GetAttribute("CTFBot")==true) or 0
+    if p and p:FindFirstChild("leaderstats") and p.leaderstats:FindFirstChild("Kills") then p.leaderstats.Kills.Value+=1 end
+    local data=Kits.Weapons[c.weapon]
+@@ -68,7 +80,6 @@
+    feed:FireAllClients({victim=name(model),victimTeam=team.Name,weapon="Eliminado"})
+   end
+   credits[h]=nil
+- end))
+ end
+ function Damage:Practice(player,model,amount,weapon,headshot)
+  if not model:GetAttribute("PracticeDummy") or not (amount>0 and amount<10000) then return false end
+@@ -88,6 +99,7 @@
+ end
+ function Damage:Unwatch(model)
+  local h=model and model:FindFirstChildOfClass("Humanoid") local watch=h and watched[h]
++ if watch and h.Health<=0 then self:ResolveDeath(model,h) end
+  if watch then watch.stopped=true for _,c in watch.connections do c:Disconnect() end watched[h]=nil end
+  if h then credits[h]=nil end
+ end
+@@ -107,6 +119,7 @@
+  credits[victim]={model=attacker,time=os.clock(),weapon=weapon,headshot=headshot}
+  local actual=math.min(amount,victim.Health)
+  victim:TakeDamage(amount)
++ if victim.Health<=0 then self:ResolveDeath(target,victim) end
+  local player=Players:GetPlayerFromCharacter(attacker)
+  if player then
+   local root=target:FindFirstChild("HumanoidRootPart")
+--- before/ServerScriptService\MainGameScript\GameManager\FlagService.luau
++++ after/ServerScriptService\MainGameScript\GameManager\FlagService.luau
+@@ -3,6 +3,7 @@
+ local Teams = game:GetService("Teams")
+ local Config = require(game.ServerStorage.Configurations)
+ local Events = game.ReplicatedStorage.Events
++local MatchStats=require(game.ServerScriptService.Crossgrounds.CTFMatchStats)
+ local arena = workspace:WaitForChild("CTFInfrastructure")
+ local flags = {}
+ local connections = {}
+@@ -10,7 +11,7 @@
+ local alert=Events:FindFirstChild("CTFFlagAlert") or Instance.new("RemoteEvent") alert.Name="CTFFlagAlert" alert.Parent=Events
+ local function notify(flag,kind,character)
+  local actor=character and Players:GetPlayerFromCharacter(character)
+- local name=actor and actor.DisplayName or character and (character:GetAttribute("DisplayName") or character.Name) or ""
++ local name=actor and actor.DisplayName or character and (character:GetAttribute("BotAlias") or character:GetAttribute("DisplayName") or character.Name) or ""
+  for _,viewer in Players:GetPlayers() do
+   if viewer:GetAttribute("CrossgroundsMode")=="ctf" and viewer:GetAttribute("InMatch") then
+    alert:FireClient(viewer,{kind=kind,team=flag.team.Name,carrier=name,self=actor==viewer})
+@@ -22,7 +23,7 @@
+  flag.base:SetAttribute("FlagState",flag.state)
+  local ref=flag.base:FindFirstChild("FlagCarrier") or Instance.new("ObjectValue") ref.Name="FlagCarrier" ref.Value=flag.carrier ref.Parent=flag.base
+  local actor=flag.carrier and Players:GetPlayerFromCharacter(flag.carrier)
+- flag.base:SetAttribute("FlagCarrierName",actor and actor.DisplayName or flag.carrier and (flag.carrier:GetAttribute("DisplayName") or flag.carrier.Name) or nil)
++ flag.base:SetAttribute("FlagCarrierName",actor and actor.DisplayName or flag.carrier and (flag.carrier:GetAttribute("BotAlias") or flag.carrier:GetAttribute("DisplayName") or flag.carrier.Name) or nil)
+  flag.base:SetAttribute("FlagReturnAt",flag.state=="dropped" and workspace:GetServerTimeNow()+Config.FLAG_RESPAWN_TIME or 0)
+ end
+ 
+@@ -144,6 +145,7 @@
+  end
+  if enemy.carrier == character and near(root.Position, own.home, 7) then
+   if not Config.REQUIRE_RETURN_BEFORE_CAP or own.state == "home" then
++   if not player then MatchStats.Add(character,"Captures") end
+    notify(enemy,"capture",character)
+    self:Return(enemy, true)
+    Events.CaptureFlag:Fire(player, team.TeamColor)
+--- before/StarterPlayer\StarterPlayerScripts\CTFFlagLabels.luau
++++ after/StarterPlayer\StarterPlayerScripts\CTFFlagLabels.luau
+@@ -33,44 +33,14 @@
+ refreshArena()
+ 
+ 
+--- Carrier indicators are client-owned and only visible to active CTF participants.
+-local Tween=game:GetService("TweenService")
++-- The local presentation owns event cards and live carrier notices.
++local Notice=require(script.Parent:WaitForChild("CTFFlagNotice")).new(player)
+ local indicators={}
+-local hud=Instance.new("ScreenGui") hud.Name="CTFFlagAlerts" hud.ResetOnSpawn=false hud.IgnoreGuiInset=false hud.DisplayOrder=85 hud.Enabled=false hud.Parent=player:WaitForChild("PlayerGui")
+-local toast=Instance.new("TextLabel") toast.Name="Alert" toast.AnchorPoint=Vector2.new(.5,0) toast.Position=UDim2.new(.5,0,0,100)
+-toast.Size=UDim2.new(.9,0,0,76) toast.BackgroundColor3=Color3.fromRGB(33,19,24) toast.TextColor3=Color3.fromRGB(255,239,221)
+-toast.TextSize=21 toast.TextWrapped=true toast.Font=Enum.Font.GothamBold toast.Visible=false toast.BorderSizePixel=0 toast.Parent=hud
+-local cap=Instance.new("UISizeConstraint") cap.MaxSize=Vector2.new(640,100) cap.Parent=toast
+-local corner=Instance.new("UICorner") corner.CornerRadius=UDim.new(0,10) corner.Parent=toast
+-local border=Instance.new("UIStroke") border.Thickness=2 border.Color=Color3.fromRGB(255,104,86) border.Parent=toast
+-local pad=Instance.new("UIPadding") pad.PaddingLeft=UDim.new(0,14) pad.PaddingRight=UDim.new(0,14) pad.Parent=toast
+-local persistent=toast:Clone() persistent.Name="CarrierStatus" persistent.Position=UDim2.new(.5,0,0,184) persistent.Size=UDim2.new(.9,0,0,46)
+-persistent.TextSize=15 persistent.BackgroundTransparency=.12 persistent.Parent=hud
+-local queue={}local showing=false local generation=0
+ local function participating()
+  return player:GetAttribute("CrossgroundsMode")=="ctf" and player:GetAttribute("InMatch")==true and player:GetAttribute("AdminFreecam")~=true
+ end
+-local function color(team) return team=="Blue" and Color3.fromRGB(80,178,255) or Color3.fromRGB(255,103,91) end
+-local function flagName(team) return team=="Blue" and "azul" or "vermelha" end
+-local function playAlerts()
+- if showing then return end showing=true
+- local serial=generation
+- task.spawn(function()
+-  while #queue>0 and participating() and serial==generation do
+-   local item=table.remove(queue,1) toast.Text=item.text border.Color=item.color toast.Visible=true
+-   toast.BackgroundTransparency=.05 toast.TextTransparency=0
+-   if not player:GetAttribute("SettingReducedMenuMotion") then
+-    toast.Position=UDim2.new(.5,0,0,90)
+-    Tween:Create(toast,TweenInfo.new(.18,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{Position=UDim2.new(.5,0,0,100)}):Play()
+-   end
+-   local untilTime=os.clock()+3.5
+-   repeat task.wait(.1) until os.clock()>=untilTime or not participating() or serial~=generation
+-   if serial~=generation then return end
+-   toast.Visible=false
+-  end
+-  if serial==generation then showing=false end
+- end)
+-end
++local function color(team)return team=="Blue" and Color3.fromRGB(80,178,255) or Color3.fromRGB(255,103,91)end
++local function flagName(team)return team=="Blue"and"AZUL"or"VERMELHA"end
+ local function forget(team)
+  local item=indicators[team] if not item then return end
+  item.highlight:Destroy() item.label:Destroy() indicators[team]=nil
+@@ -78,54 +48,33 @@
+ local tick=0
+ Run.Heartbeat:Connect(function(dt)
+  tick+=dt if tick<.15 then return end tick=0
+- local on=participating() hud.Enabled=on
++ local on=participating() Notice:SetEnabled(on)
+  local inRound=on and player:GetAttribute("InArena")==true and workspace:GetAttribute("RoundState")=="Playing"
+- local current=workspace:FindFirstChild("CTFInfrastructure")
+- local lines={}
+- for _,team in {"Blue","Red"} do
++ local current=workspace:FindFirstChild("CTFInfrastructure")local carriers={}
++ for _,team in {"Blue","Red"}do
+   local base=current and current:FindFirstChild(team.."Base")local ref=base and base:FindFirstChild("FlagCarrier")
+   local carrier=ref and ref.Value local root=carrier and carrier:FindFirstChild("HumanoidRootPart")
+   local valid=inRound and base~=nil and base:GetAttribute("FlagState")=="carried" and root~=nil
+   local item=indicators[team]
+-  if item and (not valid or item.character~=carrier) then forget(team) item=nil end
++  if item and (not valid or item.character~=carrier)then forget(team)item=nil end
+   if valid then
+    local own=player.Team and player.Team.Name==team
+    if not item then
+-    local highlight=Instance.new("Highlight") highlight.Name="CTFFlagCarrierHighlight" highlight.Adornee=carrier highlight.DepthMode=Enum.HighlightDepthMode.AlwaysOnTop
+-    highlight.FillTransparency=.7 highlight.OutlineTransparency=0 highlight.FillColor=color(team) highlight.OutlineColor=own and Color3.fromRGB(255,230,100) or color(team) highlight.Parent=carrier
+-    local label=Instance.new("BillboardGui") label.Name="CTFCarrierMarker" label.Adornee=root label.Size=UDim2.fromOffset(220,48)label.StudsOffsetWorldSpace=Vector3.new(0,5.5,0)label.AlwaysOnTop=true label.MaxDistance=1400 label.Parent=carrier
+-    local text=Instance.new("TextLabel")text.Size=UDim2.fromScale(1,1)text.BackgroundColor3=Color3.fromRGB(12,19,28)text.BackgroundTransparency=.15 text.BorderSizePixel=0 text.TextColor3=color(team)text.Font=Enum.Font.GothamBold text.TextSize=14 text.TextWrapped=true text.Parent=label
+-    Instance.new("UICorner",text).CornerRadius=UDim.new(0,6)
+-    item={character=carrier,highlight=highlight,label=label,text=text} indicators[team]=item
++    local highlight=Instance.new("Highlight")highlight.Name="CTFFlagCarrierHighlight"highlight.Adornee=carrier highlight.DepthMode=Enum.HighlightDepthMode.AlwaysOnTop
++    highlight.FillTransparency=.76 highlight.OutlineTransparency=0 highlight.FillColor=color(team)highlight.OutlineColor=own and Color3.fromRGB(255,220,110)or color(team)highlight.Parent=carrier
++    local label=Instance.new("BillboardGui")label.Name="CTFCarrierMarker"label.Adornee=root label.Size=UDim2.fromOffset(210,48)label.StudsOffsetWorldSpace=Vector3.new(0,5.5,0)label.AlwaysOnTop=true label.MaxDistance=1400 label.Parent=carrier
++    local text=Instance.new("TextLabel")text:SetAttribute("CascadeDecoration",true)text.Size=UDim2.fromScale(1,1)text.BackgroundColor3=Color3.fromRGB(10,23,32)text.BackgroundTransparency=1 text.TextStrokeColor3=Color3.new(0,0,0) text.TextStrokeTransparency=.45 text.BorderSizePixel=0 text.TextColor3=color(team)text.Font=Enum.Font.GothamBold text.TextSize=13 text.TextWrapped=true text.Parent=label
++    Instance.new("UICorner",text).CornerRadius=UDim.new(0,7)
++    item={character=carrier,highlight=highlight,label=label,text=text}indicators[team]=item
+    end
+-   local name=base:GetAttribute("FlagCarrierName") or carrier.Name
+-   item.text.Text=name.."\nBANDEIRA "..string.upper(flagName(team))
+-   if carrier==player.Character then
+-    table.insert(lines,"LEVE À BASE: você está com a bandeira "..flagName(team).."!")
+-   else
+-    table.insert(lines,(own and "INTERCEPTE: " or "ESCOLTE: ")..name..(own and " está com a sua bandeira!" or " está com a bandeira "..flagName(team).."!"))
+-   end
++   local name=base:GetAttribute("FlagCarrierName")or carrier:GetAttribute("BotAlias")or carrier.Name
++   item.text.Text=name.."\nBANDEIRA "..flagName(team)
++   local selfCarrier=carrier==player.Character
++   table.insert(carriers,{priority=own and 1 or selfCarrier and 2 or 3,title=own and "INTERCEPTE · SUA BANDEIRA"or selfCarrier and "LEVE À SUA BASE"or"ESCOLTE O PORTADOR",name=(selfCarrier and "Você"or name).." · Bandeira "..string.lower(flagName(team)),color=own and Color3.fromRGB(255,112,101)or Color3.fromRGB(75,225,185)})
+   end
+  end
+- persistent.Visible=#lines>0 persistent.Text=table.concat(lines,"\n") persistent.Size=UDim2.new(.9,0,0,#lines>1 and 64 or 46)
+- if not on then
+-  generation+=1 table.clear(queue) showing=false toast.Visible=false persistent.Visible=false
+- end
++ table.sort(carriers,function(a,b)return a.priority<b.priority end)Notice:SetCarriers(carriers)
+ end)
+ task.spawn(function()
+- local remote=game.ReplicatedStorage:WaitForChild("Events"):WaitForChild("CTFFlagAlert")
+- remote.OnClientEvent:Connect(function(data)
+-  if not participating() or typeof(data)~="table" or (data.team~="Blue" and data.team~="Red") then return end
+-  local own=player.Team and player.Team.Name==data.team
+-  local target=own and "a sua bandeira" or "a bandeira "..flagName(data.team)
+-  local name=data.self and "Você" or tostring(data.carrier or "Jogador")
+-  local message
+-  if data.kind=="pickup" then message=data.self and ("Você está com "..target.."! Leve-a à sua base.") or (name.." está com "..target.."!")
+-  elseif data.kind=="drop" then message=name.." deixou "..target.." cair!"
+-  elseif data.kind=="return" then message=own and "Sua bandeira voltou à base!" or "A bandeira "..flagName(data.team).." voltou à base!"
+-  elseif data.kind=="capture" then message=name.." capturou "..target.."!" end
+-  if not message then return end
+-  if #queue>=4 then table.remove(queue,1)end
+-  table.insert(queue,{text=message,color=own and Color3.fromRGB(255,115,83) or color(data.team)}) playAlerts()
+- end)
++ game.ReplicatedStorage:WaitForChild("Events"):WaitForChild("CTFFlagAlert").OnClientEvent:Connect(function(data)Notice:Notify(data)end)
+ end)
+--- before/StarterPlayer\StarterPlayerScripts\CTFFlagNotice.luau
++++ after/StarterPlayer\StarterPlayerScripts\CTFFlagNotice.luau
+@@ -0,0 +1,157 @@
++-- Objective notices: one transient event card, plus compact live carrier rows.
++local Notice={}
++Notice.__index=Notice
++local Tween=game:GetService("TweenService")
++local TextService=game:GetService("TextService")
++local Players=game:GetService("Players")
++local white=Color3.fromRGB(240,247,251)
++local muted=Color3.fromRGB(163,185,199)
++local danger=Color3.fromRGB(255,112,101)
++local success=Color3.fromRGB(75,225,185)
++local gold=Color3.fromRGB(255,208,109)
++local function object(class,name,parent)
++ local o=Instance.new(class) o.Name=name
++ if o:IsA("GuiObject")then o:SetAttribute("CascadeDecoration",true)o.BorderSizePixel=0 end
++ o.Parent=parent return o
++end
++local function text(parent,name,size,bold)
++ local o=object("TextLabel",name,parent)o.BackgroundTransparency=1 o.Font=bold and Enum.Font.GothamBold or Enum.Font.GothamMedium
++ o.TextSize=size o.TextColor3=white o.TextWrapped=true o.TextXAlignment=Enum.TextXAlignment.Left o.TextYAlignment=Enum.TextYAlignment.Center o.TextStrokeColor3=Color3.fromRGB(0,0,0) o.TextStrokeTransparency=.45 o.Text="" return o
++end
++local function corner(parent,r)local c=Instance.new("UICorner")c.CornerRadius=UDim.new(0,r)c.Parent=parent end
++local function stroke(parent,color,alpha)
++ local s=Instance.new("UIStroke")s.ApplyStrokeMode=Enum.ApplyStrokeMode.Border s.Color=color s.Transparency=alpha s.Thickness=1 s.Parent=parent return s
++end
++local function flag(parent)
++ local tile=object("Frame","FlagIcon",parent)tile.Size=UDim2.fromOffset(52,52)tile.Position=UDim2.fromOffset(17,21)corner(tile,12)
++ local pole=object("Frame","Pole",tile)pole.BackgroundColor3=white pole.Size=UDim2.fromOffset(2,29)pole.Position=UDim2.fromOffset(16,12)
++ local cloth=object("Frame","Banner",tile)cloth.Size=UDim2.fromOffset(21,15)cloth.Position=UDim2.fromOffset(18,12)corner(cloth,2)
++ return tile,cloth
++end
++local function flagColor(team)return team=="Blue" and Color3.fromRGB(93,179,255) or Color3.fromRGB(255,115,109)end
++local function flagName(team)return team=="Blue"and"azul"or"vermelha"end
++function Notice.new(player)
++ local self=setmetatable({player=player,enabled=false,queue={},serial=0,tweens={},carriers={},rows={}},Notice)
++ local gui=Instance.new("ScreenGui")gui.Name="CTFFlagAlerts"gui.ResetOnSpawn=false gui.IgnoreGuiInset=false gui.DisplayOrder=84 gui.Enabled=false gui.Parent=player:WaitForChild("PlayerGui")self.Gui=gui
++ local root=object("Frame","ObjectiveNotices",gui)root.AnchorPoint=Vector2.new(.5,0)root.BackgroundTransparency=1 self.Root=root
++ self.Scale=Instance.new("UIScale")self.Scale.Parent=root
++ local event=object("CanvasGroup","EventCard",root)event.BackgroundColor3=Color3.fromRGB(10,23,32)event.Size=UDim2.new(1,0,0,112)event.Visible=false corner(event,12)self.Card=event event.BackgroundTransparency=1
++ local gradient=Instance.new("UIGradient")gradient.Color=ColorSequence.new(Color3.fromRGB(28,46,56),Color3.fromRGB(10,23,32))gradient.Rotation=18 gradient.Parent=event
++ self.Edge=stroke(event,success,1)
++ local accent=object("Frame","Accent",event)accent.Size=UDim2.new(0,4,1,-22)accent.Position=UDim2.fromOffset(0,11)corner(accent,2)self.Accent=accent accent.Visible=false
++ self.Icon,self.Flag=flag(event) self.Icon.BackgroundTransparency=1
++ self.Heading=text(event,"EventTitle",11,true)
++ self.Message=text(event,"Message",19,true)
++ self.Action=text(event,"Instruction",12,false)self.Action.TextColor3=muted self.Action.Visible=false
++ local track=object("Frame","TimeTrack",event)track.BackgroundColor3=Color3.fromRGB(39,59,71)track.Size=UDim2.new(1,-24,0,2)track.Position=UDim2.new(0,12,1,-7)
++ track.Visible=false
++ self.Time=object("Frame","Remaining",track)self.Time.Size=UDim2.fromScale(1,1)
++ local host=object("Frame","LiveCarriers",root)host.BackgroundTransparency=1 self.Host=host
++ for i=1,2 do
++  local row=object("Frame","Carrier"..i,host)row.Size=UDim2.new(1,0,0,48)row.BackgroundColor3=Color3.fromRGB(11,24,33)row.Visible=false corner(row,9)
++  local edge=stroke(row,success,1) row.BackgroundTransparency=1
++  local bar=object("Frame","TeamAccent",row)bar.Size=UDim2.new(0,3,1,-16)bar.Position=UDim2.fromOffset(0,8)corner(bar,2)
++  local label=text(row,"Directive",10,true)local name=text(row,"CarrierName",14,false)
++  self.rows[i]={frame=row,edge=edge,bar=bar,title=label,name=name}
++ end
++ local function resize()self:Layout()end
++ workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(resize)
++ for _,key in {"SettingHUDScale","SettingFontScale","SettingHighContrast"}do player:GetAttributeChangedSignal(key):Connect(resize)end
++ self:Layout()return self
++end
++function Notice:CancelTweens()
++ for _,t in self.tweens do t:Cancel()end table.clear(self.tweens)
++end
++function Notice:Layout()
++ local v=workspace.CurrentCamera.ViewportSize
++ local scale=math.min(self.player:GetAttribute("SettingHUDScale")or 1,math.max(.65,(v.X-24)/300))
++ local width=math.min(500,(v.X-24)/scale)self.Scale.Scale=scale
++ local f=self.player:GetAttribute("SettingFontScale")or 1
++ self.Root.Position=UDim2.new(.5,0,0,v.Y<500 and 108 or 122)self.Root.Size=UDim2.fromOffset(width,96*f)
++ -- Forty pixels instead of the earlier 110+ px card, with no background panel.
++ local height=40*f
++ self.Card.Size=UDim2.new(1,0,0,height)self.Card.BackgroundTransparency=1 self.Edge.Transparency=1
++ self.Heading.TextSize=9*f self.Heading.TextWrapped=false self.Heading.TextTruncate=Enum.TextTruncate.AtEnd
++ self.Heading.Position=UDim2.fromOffset(34,0)self.Heading.Size=UDim2.new(1,-40,0,12*f)
++ self.Message.TextSize=14*f self.Message.TextScaled=true self.Message.TextWrapped=true
++ local bounds=self.Message:FindFirstChildOfClass("UITextSizeConstraint")or Instance.new("UITextSizeConstraint",self.Message)
++ bounds.MinTextSize=11*f bounds.MaxTextSize=14*f
++ self.Message.Position=UDim2.fromOffset(34,12*f)self.Message.Size=UDim2.new(1,-40,0,27*f)
++ self.Action.Visible=false self.Icon.BackgroundTransparency=1 self.Icon.Size=UDim2.fromOffset(24,30*f)self.Icon.Position=UDim2.fromOffset(4,3*f)
++ self.Icon.Pole.Position=UDim2.fromOffset(4,3*f)self.Icon.Pole.Size=UDim2.fromOffset(2,24*f)
++ self.Flag.Position=UDim2.fromOffset(6,3*f)self.Flag.Size=UDim2.fromOffset(17,12*f)
++ self.Host.Visible=not(v.Y<500 and self.Card.Visible)
++ self.Host.Position=UDim2.fromOffset(0,self.Card.Visible and height+3 or 0)self.Host.Size=UDim2.new(1,0,0,44*f)
++ local y=0
++ for i,row in self.rows do
++  local item=self.carriers[i]row.frame.Visible=item~=nil
++  if item then
++   row.title.Visible=false row.edge.Transparency=1 row.bar.Visible=false
++   row.name.TextSize=12*f row.name.TextWrapped=false row.name.TextTruncate=Enum.TextTruncate.AtEnd
++   row.name.Text=item.name.." · "..(item.priority==1 and "INTERCEPTE"or item.priority==2 and "LEVE À BASE"or"ESCOLTE")
++   row.name.TextColor3=item.color
++   row.frame.Position=UDim2.fromOffset(0,y)row.frame.Size=UDim2.new(1,0,0,18*f)row.frame.BackgroundTransparency=1
++   row.name.Position=UDim2.fromOffset(5,0)row.name.Size=UDim2.new(1,-10,1,0)
++   y+=19*f
++  end
++ end
++end
++function Notice:SetEnabled(on)
++ if self.enabled==on then return end self.enabled=on self.Gui.Enabled=on
++ if not on then self.serial+=1 self:CancelTweens()self.current=nil table.clear(self.queue)self.Card.Visible=false self.carriers={} end
++ self:Layout()
++end
++function Notice:SetCarriers(items)
++ -- The controller calls this as flags move; layout only when the displayed data changes.
++ local signature=""for _,item in items do signature..=item.title..item.name end
++ if self.carrierSignature==signature then return end self.carrierSignature=signature self.carriers=items
++ for i,item in items do local row=self.rows[i]if row then row.title.Text=item.title row.title.TextColor3=item.color row.name.Text=item.name row.bar.BackgroundColor3=item.color row.edge.Color=item.color end end
++ self:Layout()
++end
++function Notice:Next()
++ if self.current or not self.enabled or #self.queue==0 then return end
++ self:CancelTweens()local item=table.remove(self.queue,1)self.current=item self.serial+=1 local serial=self.serial
++ self.Heading.Text=item.title self.Message.Text=item.message self.Action.Text=item.action
++ self.Heading.TextColor3=item.color self.Accent.BackgroundColor3=item.color self.Edge.Color=item.color self.Time.BackgroundColor3=item.color
++ self.Icon.BackgroundColor3=item.color:Lerp(Color3.fromRGB(12,24,32),.83)self.Flag.BackgroundColor3=flagColor(item.team)
++ self.Card.Visible=true self.Card.GroupTransparency=0 self.Time.Size=UDim2.fromScale(1,1)self:Layout()
++ local reduced=self.player:GetAttribute("SettingReducedMenuMotion")
++ if not reduced then
++  self.Card.GroupTransparency=1 self.Card.Position=UDim2.fromOffset(0,-4)
++  local enter=Tween:Create(self.Card,TweenInfo.new(.2,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{GroupTransparency=0,Position=UDim2.fromOffset(0,0)})table.insert(self.tweens,enter)enter:Play()
++  local time=Tween:Create(self.Time,TweenInfo.new(4,Enum.EasingStyle.Linear),{Size=UDim2.fromScale(0,1)})table.insert(self.tweens,time)time:Play()
++ else self.Card.Position=UDim2.new()end
++ task.delay(4,function()
++  if self.serial~=serial then return end
++  local duration=reduced and 0 or .16
++  if duration>0 then local fade=Tween:Create(self.Card,TweenInfo.new(duration),{GroupTransparency=1})table.insert(self.tweens,fade)fade:Play()end
++  task.delay(duration,function()if self.serial~=serial then return end self.Card.Visible=false self.current=nil self:Layout()self:Next()end)
++ end)
++end
++function Notice:Notify(data)
++ if not self.enabled or typeof(data)~="table"or(data.team~="Blue"and data.team~="Red")then return end
++ local own=self.player.Team and self.player.Team.Name==data.team
++ local name=data.self and "Você"or tostring(data.carrier or "Jogador")
++ local item={team=data.team,color=own and danger or success}
++ if data.kind=="pickup"then
++  item.urgent=own item.title=own and "ALERTA · SUA BANDEIRA FOI ROUBADA"or"BANDEIRA INIMIGA EM MOVIMENTO"
++  item.message=data.self and ("Você está com a bandeira "..flagName(data.team).."!")or(name..(own and " está com a sua bandeira!"or" está com a bandeira "..flagName(data.team).."!"))
++  item.action=own and "Intercepte o portador antes que ele chegue à base."or data.self and "Leve a bandeira à sua base para pontuar."or"Proteja o portador no caminho de volta."
++ elseif data.kind=="capture"then
++  item.title=own and "PONTO PARA O INIMIGO"or"CAPTURA CONFIRMADA"
++  item.message=name.." capturou "..(own and "a sua bandeira!"or"a bandeira "..flagName(data.team).."!")
++  item.action=own and "Reagrupe e defenda sua base."or"Boa captura! Prepare a próxima ofensiva."
++ elseif data.kind=="return"then
++  item.color=own and success or muted item.title="BANDEIRA DEVOLVIDA"
++  item.message=own and "Sua bandeira está segura na base."or"A bandeira "..flagName(data.team).." voltou à base."
++  item.action=own and "Defesa restabelecida. Sua equipe pode capturar."or"Avance para roubar a bandeira novamente."
++ elseif data.kind=="drop"then
++  item.color=gold item.title="BANDEIRA NO CHÃO"item.message=name.." deixou "..(own and "a sua bandeira cair!"or"a bandeira "..flagName(data.team).." cair!")
++  item.action=own and "Toque na bandeira para devolvê-la à base."or"Recupere a bandeira e continue o ataque."
++ else return end
++ if item.urgent then
++  self.serial+=1 self:CancelTweens()self.current=nil table.clear(self.queue)
++ end
++ if #self.queue>=3 then table.remove(self.queue,1)end table.insert(self.queue,item)self:Next()
++end
++return Notice
+--- before/StarterPlayer\StarterPlayerScripts\HeldStandings.luau
++++ after/StarterPlayer\StarterPlayerScripts\HeldStandings.luau
+@@ -44,9 +44,9 @@
+   local row=board:Add({rank="#"..(entry.rank or i),name=entry.name,kills=entry.kills,deaths=entry.deaths,score=entry.score},i)
+   row.Frame.Size=UDim2.new(1,0,0,50)
+   Prestige.Apply(row.Fields.name,entry.prestige)
+-  if entry.userId==player.UserId then row.Frame.BackgroundColor3=Theme.Colors.Selected row.Frame.BackgroundTransparency=.15 end
++  if not entry.isBot and entry.userId==player.UserId then row.Frame.BackgroundColor3=Theme.Colors.Selected row.Frame.BackgroundTransparency=.15 end
+   row.Fields.rank.TextColor3=({Color3.fromRGB(244,205,109),Color3.fromRGB(204,217,231),Color3.fromRGB(208,155,111)})[i] or Theme.Colors.Muted
+-  local avatar=Instance.new("ImageLabel") avatar.Name="Avatar" avatar.BackgroundTransparency=1 avatar.Size=UDim2.fromOffset(32,32) avatar.Position=UDim2.new(.08,8,.5,-16) avatar.Image="rbxthumb://type=AvatarHeadShot&id="..entry.userId.."&w=100&h=100" avatar.Parent=row.Frame
++  local avatar=Instance.new("ImageLabel") avatar.Name="Avatar" avatar.BackgroundTransparency=1 avatar.Size=UDim2.fromOffset(32,32) avatar.Position=UDim2.new(.08,8,.5,-16) local portraitId=entry.avatarUserId or entry.userId avatar.Image=portraitId>0 and ("rbxthumb://type=AvatarHeadShot&id="..portraitId.."&w=100&h=100") or "rbxasset://textures/ui/GuiImagePlaceholder.png" avatar.Parent=row.Frame
+   row.Fields.name.Position+=UDim2.fromOffset(40,0) row.Fields.name.Size-=UDim2.fromOffset(40,0)
+  end
+ end

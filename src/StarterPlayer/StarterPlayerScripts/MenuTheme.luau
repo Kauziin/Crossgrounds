@@ -9,6 +9,7 @@ function Theme.ReducedMotion()
  return player:GetAttribute("SettingReducedMenuMotion")==true or ok and native
 end
 Theme.Colors={Surface=Color3.fromRGB(17,18,22),Button=Color3.fromRGB(30,31,37),Selected=Color3.fromRGB(62,65,75),Text=Color3.fromRGB(245,246,249),Muted=Color3.fromRGB(182,186,196)}
+Theme.Settings={Surface=Color3.fromRGB(7,18,24),Card=Color3.fromRGB(13,29,36),Accent=Color3.fromRGB(16,224,227),Text=Color3.fromRGB(240,247,250),Muted=Color3.fromRGB(177,193,200),Track=Color3.fromRGB(48,66,74),Border=Color3.fromRGB(80,112,119),Focus=Color3.fromRGB(232,255,255)}
 local styled=setmetatable({},{__mode="k"})
 local function transparency(value)
  if player:GetAttribute("SettingHighContrast") then return 0 end
@@ -20,6 +21,12 @@ local function stroke(p)
  local s=p:FindFirstChild("AcrylicEdge") or Instance.new("UIStroke") s.Name="AcrylicEdge" s.Color=Color3.new(1,1,1) s.Thickness=1 s.Transparency=.85 s.ApplyStrokeMode=Enum.ApplyStrokeMode.Border s.Parent=p
 end
 function Theme.Surface(p)
+ if p:GetAttribute("SettingsOverhaul") then
+  p.BackgroundColor3=Theme.Settings.Surface p.BackgroundTransparency=transparency(.08) p.BorderSizePixel=0 corner(p,16) stroke(p)
+  local edge=p:FindFirstChild("AcrylicEdge") edge.Color=Theme.Settings.Border edge.Transparency=.3
+  local tint=p:FindFirstChild("AcrylicTint") if tint then tint:Destroy() end
+  return
+ end
  p.BackgroundColor3=Theme.Colors.Surface p.BackgroundTransparency=p:GetAttribute("CascadePane") and 0 or transparency(.22) p.BorderSizePixel=0 corner(p,18) stroke(p)
  if not p:FindFirstChild("AcrylicTint") then local g=Instance.new("UIGradient") g.Name="AcrylicTint" g.Color=ColorSequence.new(Color3.fromRGB(215,220,235),Color3.fromRGB(115,118,130)) g.Rotation=90 g.Parent=p end
 end
@@ -59,6 +66,7 @@ function Theme.Button(b)
  b.MouseLeave:Connect(function() if Theme.ReducedMotion() then b.BackgroundTransparency=transparency(.28) return end Tween:Create(b,TweenInfo.new(.12),{BackgroundTransparency=transparency(.28)}):Play() end)
 end
 function Theme.RefreshAccessibility(v)
+ if v:GetAttribute("SettingsStyled") then return end
  if styled[v] then v.BackgroundTransparency=transparency(.28) end
  local edge=v:FindFirstChild("AcrylicEdge")
  if edge then edge.Transparency=player:GetAttribute("SettingHighContrast") and .35 or .85 end
@@ -70,7 +78,7 @@ local surfaces={Main=true,Options=true,Categories=true,Detail=true,RootPane=true
 function Theme.Apply(gui)
  gui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling
  local function style(v)
-  if not v:IsA("GuiObject") or v:GetAttribute("CascadeDecoration") then return end
+  if not v:IsA("GuiObject") or v:GetAttribute("CascadeDecoration") or v:GetAttribute("SettingsStyled") then return end
   if v:IsA("TextButton") and v.Name=="Slider" then v.BackgroundColor3=Color3.fromRGB(74,76,84) v.BackgroundTransparency=v:FindFirstChild("Track") and 1 or .15 corner(v,5)
   elseif v:IsA("Frame") and v.Name=="Fill" and v.Parent.Name=="Slider" then v.BackgroundColor3=Theme.Colors.Muted
   elseif v:IsA("TextButton") then

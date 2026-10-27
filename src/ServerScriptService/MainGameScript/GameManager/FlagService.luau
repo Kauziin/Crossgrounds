@@ -3,6 +3,7 @@ local Players = game:GetService("Players")
 local Teams = game:GetService("Teams")
 local Config = require(game.ServerStorage.Configurations)
 local Events = game.ReplicatedStorage.Events
+local MatchStats=require(game.ServerScriptService.Crossgrounds.CTFMatchStats)
 local arena = workspace:WaitForChild("CTFInfrastructure")
 local flags = {}
 local connections = {}
@@ -10,7 +11,7 @@ local active = false
 local alert=Events:FindFirstChild("CTFFlagAlert") or Instance.new("RemoteEvent") alert.Name="CTFFlagAlert" alert.Parent=Events
 local function notify(flag,kind,character)
  local actor=character and Players:GetPlayerFromCharacter(character)
- local name=actor and actor.DisplayName or character and (character:GetAttribute("DisplayName") or character.Name) or ""
+ local name=actor and actor.DisplayName or character and (character:GetAttribute("BotAlias") or character:GetAttribute("DisplayName") or character.Name) or ""
  for _,viewer in Players:GetPlayers() do
   if viewer:GetAttribute("CrossgroundsMode")=="ctf" and viewer:GetAttribute("InMatch") then
    alert:FireClient(viewer,{kind=kind,team=flag.team.Name,carrier=name,self=actor==viewer})
@@ -22,7 +23,7 @@ local function publish(flag)
  flag.base:SetAttribute("FlagState",flag.state)
  local ref=flag.base:FindFirstChild("FlagCarrier") or Instance.new("ObjectValue") ref.Name="FlagCarrier" ref.Value=flag.carrier ref.Parent=flag.base
  local actor=flag.carrier and Players:GetPlayerFromCharacter(flag.carrier)
- flag.base:SetAttribute("FlagCarrierName",actor and actor.DisplayName or flag.carrier and (flag.carrier:GetAttribute("DisplayName") or flag.carrier.Name) or nil)
+ flag.base:SetAttribute("FlagCarrierName",actor and actor.DisplayName or flag.carrier and (flag.carrier:GetAttribute("BotAlias") or flag.carrier:GetAttribute("DisplayName") or flag.carrier.Name) or nil)
  flag.base:SetAttribute("FlagReturnAt",flag.state=="dropped" and workspace:GetServerTimeNow()+Config.FLAG_RESPAWN_TIME or 0)
 end
 
@@ -144,6 +145,7 @@ function FlagService:TryInteract(character)
  end
  if enemy.carrier == character and near(root.Position, own.home, 7) then
   if not Config.REQUIRE_RETURN_BEFORE_CAP or own.state == "home" then
+   if not player then MatchStats.Add(character,"Captures") end
    notify(enemy,"capture",character)
    self:Return(enemy, true)
    Events.CaptureFlag:Fire(player, team.TeamColor)

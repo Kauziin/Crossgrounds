@@ -1,0 +1,267 @@
+--- before/ReplicatedStorage\ExperienceSettings.luau
++++ after/ReplicatedStorage\ExperienceSettings.luau
+@@ -24,6 +24,7 @@
+ }
+ Settings.Version=2
+ local extra={
++ GraphicsQuality={Label="Qualidade gráfica",Default=2,Choices={1,2,3,4},Labels={[1]="DESEMPENHO",[2]="EQUILIBRADO",[3]="ALTO",[4]="VISUAL"},Category="Graphics"},
+  SimpleAnimations={Label="Animações simples",Default=false,Category="Accessibility"},
+  WeaponAnimationIntensity={Label="Movimento das armas",Default=1,Min=0,Max=1,Step=.05,Percent=true,Category="Accessibility"},
+  FOVTransitionSpeed={Label="Velocidade do FOV",Default=1,Min=.15,Max=1,Step=.05,Percent=true,Category="Accessibility"},
+@@ -65,9 +66,10 @@
+ end
+ local categories={Gameplay={"AutoSprint"},Camera={"FieldOfView","WeaponFOVScale","FirstPerson","ShiftLock","Shoulder","CameraMotion"},Aim={"LookSensitivity","AimSensitivity","AimAssist","AimAssistStrength","AimAssistSlowdown","AimAssistTracking"},Analog={"LeftStickDeadzone","RightStickDeadzone","StickCurve","StickCurveStrength"},Audio={"MenuVolume","MenuSFXVolume","GameSFXVolume","BeastProximityVolume"},Accessibility={"FontScale","HighContrast","ReducedMenuMotion","SimpleAnimations","WeaponAnimationIntensity","FOVTransitionSpeed","DamageFlash"},Interface={"MenuScale","HUDScale","KillFeedVisible"}}
+ categories.Reticle={"ReticleColor","ReticleSize","ReticleThickness","ReticleGap","ReticleDot","ReticleOutline","ReticleOpacity","ReticleDynamic"}
++categories.Graphics={"GraphicsQuality"}
+ Settings.Categories=categories
+ Settings.Groups={}
+-for _,entry in {{"Gameplay","GERAL"},{"Camera","CÂMERA"},{"Aim","MIRA"},{"Reticle","RETÍCULO"},{"Analog","ANALÓGICOS"},{"Interface","INTERFACE"},{"Audio","ÁUDIO"},{"Accessibility","ACESSIBILIDADE"}} do table.insert(Settings.Groups,{Label=entry[2],Keys=categories[entry[1]]}) end
++for _,entry in {{"Gameplay","GERAL"},{"Camera","CÂMERA"},{"Aim","MIRA"},{"Reticle","RETÍCULO"},{"Analog","ANALÓGICOS"},{"Interface","INTERFACE"},{"Audio","ÁUDIO"},{"Graphics","GRÁFICOS"},{"Accessibility","ACESSIBILIDADE"}} do table.insert(Settings.Groups,{Label=entry[2],Keys=categories[entry[1]]}) end
+ for category,keys in categories do for _,key in keys do Settings.Rules[key].Category=category end end
+ for key,rule in Settings.Rules do
+  rule.Id=key rule.Category=rule.Category or (rule.MobileLayout and "Touch" or rule.Device and "Bindings" or "Gameplay")
+--- before/StarterPlayer\StarterPlayerScripts\CombatPresentation.luau
++++ after/StarterPlayer\StarterPlayerScripts\CombatPresentation.luau
+@@ -24,6 +24,8 @@
+ local aiming,firing=false,false
+ local locked,firstPerson,shoulder=true,false,1
+ local CameraPolicy=require(game.ReplicatedStorage.Crossgrounds.CombatCameraPolicy)
++local Intent=require(game.ReplicatedStorage.Crossgrounds.AimAssistIntent)
++local windowFocused=true
+ local Analog=require(game.ReplicatedStorage.Crossgrounds.AnalogFilter)
+ local Assist=require(script.Parent:WaitForChild("TargetingAssist"))
+ local assistFriction=1
+@@ -306,7 +308,7 @@
+  elseif input.UserInputType==Enum.UserInputType.Touch and touchLook==input then
+   local position=Vector2.new(input.Position.X,input.Position.Y)
+   local delta=touchPosition and position-touchPosition or Vector2.zero touchPosition=position
+-  touchDelta+=delta
++  touchDelta+=delta touchSampleAt=os.clock()
+  end
+ end)
+ UIS.TouchStarted:Connect(function(input,processed)
+@@ -321,7 +323,8 @@
+ UIS.TouchEnded:Connect(function(input) if touchLook==input then clearLook() end end)
+ UIS.TouchTapInWorld:Connect(function(point,processed) if not processed and not locked then freePoint=point end end)
+ UIS.GamepadDisconnected:Connect(clearLook)
+-UIS.WindowFocusReleased:Connect(function() clearLook() aiming=false firing=false end)
++UIS.WindowFocusReleased:Connect(function() windowFocused=false clearLook() aiming=false firing=false end)
++UIS.WindowFocused:Connect(function() windowFocused=true clearLook() end)
+ GuiService.MenuOpened:Connect(function() clearLook() aiming=false firing=false end)
+ InputMode.Changed:Connect(function() clearLook() if owned then cursorMode() end end)
+ player.CharacterRemoving:Connect(clearLook)
+@@ -346,6 +349,7 @@
+  local blocked=Presentation:IsBlocked()
+  locked,firstPerson=CameraPolicy.Resolve(Scope:Get(),data and data.Kind,setting("ShiftLock"),setting("FirstPerson"))
+  if not character then
++  if owned then clearLook() end
+   release() currentTool=nil
+   local camera=workspace.CurrentCamera local target=setting("FieldOfView")
+   camera.FieldOfView+=(target-camera.FieldOfView)*MotionPreferences.FOVAlpha(deltaTime,setting("FOVTransitionSpeed"),10)
+@@ -353,10 +357,11 @@
+  end
+  locked,firstPerson=CameraPolicy.Resolve(Scope:Get(),data.Kind,setting("ShiftLock"),setting("FirstPerson"))
+  if tool~=currentTool then
++  clearLook()
+   currentTool=tool equippedAt=os.clock() firedAt=-100 adsWeight=0 locomotion=Locomotion.new() removeViewmodel()
+   if owned then buildViewmodel(tool) end
+  end
+- if blocked then
++ if blocked or not windowFocused then
+   clearLook()
+   motion:Reset() carry:Reset() previousYaw=nil assistFriction=1 Assist:Reset() player:SetAttribute("WeaponRunWeight",0) player:SetAttribute("CombatFiring",false) player:SetAttribute("CameraMotionPitch",0) player:SetAttribute("CameraMotionOffset",Vector3.zero) player:SetAttribute("CameraMotionRoll",0) if aimFrame then workspace.CurrentCamera.CFrame=aimFrame end
+   firing=false aiming=false
+@@ -377,13 +382,13 @@
+  end
+  local clean=Analog.Stick(stickGate,stick,setting("RightStickDeadzone"))
+  local movement=setting("StickCurve")==1 and Analog.Dynamic(clean,setting("StickCurveStrength")) or clean
+- local pixels=touchDelta touchDelta=Vector2.zero
++ local pixels=os.clock()-touchSampleAt<=Intent.TouchTimeout and touchDelta or Vector2.zero touchDelta=Vector2.zero
+  local touchRadians=input==Enum.PreferredInput.Touch and touchLook and Analog.TouchRadians(pixels,camera.ViewportSize.X,setting("LookSensitivity"),aiming and setting("AimSensitivity") or 1) or Vector2.zero
+  touchIntent=touchRadians.Magnitude>0 and Vector2.new(-touchRadians.X,-touchRadians.Y)/(math.max(deltaTime,.001)*2.4) or Vector2.zero
+  if touchIntent.Magnitude>1 then touchIntent=touchIntent.Unit end
+  local assisted local tracking=Vector2.zero
+  assistFriction=1
+- local lookIntent=input==Enum.PreferredInput.Gamepad and Vector2.new(-movement.X,movement.Y) or touchIntent
++ local lookIntent=Intent.Resolve({device=input==Enum.PreferredInput.Gamepad and "gamepad" or input==Enum.PreferredInput.Touch and "touch" or "mouse",focused=windowFocused,blocked=blocked,look=input==Enum.PreferredInput.Gamepad and Vector2.new(-movement.X,movement.Y) or touchIntent,touchOwned=touchLook~=nil,touchAt=touchSampleAt,now=os.clock()})
+  assisted,assistFriction,tracking=Assist:Target(aimFrame or camera.CFrame,Presentation:GetAimViewport(),camera,data.Range,setting("AimAssist"),setting("AimAssistStrength"),data.Kind=="Gun",viewmodel,aiming,{
+   dt=deltaTime,look=lookIntent,strafe=humanoid.MoveDirection:Dot((aimFrame or camera.CFrame).RightVector),
+   slowdown=setting("AimAssistSlowdown"),tracking=setting("AimAssistTracking"),
+--- before/StarterPlayer\StarterPlayerScripts\ExperienceMenu.luau
++++ after/StarterPlayer\StarterPlayerScripts\ExperienceMenu.luau
+@@ -44,13 +44,13 @@
+  Nav:Connect(b,function() if not player:GetAttribute("Rebinding") then bindingDevice=entry[1] render("Bindings") Nav:Focus(b) end end)
+ end
+ local categories={
+- Options={{"Gameplay","Geral"},{"Controls","Controles"},{"Camera","Mira e Câmera"},{"Interface","Interface"},{"Accessibility","Acessibilidade"},{"Audio","Áudio"},{"Progress","Progresso"},{"Maps","Votação de mapa"},{"AdminMaps","Admin · mapas e capturas"},{"Development","Desenvolvimento · Studio"}},
++ Options={{"Gameplay","Geral"},{"Controls","Controles"},{"Camera","Mira e Câmera"},{"Interface","Interface"},{"Graphics","Gráficos"},{"Accessibility","Acessibilidade"},{"Audio","Áudio"},{"Progress","Progresso"},{"Maps","Votação de mapa"},{"AdminMaps","Admin · mapas e capturas"},{"Development","Desenvolvimento · Studio"}},
+  Controls={{"Analog","Analógicos"},{"Bindings","Remapear comandos"},{"HUDSettings","Toque · editar HUD"}},
+  Camera={{"CameraCore","Câmera e perspectiva"},{"Aim","Mira e sensibilidade"},{"Reticle","Retículo"}},
+ }
+ local leafParent={Aim="Camera",Reticle="Camera",CameraCore="Camera",Analog="Controls",Bindings="Controls",HUDSettings="Controls"}
+-local keys={Gameplay=Settings.Categories.Gameplay,CameraCore=Settings.Categories.Camera,Aim=Settings.Categories.Aim,Analog=Settings.Categories.Analog,Interface=Settings.Categories.Interface,Accessibility=Settings.Categories.Accessibility,Audio=Settings.Categories.Audio,Reticle=Settings.Categories.Reticle}
+-local titles={AdminMaps="ADMIN · MAPAS E CAPTURAS",Gameplay="GERAL",Controls="CONTROLES",Camera="MIRA E CÂMERA",CameraCore="CÂMERA",Aim="MIRA",Reticle="RETÍCULO",Interface="INTERFACE",Analog="ANALÓGICOS",Accessibility="ACESSIBILIDADE",Audio="ÁUDIO",Bindings="REMAPEAR COMANDOS",HUDSettings="TOQUE · HUD",Options="OPÇÕES",Loadout="LOADOUT",Maps="MAPAS",Development="DESENVOLVIMENTO",Surrender="RENDER-SE",Exit="SAIR"}
++local keys={Graphics=Settings.Categories.Graphics,Gameplay=Settings.Categories.Gameplay,CameraCore=Settings.Categories.Camera,Aim=Settings.Categories.Aim,Analog=Settings.Categories.Analog,Interface=Settings.Categories.Interface,Accessibility=Settings.Categories.Accessibility,Audio=Settings.Categories.Audio,Reticle=Settings.Categories.Reticle}
++local titles={Graphics="GRÁFICOS",AdminMaps="ADMIN · MAPAS E CAPTURAS",Gameplay="GERAL",Controls="CONTROLES",Camera="MIRA E CÂMERA",CameraCore="CÂMERA",Aim="MIRA",Reticle="RETÍCULO",Interface="INTERFACE",Analog="ANALÓGICOS",Accessibility="ACESSIBILIDADE",Audio="ÁUDIO",Bindings="REMAPEAR COMANDOS",HUDSettings="TOQUE · HUD",Options="OPÇÕES",Loadout="LOADOUT",Maps="MAPAS",Development="DESENVOLVIMENTO",Surrender="RENDER-SE",Exit="SAIR"}
+ local function get(key) local v=player:GetAttribute("Setting"..key) if v==nil then return Settings.Rules[key].Default end return v end
+ local function cleanDetail()
+  if activeLoadoutView then activeLoadoutView:Destroy() activeLoadoutView=nil end
+@@ -204,6 +204,7 @@
+    action("ResetAllPreferences","Restaurar preferências globais",function() Preferences:Reset("Global","All",true) end)
+    action("ResetEveryScope","Restaurar tudo: global, modos e dispositivos",function() for _,scope in {"Global","Mode:ctf","Mode:arena","Device:Keyboard","Device:Gamepad","Device:Touch"} do Preferences:Reset(scope,"All",true) end end)
+   end
++  if id=="Graphics" then info("Equilibrado é o padrão. Alto e Visual acrescentam efeitos; Desempenho reduz sombras e pós-processamento. A qualidade global do Roblox continua sob seu controle. Profundidade de campo fica restrita à câmera de fotografia no perfil Visual.") end
+   if id=="Aim" then info("Desaceleração reduz a sensibilidade perto do corpo. Acompanhamento ajuda uma parte do movimento visível, sem centralizar a mira; diminui com a distância.") end
+   if id=="Audio" then action("Playlist","GERENCIAR PLAYLIST DO LOBBY  ›",function() show(false) Nav:OpenMenu("Playlist") end) end
+   if id=="Gameplay" then info("Corrida automática: ativa no toque ao avançar; para ao recuar ou abrir menus. Usa estamina.") end
+--- before/StarterPlayer\StarterPlayerScripts\GraphicsController.luau
++++ after/StarterPlayer\StarterPlayerScripts\GraphicsController.luau
+@@ -0,0 +1,82 @@
++local Lighting=game:GetService("Lighting")
++local Players=game:GetService("Players")
++local Collection=game:GetService("CollectionService")
++local player=Players.LocalPlayer
++local Profiles=require(game.ReplicatedStorage:WaitForChild("Crossgrounds"):WaitForChild("GraphicsProfiles"))
++local originalShadows=Lighting.GlobalShadows
++local originals=setmetatable({},{__mode="k"})
++local connections={} local own={} local running=true local applying=false
++local function effect(class,name)
++ local v=Instance.new(class) v.Name=name own[v]=true v.Parent=Lighting return v
++end
++local bloom=effect("BloomEffect","CrossgroundsQualityBloom")
++bloom.Size=20 bloom.Threshold=1.5
++bloom.Enabled=false
++local rays=effect("SunRaysEffect","CrossgroundsQualitySunRays")
++rays.Spread=.8
++rays.Enabled=false
++local color=effect("ColorCorrectionEffect","CrossgroundsQualityColor")
++local dof=effect("DepthOfFieldEffect","CrossgroundsPhotoDepth")
++dof.Enabled=false dof.FocusDistance=25 dof.InFocusRadius=20 dof.NearIntensity=0 dof.FarIntensity=.12
++local quality=Profiles.Default
++local function capture(v,prop)
++ local record=originals[v]
++ if not record then record={} originals[v]=record end
++ if record[prop]==nil then record[prop]=v[prop] end
++ return record[prop]
++end
++local function tune(v)
++ if own[v] then return end
++ if v:IsA("Light") and v:IsDescendantOf(workspace) then
++  v.Shadows=capture(v,"Shadows") and Profiles.Get(quality).LightShadows
++ elseif v:IsA("PostEffect") and (v.Parent==Lighting or v.Parent==workspace.CurrentCamera) and not v:IsA("BlurEffect") then
++  capture(v,"Enabled") v.Enabled=false
++ elseif Collection:HasTag(v,"CrossgroundsQualityCosmetic") and (v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Beam")) then
++  local minimum=tonumber(v:GetAttribute("MinGraphicsQuality")) or 3
++  v.Enabled=capture(v,"Enabled") and quality>=minimum
++ end
++end
++local function apply()
++ if applying or not running then return end applying=true
++ local value=player:GetAttribute("SettingGraphicsQuality")
++ quality=typeof(value)=="number" and math.clamp(math.floor(value),1,4) or Profiles.Default
++ local p=Profiles.Get(quality)
++ Lighting.GlobalShadows=originalShadows and p.Shadows
++ bloom.Intensity=p.Bloom bloom.Enabled=p.Bloom>0
++ rays.Intensity=p.Rays rays.Enabled=p.Rays>0
++ color.Saturation=p.Saturation color.Contrast=p.Contrast
++ dof.Enabled=quality==4 and player:GetAttribute("AdminFreecam")==true
++ player:SetAttribute("GraphicsProfileActive",p.Name)
++ for v in originals do if v.Parent then tune(v) end end
++ applying=false
++end
++-- Scan once; streamed lights and tagged cosmetic effects are handled incrementally.
++for i,v in workspace:GetDescendants() do tune(v) if i%1000==0 then task.wait() end end
++for _,v in Lighting:GetChildren() do tune(v) end
++for _,v in Collection:GetTagged("CrossgroundsQualityCosmetic") do tune(v) end
++local function hook(signal,fn) table.insert(connections,signal:Connect(fn)) end
++hook(workspace.DescendantAdded,tune)
++hook(Lighting.ChildAdded,tune)
++hook(Collection:GetInstanceAddedSignal("CrossgroundsQualityCosmetic"),tune)
++hook(player:GetAttributeChangedSignal("SettingGraphicsQuality"),apply)
++hook(player:GetAttributeChangedSignal("AdminFreecam"),apply)
++local cameraConnection
++local function cameraChanged()
++ if cameraConnection then cameraConnection:Disconnect() end
++ local camera=workspace.CurrentCamera
++ if camera then
++  for _,v in camera:GetChildren() do tune(v) end
++  cameraConnection=camera.ChildAdded:Connect(tune)
++ end
++end
++hook(workspace:GetPropertyChangedSignal("CurrentCamera"),cameraChanged)
++cameraChanged()
++script.Destroying:Connect(function()
++ running=false
++ for _,c in connections do c:Disconnect() end
++ if cameraConnection then cameraConnection:Disconnect() end
++ for v,properties in originals do if v.Parent then for key,value in properties do v[key]=value end end end
++ Lighting.GlobalShadows=originalShadows
++ for v in own do v:Destroy() end
++end)
++apply()
+--- before/ReplicatedStorage\Crossgrounds\AimAssist.luau
++++ after/ReplicatedStorage\Crossgrounds\AimAssist.luau
+@@ -57,9 +57,8 @@
+ function Assist.Reset(state)
+  table.clear(state) state.friction=1 state.age=0 state.velocity=Vector2.zero
+ end
+-function Assist.Step(state,window,context)
+- local dt=context.dt or 0 local strength=math.clamp(context.strength or 0,0,1)
+- if not window or strength<=0 or dt<=0 or dt>.075 then Assist.Reset(state) return 1,Vector2.zero end
++function Assist.Friction(state,window,context)
++ local dt=context.dt local strength=math.clamp(context.strength or 0,0,1)
+  local input=context.look or Vector2.zero
+  local magnitude=math.min(1,input.Magnitude)
+  local frictionRange,trackingRange=Assist.Distance(window.distance)
+@@ -69,6 +68,19 @@
+  local goal=1-Assist.Tuning.MaxSlowdown*strength*slowdown*window.weight*frictionRange*escape
+  local response=goal>state.friction and .025 or .055
+  state.friction+=(goal-state.friction)*(1-math.exp(-dt/response))
++ return state.friction,trackingRange,escape
++end
++function Assist.Step(state,window,context)
++ local dt=context.dt or 0 local strength=math.clamp(context.strength or 0,0,1)
++ if not window or strength<=0 or dt<=0 or dt>.075 then Assist.Reset(state) return 1,Vector2.zero end
++ local input=context.look or Vector2.zero
++ local magnitude=math.min(1,input.Magnitude)
++ local friction,trackingRange,escape=Assist.Friction(state,window,context)
++ -- Releasing intent cannot retain tracking velocity or acquisition time.
++ if magnitude<=.025 then
++  state.target=nil state.anchor=nil state.velocity=Vector2.zero state.age=0
++  return friction,Vector2.zero
++ end
+  local origin=context.origin
+  local same=state.target==window.candidate.id and state.anchor~=nil
+  local previousOrigin,previousAnchor,previousCenter=state.origin,state.anchor,state.center
+--- before/ReplicatedStorage\Crossgrounds\AimAssistIntent.luau
++++ after/ReplicatedStorage\Crossgrounds\AimAssistIntent.luau
+@@ -0,0 +1,13 @@
++-- Device eligibility is independent of target selection and shot authority.
++local Intent={TouchTimeout=.1}
++function Intent.Resolve(c)
++ if c.focused==false or c.blocked then return Vector2.zero end
++ local look=c.look or Vector2.zero
++ if look.X~=look.X or look.Y~=look.Y or math.abs(look.X)==math.huge or math.abs(look.Y)==math.huge then return Vector2.zero end
++ if c.device=="touch" then
++  local age=(c.now or 0)-(c.touchAt or -math.huge)
++  if not c.touchOwned or age<0 or age>Intent.TouchTimeout then return Vector2.zero end
++ elseif c.device~="gamepad" then return Vector2.zero end
++ return look.Magnitude>1 and look.Unit or look
++end
++return table.freeze(Intent)
+--- before/ReplicatedStorage\Crossgrounds\GraphicsProfiles.luau
++++ after/ReplicatedStorage\Crossgrounds\GraphicsProfiles.luau
+@@ -0,0 +1,13 @@
++-- Local presentation presets. Map lighting and Roblox's own quality remain independent.
++local Profiles={}
++Profiles.Default=2
++Profiles.List={
++ {Name="Desempenho",Shadows=false,LightShadows=false,Bloom=0,Rays=0,Saturation=0,Contrast=0,MinQuality=1},
++ {Name="Equilibrado",Shadows=true,LightShadows=false,Bloom=.06,Rays=0,Saturation=.015,Contrast=.015,MinQuality=2},
++ {Name="Alto",Shadows=true,LightShadows=true,Bloom=.12,Rays=.02,Saturation=.035,Contrast=.025,MinQuality=3},
++ {Name="Visual",Shadows=true,LightShadows=true,Bloom=.2,Rays=.035,Saturation=.05,Contrast=.035,MinQuality=4},
++}
++function Profiles.Get(value)
++ return Profiles.List[value] or Profiles.List[Profiles.Default]
++end
++return Profiles
