@@ -24,6 +24,18 @@ local freePoint
 local touchLook local touchPosition local lastTouchLook=0
 local touchIntent=Vector2.zero local touchSampleAt=0
 local aiming,firing=false,false
+local SniperZoom=require(game.ReplicatedStorage.Crossgrounds.SniperZoom)
+local zoomLevel=1
+local zoomGui=Instance.new("ScreenGui")
+zoomGui.Name="SniperZoomHUD" zoomGui.ResetOnSpawn=false zoomGui.DisplayOrder=15
+zoomGui.Parent=player:WaitForChild("PlayerGui")
+local zoomButton=Instance.new("TextButton")
+zoomButton.Name="Amplification" zoomButton.Size=UDim2.fromOffset(240,40)
+zoomButton.AnchorPoint=Vector2.new(.5,0) zoomButton.Position=UDim2.new(.5,0,.65,0)
+zoomButton.BackgroundColor3=Color3.fromRGB(16,27,41) zoomButton.BackgroundTransparency=.2
+zoomButton.TextColor3=Color3.fromRGB(235,242,255) zoomButton.Font=Enum.Font.GothamMedium
+zoomButton.TextSize=13 zoomButton.Visible=false zoomButton.Selectable=false zoomButton.Parent=zoomGui
+Instance.new("UICorner",zoomButton).CornerRadius=UDim.new(0,8)
 local locked,firstPerson,shoulder=true,false,1
 local CameraPolicy=require(game.ReplicatedStorage.Crossgrounds.CombatCameraPolicy)
 local Intent=require(game.ReplicatedStorage.Crossgrounds.AimAssistIntent)
@@ -104,7 +116,7 @@ function Presentation:TogglePerspective()
  if Scope:IsArena() then return end
  firstPerson=not firstPerson persist("FirstPerson",firstPerson)
 end
-function Presentation:SetAiming(value) aiming=value and not self:IsBlocked() or false end
+function Presentation:SetAiming(value) aiming=value and not self:IsBlocked() or false if not aiming then zoomLevel=1 end end
 function Presentation:SetFiring(value) firing=value and not self:IsBlocked() or false player:SetAttribute("CombatFiring",firing) end
 function Presentation:GetAimViewport()
  local v=workspace.CurrentCamera.ViewportSize
@@ -353,9 +365,22 @@ end
 bind("ShiftLock",function() Presentation:ToggleLock() end)
 bind("Shoulder",function() Presentation:ToggleShoulder() end)
 bind("Perspective",function() Presentation:TogglePerspective() end)
+local function canZoom()
+ local _,_,t=current()
+ return aiming and not Presentation:IsBlocked() and t~=nil and SniperZoom.IsSniper(t:GetAttribute("WeaponId"))
+end
+local function toggleZoom() if canZoom() then zoomLevel=zoomLevel==1 and 2 or 1 end end
+Router:Register("SniperZoom",function(state)
+ if not canZoom() then return Enum.ContextActionResult.Pass end
+ if state==Enum.UserInputState.Begin then toggleZoom() end
+ return Enum.ContextActionResult.Sink
+end,{scope="combat"})
+zoomButton.Activated:Connect(toggleZoom)
 RunService:BindToRenderStep("CTFCombatPresentation",Enum.RenderPriority.Camera.Value+1,function(deltaTime)
  local character,humanoid,tool,data=current()
  local blocked=Presentation:IsBlocked()
+ zoomButton.Visible=false
+ if not aiming or blocked or not character or tool~=currentTool then zoomLevel=1 end
  locked,firstPerson=CameraPolicy.Resolve(Scope:Get(),data and data.Kind,setting("ShiftLock"),setting("FirstPerson"))
  if not character then
   if owned then clearLook() end
@@ -471,7 +496,15 @@ RunService:BindToRenderStep("CTFCombatPresentation",Enum.RenderPriority.Camera.V
  player:SetAttribute("CameraMotionOffset",bob) player:SetAttribute("CameraMotionRoll",lean)
  local baseFov=setting("FieldOfView")
  local sprinting=player:GetAttribute("SprintActive")==true and humanoid.MoveDirection.Magnitude>.1
- local fov=aiming and baseFov*(tool:GetAttribute("WeaponId")=="Sniper" and 38/70 or 58/70) or baseFov+(sprinting and 6 or 0)
+ local weaponId=tool:GetAttribute("WeaponId")
+ local scoped=aiming and SniperZoom.IsSniper(weaponId)
+ zoomButton.Visible=scoped
+ if scoped then
+  local device=InputMode:Get()==Enum.PreferredInput.Gamepad and "Gamepad" or "Keyboard"
+  zoomButton.Text=(zoomLevel==1 and "4× → ampliar para 8×" or "8× → voltar para 4×").."  ["..Router:Key("SniperZoom",device).."]"
+ end
+ player:SetAttribute("SniperZoomLevel",scoped and zoomLevel or 0)
+ local fov=aiming and SniperZoom.FOV(baseFov,weaponId,zoomLevel) or baseFov+(sprinting and 6 or 0)
  sourceFovKick*=math.exp(-deltaTime*20) fov+=sourceFovKick
  camera.FieldOfView+=(fov-camera.FieldOfView)*MotionPreferences.FOVAlpha(dt,setting("FOVTransitionSpeed"),12)
  local point=Presentation:GetAimViewport() player:SetAttribute("AimScreenPosition",point)

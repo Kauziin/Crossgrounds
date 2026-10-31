@@ -1,8 +1,9 @@
 local Policy=require(script.Parent:WaitForChild("ControlPolicy"))
 Policy.Contexts.Slide={"ctf","arena"}
 local Controls={}
-Controls.Order={"AdminSpeedUp","AdminSpeedDown","AdminPreviousMap","AdminNextMap","AdminClean","AdminMode","Slide","Sprint","Perspective","SwitchWeapon","ShiftLock","ReloadInteract","Shoulder","Fire","Aim","Jump","Menu","KitMenu","VoteMenu","Leave"}
+Controls.Order={"SniperZoom","AdminSpeedUp","AdminSpeedDown","AdminPreviousMap","AdminNextMap","AdminClean","AdminMode","Slide","Sprint","Perspective","SwitchWeapon","ShiftLock","ReloadInteract","Shoulder","Fire","Aim","Jump","Menu","KitMenu","VoteMenu","Leave"}
 Controls.Actions={
+ SniperZoom={Label="Alternar ampliação da sniper",Keyboard="Z",Gamepad="DPadLeft"},
  MenuPrevious={Label="Menu · categoria anterior",Keyboard="LeftBracket",Gamepad="ButtonL1"},
  MenuNext={Label="Menu · próxima categoria",Keyboard="RightBracket",Gamepad="ButtonR1"},
  AdminSpeedUp={Label="Admin · Aumentar velocidade",Keyboard="Equals",Gamepad="ButtonR1",AdminOnly=true},

@@ -3,7 +3,7 @@ local Policy={}
 local combat={"ctf","arena"}
 local world={"ctf","arena","survivor","hacking","beast","waiting","hub","admin"}
 Policy.Contexts={
- Fire=combat,Aim=combat,Sprint=combat,Perspective=combat,SwitchWeapon=combat,ShiftLock=combat,Shoulder=combat,
+ SniperZoom=combat,Fire=combat,Aim=combat,Sprint=combat,Perspective=combat,SwitchWeapon=combat,ShiftLock=combat,Shoulder=combat,
  Jump=combat,ReloadInteract={"ctf","arena","survivor","beast"},
  Menu={"ctf","arena","survivor","hacking","beast","waiting","hub","admin","menu"},
  KitMenu={"ctf"},VoteMenu={"ctf","arena"},Leave={"ctf","arena","survivor","hacking","beast","waiting"},
@@ -23,6 +23,8 @@ function Policy.Context(s)
  return s.mode
 end
 function Policy.Conflicts(a,b)
+ -- Zoom requires ADS in combat; admin mode is unavailable during a match.
+ if a=="SniperZoom" and b=="AdminMode" or a=="AdminMode" and b=="SniperZoom" then return false end
  if a=="Slide" and b=="Leave" or a=="Leave" and b=="Slide" then return false end
  local first,second=Policy.Contexts[a],Policy.Contexts[b]
  if not first or not second then return true end
