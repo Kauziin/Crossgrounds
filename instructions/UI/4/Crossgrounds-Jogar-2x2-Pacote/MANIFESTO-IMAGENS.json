@@ -1,0 +1,36 @@
+{
+  "projeto": "Crossgrounds",
+  "tela": "Jogar / Modalidades — grade 2x2",
+  "observacoes": [
+    "As imagens são conceituais e não são capturas do jogo.",
+    "Asset IDs Roblox pendentes de upload/importação.",
+    "Get Out deve continuar listado, sem entrada pública."
+  ],
+  "referencia_principal": "01_referencias/02_conceito_grid_2x2.png",
+  "imagens": {
+    "arena": {
+      "arquivo": "02_imagens_dos_modos/arena.png",
+      "largura": 1672,
+      "altura": 941,
+      "asset_id_roblox": null
+    },
+    "ctf": {
+      "arquivo": "02_imagens_dos_modos/ctf.png",
+      "largura": 1672,
+      "altura": 941,
+      "asset_id_roblox": null
+    },
+    "duels": {
+      "arquivo": "02_imagens_dos_modos/duels.png",
+      "largura": 1672,
+      "altura": 941,
+      "asset_id_roblox": null
+    },
+    "get_out": {
+      "arquivo": "02_imagens_dos_modos/get_out.png",
+      "largura": 1672,
+      "altura": 941,
+      "asset_id_roblox": null
+    }
+  }
+}

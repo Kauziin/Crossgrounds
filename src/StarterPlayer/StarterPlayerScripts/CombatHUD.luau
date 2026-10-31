@@ -40,10 +40,47 @@ local ammo=label(panel,"Ammo","",UDim2.fromOffset(153,5),UDim2.fromOffset(113,27
 local hp=label(panel,"Health","200",UDim2.fromOffset(230,34),UDim2.fromOffset(36,18),12) hp.TextXAlignment=Enum.TextXAlignment.Right
 local healthBack=frame(panel,"HealthBar",UDim2.fromOffset(12,39),UDim2.fromOffset(209,7),Color3.fromRGB(51,64,76)) round(healthBack,3) Style.Outline(healthBack)
 local healthFill=frame(healthBack,"Fill",UDim2.new(),UDim2.fromScale(1,1),Color3.fromRGB(92,213,139)) round(healthFill,3)
+-- Health is driven by the current Humanoid, independent of HUD visibility/polling.
+local healthConnections={} local boundHumanoid
+local function refreshHealth()
+ local h=boundHumanoid local value=h and h.Health or 0 local maximum=h and h.MaxHealth or 1
+ hp.Text=tostring(math.ceil(value))
+ healthFill.Size=UDim2.fromScale(math.clamp(value/math.max(1,maximum),0,1),1)
+ healthFill.BackgroundColor3=value/math.max(1,maximum)<.3 and Color3.fromRGB(239,102,88) or Color3.fromRGB(92,213,139)
+end
+local function bindHealth(character)
+ for _,c in healthConnections do c:Disconnect() end table.clear(healthConnections) boundHumanoid=nil
+ local function attach(h)
+  if not h:IsA("Humanoid") or player.Character~=character then return end
+  boundHumanoid=h
+  table.insert(healthConnections,h.HealthChanged:Connect(refreshHealth))
+  table.insert(healthConnections,h:GetPropertyChangedSignal("MaxHealth"):Connect(refreshHealth))
+  refreshHealth()
+ end
+ if character then
+  local h=character:FindFirstChildOfClass("Humanoid") if h then attach(h) end
+  table.insert(healthConnections,character.ChildAdded:Connect(function(child) if not boundHumanoid then attach(child) end end))
+ end
+ refreshHealth()
+end
+player.CharacterAdded:Connect(bindHealth)
+player.CharacterRemoving:Connect(function(character) if boundHumanoid and boundHumanoid.Parent==character then bindHealth(nil) end end)
+bindHealth(player.Character)
 local staminaBack=frame(panel,"StaminaBar",UDim2.fromOffset(12,53),UDim2.fromOffset(254,4),Color3.fromRGB(51,64,76)) round(staminaBack,2) Style.Outline(staminaBack,Color3.fromRGB(129,202,255))
 local staminaFill=frame(staminaBack,"Fill",UDim2.new(),UDim2.fromScale(1,1),Color3.fromRGB(99,182,236)) round(staminaFill,2)
+local activeWeapons
+local function refreshActiveWeapons()
+ activeWeapons=nil
+ local ok,state=pcall(function() return game:GetService("HttpService"):JSONDecode(player:GetAttribute("CTFArsenalState") or "") end)
+ if ok and state.active then
+  local catalog=require(game.ReplicatedStorage.Crossgrounds.WeaponCatalog)
+  local a,b=catalog.Get(state.active.primaryWeaponId),catalog.Get(state.active.secondaryWeaponId)
+  if a and b then activeWeapons={state.active.meleeWeaponId,a.combatId,b.combatId} end
+ end
+end
+player:GetAttributeChangedSignal("CTFArsenalState"):Connect(refreshActiveWeapons) refreshActiveWeapons()
 local slots={}
-for i=1,2 do slots[i]=button(panel,"Slot"..i,"",UDim2.fromOffset(12+(i-1)*130,70),UDim2.fromOffset(124,30)) Style.Outline(slots[i]) Style.Text(slots[i]) end
+for i=1,3 do slots[i]=button(panel,"Slot"..i,"",UDim2.fromOffset(12+(i-1)*86,70),UDim2.fromOffset(80,30)) Style.Outline(slots[i]) Style.Text(slots[i]) end
 local menu=button(gui,"MenuButton","",UDim2.fromOffset(24,56),UDim2.fromOffset(155,30)) menu.BackgroundTransparency=1 Style.Outline(menu) Style.Text(menu)
 local menuGlyph=Icons:Glyph(menu,"Command",function() return Router:Key(player:GetAttribute("InMatch") and "Leave" or "KitMenu",InputMode:Get()==Enum.PreferredInput.Gamepad and "Gamepad" or "Keyboard") end,24) menuGlyph.Position=UDim2.new(0,5,.5,-12)
 menu.TextXAlignment=Enum.TextXAlignment.Right
@@ -80,11 +117,12 @@ end)
 local function equip(index)
  if shade.Visible or Router:IsBlocked() then return end
  local p=Kits.Profiles[player:GetAttribute("SelectedKit")] local c=player.Character local h=c and c:FindFirstChildOfClass("Humanoid")
- if not p or not h or h.Health<=0 then return end
- for _,container in {player.Backpack,c} do for _,t in container:GetChildren() do if t:IsA("Tool") and t:GetAttribute("WeaponId")==p.Weapons[index] then h:EquipTool(t) return end end end
+ if not h or h.Health<=0 then return end
+ local weapons=activeWeapons or p and p.Weapons if not weapons then return end
+ for _,container in {player.Backpack,c} do for _,t in container:GetChildren() do if t:IsA("Tool") and t:GetAttribute("WeaponId")==weapons[index] then h:EquipTool(t) return end end end
 end
 for i,b in slots do Nav:Connect(b,function() equip(i) end) end
-UIS.InputBegan:Connect(function(input,processed) if processed then return end if input.KeyCode==Enum.KeyCode.One then equip(1) elseif input.KeyCode==Enum.KeyCode.Two then equip(2) end end)
+UIS.InputBegan:Connect(function(input,processed) if processed then return end if input.KeyCode==Enum.KeyCode.One then equip(1) elseif input.KeyCode==Enum.KeyCode.Two then equip(2) elseif input.KeyCode==Enum.KeyCode.Three then equip(3) end end)
 local feed=frame(gui,"KillFeed",UDim2.new(1,-24,0,126),UDim2.fromOffset(345,155),dark,1) feed.AnchorPoint=Vector2.new(1,0)
 local feedView=require(script.Parent:WaitForChild("KillFeedView")).new(feed,player,5,6)
 events:WaitForChild("KillFeed").OnClientEvent:Connect(function(data)
@@ -128,7 +166,7 @@ local function resize()
  panel.AnchorPoint=touch and Vector2.new(0,0) or Vector2.new(0,1)
  panel.Position=touch and UDim2.fromOffset(18,135) or UDim2.new(0,safeX,1,-safeY)
  panel.Size=UDim2.fromOffset(278,touch and 126 or 112)
- for _,b in slots do b.Size=UDim2.fromOffset(124,touch and 44 or 30) end
+ for _,b in slots do b.Size=UDim2.fromOffset(80,touch and 44 or 30) end
  local scale=panel:FindFirstChildOfClass("UIScale") or Instance.new("UIScale",panel)
  local factor=gamepad and math.clamp(v.Y/720,1,1.5) or touch and 1 or math.clamp(v.X/1100,.72,1)
  scale.Scale=factor
@@ -146,7 +184,7 @@ local function resize()
  feed.Position=UDim2.new(1,-safeX,0,gamepad and safeY+100 or 126)
  feed.Size=UDim2.fromOffset(math.min(345,v.X*.42),155)
  local fs=feed:FindFirstChildOfClass("UIScale") or Instance.new("UIScale",feed) fs.Scale=gamepad and factor or 1
- for _,r in entries do r.Size=UDim2.new(1,0,0,25) end
+ -- Feed rows size themselves; no legacy text-entry list.
 end
 workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(resize) InputMode.Changed:Connect(resize) resize()
 local elapsed=0
@@ -163,18 +201,19 @@ RunService.RenderStepped:Connect(function(dt)
  local state=workspace:GetAttribute("RoundState")
  lobby.Text=joined and "Você está pronto. Explore o lobby até a próxima rodada." or (state=="Playing" and "Rodada em andamento · Entre quando quiser." or "Treine, escolha seu kit e entre na partida.")
  if not joined and shade.Visible then close() end
- hp.Text=tostring(math.ceil(health)) healthFill.Size=UDim2.fromScale(math.clamp(health/200,0,1),1) healthFill.BackgroundColor3=health<60 and Color3.fromRGB(239,102,88) or Color3.fromRGB(92,213,139)
+ -- Health is updated by Humanoid signals above.
  local stamina=player:GetAttribute("Stamina") or 100 staminaFill.Size=UDim2.fromScale(stamina/100,1)
  weapon.Text=data and data.Name or "—"
  ammo.Text=data and (data.Kind=="Gun" and (t:GetAttribute("Reloading") and "···" or tostring(t:GetAttribute("PredictedAmmo") or t:GetAttribute("Ammo") or 0).." / "..tostring(t:GetAttribute("ReserveAmmo") or 0)) or "MELEE") or ""
  local profile=Kits.Profiles[player:GetAttribute("SelectedKit")]
- for i,b in slots do local id=profile and profile.Weapons[i] local d=id and Kits.Weapons[id] b.Text=tostring(i).."  "..(d and d.Name or "—") b.Outline.Color=t and t:GetAttribute("WeaponId")==id and Color3.fromRGB(99,196,255) or Color3.fromRGB(229,239,248) end
+ local weaponIds=activeWeapons or profile and profile.Weapons
+ for i,b in slots do local id=weaponIds and weaponIds[i] b.Visible=id~=nil local d=id and Kits.Weapons[id] b.Text=tostring(i).."  "..(d and d.Name or "—") b.Outline.Color=t and t:GetAttribute("WeaponId")==id and Color3.fromRGB(99,196,255) or Color3.fromRGB(229,239,248) end
  blue.Text="AZUL  "..tostring(game.Teams.Blue:GetAttribute("Captures") or 0) red.Text=tostring(game.Teams.Red:GetAttribute("Captures") or 0).."  VERMELHO"
  local time=workspace:FindFirstChild("MapPurgeProof") time=time and time:FindFirstChild("Time")
  feed.Visible=player:GetAttribute("SettingKillFeedVisible")~=false
  local seconds=time and time.Value or 0 timer.Text=state=="Lobby" and "LOBBY" or string.format("%02d:%02d",math.floor(seconds/60),seconds%60)
  if notificationToken==0 then
-  local own=player.Team and workspace.CTFInfrastructure:FindFirstChild(player.Team.Name.."Base")
+  local own=player.Team and workspace:FindFirstChild("CTFInfrastructure") and workspace.CTFInfrastructure:FindFirstChild(player.Team.Name.."Base")
   local flag=own and own:GetAttribute("FlagState")
   if inArena then
    objective.Text=flag=="carried" and "SUA BANDEIRA FOI ROUBADA — INTERCEPTE O PORTADOR" or flag=="dropped" and "RECUPERE SUA BANDEIRA · "..math.max(0,math.ceil((own:GetAttribute("FlagReturnAt") or 0)-workspace:GetServerTimeNow())).."s" or "Capture a bandeira inimiga e retorne à sua base"
@@ -187,6 +226,6 @@ Scope.Changed:Connect(function()
  syncVisibility()
  close() toastToken+=1 hitToken+=1 notificationToken=0
  toast.Text="" victory.Text="" objective.Text="" marker.Visible=false hitSound:Stop()
- for _,entry in entries do entry:Destroy() end table.clear(entries)
+ for _,entry in feedView.Rows do entry:Destroy() end table.clear(feedView.Rows)
 end)
 

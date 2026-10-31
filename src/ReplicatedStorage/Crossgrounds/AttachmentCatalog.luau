@@ -3,5 +3,6 @@ local Catalog={["sp_r_208_chassis_xrk_sp_lite_208_blitz"]={["id"]="sp_r_208_chas
 
 local Registry=require(script.Parent.WeaponAssetRegistry)
 for _,a in Catalog do a.description="Somente visual; nenhum bônus funcional." a.attachmentStatIntent={} a.physicalAssetPath=Registry[a.id] if a.status=="Available" then a.mountName=a.slot a.rigDependencies={"Handle."..a.slot} end end
+Catalog.aug_burst_conversion={id="aug_burst_conversion",name="Conversão de rajada (3 tiros)",slot="fireControl",status="Available",compatible={"aug"},functionalBurst=true,description="Conversão funcional: três tiros por acionamento. Sem modelo físico adicional."}
 return Catalog
 

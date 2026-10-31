@@ -48,6 +48,7 @@ function Visuals.Build(id,configuration)
  if weapon then
   local clean,err=Config.Validate(id,configuration or {},false) if not clean then model:Destroy() return nil,err end
   for slot,attachmentId in clean do
+   if not Attachments[attachmentId].functionalBurst then
    local src=resolve(attachmentId) local mount=handle:FindFirstChild(slot)
    if not src or not mount then model:Destroy() return nil,"Ponto de montagem ausente." end
    local bound=src:IsA("Model") and select(1,src:GetBoundingBox()) or src.CFrame
@@ -56,6 +57,7 @@ function Visuals.Build(id,configuration)
    local anchor=slot=="optic" and ac.Position-Vector3.new(0,sz.Y*.5,0) or slot=="underbarrel" and ac.Position+Vector3.new(0,sz.Y*.5,0) or ac.Position+Vector3.new(0,0,sz.Z*.5)
    for _,p in accessory:GetChildren() do if p:IsA("BasePart") then p.CFrame=mount.WorldCFrame*CFrame.new(-anchor)*p.CFrame p.Name="Accessory_"..attachmentId.."_"..p.Name p:SetAttribute("VisualAttachmentId",attachmentId) p.Parent=model end end accessory:Destroy()
    if slot=="optic" then for _,p in model:GetChildren() do if p.Name=="Rear Sight" or p.Name=="Front Sight" then p.Transparency=1 end end end
+   end
   end
  end
  model:SetAttribute("VisualWeaponId",id) return model
@@ -71,6 +73,7 @@ function Visuals.Apply(tool,id,configuration)
   p.CFrame=original*p.CFrame p.Anchored=false p.Parent=tool
   local joint=Instance.new("Motor6D") joint.Name=p:GetAttribute("ReloadGroup") or "VisualPart" joint.Part0=handle joint.Part1=p joint.C0=original:ToObjectSpace(p.CFrame) joint.Parent=p
  end end
+ tool:SetAttribute("BurstConversion",id=="aug" and configuration and configuration.fireControl=="aug_burst_conversion" or false)
  tool.Name=weapon.name tool.ToolTip=weapon.name.." · adaptação visual; regras atuais preservadas"
  tool:SetAttribute("VisualWeaponId",id) tool:SetAttribute("VisualConfiguration",game.HttpService:JSONEncode(configuration or {})) tool:SetAttribute("TwoHanded",true)
  model:Destroy() return tool

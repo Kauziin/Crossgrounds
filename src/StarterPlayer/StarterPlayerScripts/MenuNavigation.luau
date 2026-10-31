@@ -108,6 +108,8 @@ local function dockCursor(object)
 end
 local function modal()
  local p=player.PlayerGui local experience=p:FindFirstChild("ExperienceMenu") local join=p:FindFirstChild("JoinMenu") local hud=p:FindFirstChild("CombatHUD")
+ local voting=p:FindFirstChild("FloatingMapVote")
+ if voting and voting.Enabled and player:GetAttribute("MapVotingMenuOpen")==true then return voting.Panel end
  local mobile=p:FindFirstChild("MobileCombatHUD")
  if mobile and mobile.Enabled and mobile.Editor.Visible then return mobile.Editor end
  local music=p:FindFirstChild("LobbyMusicMenu")

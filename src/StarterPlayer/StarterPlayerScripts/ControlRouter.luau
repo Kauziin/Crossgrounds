@@ -22,7 +22,7 @@ local contextChanged=Instance.new("BindableEvent") Router.ContextChanged=context
 function Router:Snapshot()
  local p=player
  local join=p.PlayerGui:FindFirstChild("JoinMenu") local hud=p.PlayerGui:FindFirstChild("CombatHUD")
- local modal=p:GetAttribute("GameMenuOpen")==true or p:GetAttribute("ExperienceMenuOpen")==true
+ local modal=p:GetAttribute("MapVotingMenuOpen")==true or p:GetAttribute("GameMenuOpen")==true or p:GetAttribute("ExperienceMenuOpen")==true
   or p:GetAttribute("ProgressionMenuOpen")==true or p:GetAttribute("LobbyMusicMenuOpen")==true
   or p:GetAttribute("CTFKitMenuOpen")==true or p:GetAttribute("ArenaVotingOpen")==true
   or p:GetAttribute("HUDLayoutEditing")==true or p:GetAttribute("InventoryOpen")==true
@@ -34,7 +34,7 @@ function Router:Snapshot()
   suspended=not focused or capture~=nil or p:GetAttribute("ClientLoading")==true or p:GetAttribute("CrossgroundsTransition")==true or Gui.MenuIsOpen or UIS:GetFocusedTextBox()~=nil,
   admin=p:GetAttribute("AdminFreecam")==true,authorized=p:GetAttribute("CrossgroundsAdmin")==true,
   inMatch=p:GetAttribute("InMatch")==true,arenaPlaying=p:GetAttribute("ArenaPlaying")==true,
-  alive=h~=nil and h.Health>0,spectating=p:GetAttribute("SpectatingEliminator")==true,
+  alive=h~=nil and h.Health>0,spectating=p:GetAttribute("SpectatingEliminator")==true and (not h or h.Health<=0),
   role=p:GetAttribute("GetOutRole"),result=p:GetAttribute("GetOutResult"),
   hacking=p:GetAttribute("GetOutHacking")==true,victim=p:GetAttribute("GetOutVictimState"),
   dragging=p:GetAttribute("ControlDragging")==true}
@@ -47,7 +47,7 @@ end
 function Router:CanMove()
  local s=self:Snapshot()
  return not s.suspended and not s.modal and (s.admin or s.alive and not s.spectating and
-  (s.mode~="arena" or s.arenaPlaying) and (s.mode~="get_out" or s.result==nil or s.result=="active"))
+  (s.mode~="get_out" or s.result==nil or s.result=="active"))
 end
 function Router:IsBlocked()
  local s=self:Snapshot()

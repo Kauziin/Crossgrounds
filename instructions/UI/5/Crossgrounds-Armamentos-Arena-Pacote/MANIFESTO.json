@@ -1,0 +1,27 @@
+{
+  "title": "Crossgrounds — Armamentos Arena",
+  "date": "2026-10-31",
+  "reference": "01_referencias/01_conceito_grade_2x3_com_preview.png",
+  "prior_ui": "01_referencias/00_menu_anterior_lista.png",
+  "repository": "https://github.com/Kauziin/Crossgrounds",
+  "scope": "Arena loadout UI only",
+  "modes_not_modified": [
+    "ctf",
+    "get_out",
+    "duels"
+  ],
+  "weapon_visuals": [
+    "M1911",
+    "Magnum",
+    "Glock 18",
+    "Desert Eagle",
+    "Luger P08",
+    "Beretta M9"
+  ],
+  "melee": "Executor",
+  "mockup_known_errors": [
+    "Attribute bars; exclude from implementation",
+    "Executor rendered as gun; correct to melee"
+  ],
+  "code_samples_are_drop_in": false
+}

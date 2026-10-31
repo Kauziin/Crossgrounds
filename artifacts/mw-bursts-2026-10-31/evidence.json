@@ -1,0 +1,30 @@
+{
+  "tests": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"1\":{\"name\":\"burst intervals and pause\",\"passed\":true},\"3\":{\"name\":\"damage examples and unaffected semiauto\",\"passed\":true},\"2\":{\"name\":\"default AUG remains automatic and conversion is functional\",\"passed\":true}}"
+      }
+    ],
+    "isError": false
+  },
+  "smoke": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"before\":30,\"after\":30,\"blocked\":true,\"id\":\"fr_5_56\",\"accepted\":true}"
+      }
+    ],
+    "isError": false
+  },
+  "nativeEarlier": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"id\":\"fr_5_56\",\"ammo\":30,\"replies\":\"[{\\\"id\\\":20,\\\"ammo\\\":12,\\\"accepted\\\":true},{\\\"id\\\":21,\\\"ammo\\\":11,\\\"accepted\\\":true},{\\\"id\\\":22,\\\"ammo\\\":10,\\\"accepted\\\":true},{\\\"id\\\":23,\\\"ammo\\\":9,\\\"accepted\\\":true},{\\\"id\\\":24,\\\"ammo\\\":8,\\\"accepted\\\":true},{\\\"id\\\":25,\\\"ammo\\\":7,\\\"accepted\\\":true},{\\\"id\\\":26,\\\"ammo\\\":6,\\\"accepted\\\":true},{\\\"id\\\":27,\\\"ammo\\\":5,\\\"accepted\\\":true},{\\\"id\\\":28,\\\"ammo\\\":4,\\\"accepted\\\":true},{\\\"id\\\":29,\\\"ammo\\\":3,\\\"accepted\\\":true},{\\\"id\\\":30,\\\"ammo\\\":2,\\\"accepted\\\":true},{\\\"id\\\":31,\\\"ammo\\\":1,\\\"accepted\\\":true},{\\\"id\\\":32,\\\"ammo\\\":0,\\\"accepted\\\":true},{\\\"id\\\":33,\\\"ammo\\\":29,\\\"accepted\\\":true},{\\\"id\\\":34,\\\"ammo\\\":28,\\\"accepted\\\":true},{\\\"id\\\":35,\\\"ammo\\\":27,\\\"accepted\\\":true},{\\\"id\\\":36,\\\"ammo\\\":26,\\\"accepted\\\":true},{\\\"id\\\":37,\\\"ammo\\\":25,\\\"accepted\\\":true},{\\\"id\\\":38,\\\"ammo\\\":24,\\\"accepted\\\":true},{\\\"id\\\":39,\\\"ammo\\\":23,\\\"accepted\\\":true},{\\\"id\\\":40,\\\"ammo\\\":22,\\\"accepted\\\":true},{\\\"id\\\":41,\\\"ammo\\\":21,\\\"accepted\\\":true},{\\\"id\\\":42,\\\"ammo\\\":20,\\\"accepted\\\":true},{\\\"id\\\":43,\\\"ammo\\\":20,\\\"reason\\\":\\\"burst_cadence\\\",\\\"accepted\\\":false},{\\\"id\\\":44,\\\"ammo\\\":19,\\\"accepted\\\":true},{\\\"id\\\":45,\\\"ammo\\\":18,\\\"accepted\\\":true},{\\\"id\\\":46,\\\"ammo\\\":17,\\\"accepted\\\":true},{\\\"id\\\":47,\\\"ammo\\\":16,\\\"accepted\\\":true},{\\\"id\\\":48,\\\"ammo\\\":15,\\\"accepted\\\":true},{\\\"id\\\":49,\\\"ammo\\\":14,\\\"accepted\\\":true},{\\\"id\\\":50,\\\"ammo\\\":13,\\\"accepted\\\":true},{\\\"id\\\":51,\\\"ammo\\\":12,\\\"accepted\\\":true},{\\\"id\\\":52,\\\"ammo\\\":11,\\\"accepted\\\":true},{\\\"id\\\":53,\\\"ammo\\\":10,\\\"accepted\\\":true},{\\\"id\\\":54,\\\"ammo\\\":9,\\\"accepted\\\":true},{\\\"id\\\":55,\\\"ammo\\\":8,\\\"accepted\\\":true},{\\\"id\\\":56,\\\"ammo\\\":7,\\\"accepted\\\":true},{\\\"id\\\":57,\\\"ammo\\\":6,\\\"accepted\\\":true},{\\\"id\\\":58,\\\"ammo\\\":5,\\\"accepted\\\":true},{\\\"id\\\":59,\\\"ammo\\\":4,\\\"accepted\\\":true}]\"}"
+      }
+    ],
+    "isError": false
+  },
+  "computerUseStoppedByUser": true
+}

@@ -1,5 +1,11 @@
 # Arsenal importado e Gunsmith visual — 31/10/2026
 
+**Atualização após reabertura e orientação de prioridade:** o Studio foi reaberto na versão 374 durante o trabalho. Foram encontradas alterações paralelas com definições próprias para as 48 armas de fogo MW e sua ligação ao catálogo; elas foram preservadas. As 48 passaram pela criação de Tool e aplicação do modelo, e dez contratos passaram na versão atual. Os relatos abaixo sobre apenas dois adaptadores e rejeição da AK-47 descrevem os testes anteriores à expansão paralela; atualmente as 48 armas estão conectadas às definições presentes no Studio. Não foram revalidados dano/equilíbrio de cada definição, nem acabamento de rig de cada modelo. Foi completada a preservação do corpo a corpo por kit sem substituir as definições paralelas de combate.
+
+O espelho local de KitDefinitions ainda estava anterior às definições carregadas pelo Studio. Foi sincronizado com a fonte da versão 374, sem modificar os valores no Studio. A versão local anterior e o snapshot recebido foram preservados em `artifacts/arsenal-2026-10-31/KitDefinitions-local-before-sync.luau` e `KitDefinitions-Studio-374.luau`. O ciclo de UI percorreu os três slots da M4A1 e salvou o preset visual: seis peças de acessórios, câmera preservada e confirmação “Visual salvo.”
+
+O usuário determinou posteriormente que **PC e controle são a prioridade e mobile tem prioridade mínima**, por não ter testers mobile. A simulação já realizada foi restaurada ao viewport padrão e novos trabalhos mobile foram interrompidos. Os testes mobile abaixo são somente o registro da conferência anterior, não um compromisso de paridade nesta etapa.
+
 A instrução adotada está em [instructions/Arsenal/Crossgrounds_Arsenal_Importado_Gunsmith_Visual.md](../instructions/Arsenal/Crossgrounds_Arsenal_Importado_Gunsmith_Visual.md). Experiência inspecionada: Crossgrounds (ALPHA), Place ID 4375993208. Nenhuma publicação ou operação de salvamento na nuvem pelo agente.
 
 ## Estado implementado

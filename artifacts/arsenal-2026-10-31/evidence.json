@@ -1,0 +1,27 @@
+{
+  "initialHide": null,
+  "initialContracts": null,
+  "finalContracts": {
+    "failures": [],
+    "passed": 10,
+    "failed": 0
+  },
+  "allPreviews": null,
+  "expansion48": {
+    "built": 48,
+    "errors": []
+  },
+  "initialEquip": null,
+  "primaryShot": null,
+  "secondaryShot": null,
+  "rejectionBeforeExpansion": null,
+  "ui": null,
+  "previewCache": null,
+  "workshop": null,
+  "mobileBeforePriorityChange": null,
+  "deviceRestored": null,
+  "runtime": null,
+  "reopenedVersion": 374,
+  "mobilePriority": "Minimal per user; PC/controller primary",
+  "publicationPermission": "Unconfirmed; publicationBlocked"
+}

@@ -18,6 +18,8 @@ local function stop()
 end
 game.ReplicatedStorage:WaitForChild("Events"):WaitForChild("CombatFeedback").OnClientEvent:Connect(function(message)
  if message.kind~="Eliminated" or not Scope:IsCombat() or message.character~=player.Character then return end
+ local victimHumanoid=player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+ if victimHumanoid and victimHumanoid.Health>0 then return end
  local killer=message.killer
  if typeof(killer)~="Instance" or not killer:IsA("Model") or killer==player.Character or not killer:IsDescendantOf(workspace) then return end
  Nav:OpenMenu("Resume")
@@ -29,7 +31,8 @@ player.CharacterRemoving:Connect(stop)
 Scope.Changed:Connect(stop)
 Run:BindToRenderStep("CrossgroundsEliminatorView",Enum.RenderPriority.Camera.Value+2,function(dt)
  local view=state if not view then return end
- if player.Character~=view.victim or not Scope:IsCombat() then stop() return end
+ local victimHumanoid=player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+ if player.Character~=view.victim or not Scope:IsCombat() or victimHumanoid and victimHumanoid.Health>0 then stop() return end
  local camera=workspace.CurrentCamera local killer=view.killer
  local h=killer:FindFirstChildOfClass("Humanoid") local root=killer:FindFirstChild("HumanoidRootPart")
  if killer:IsDescendantOf(workspace) and h and h.Health>0 and root then

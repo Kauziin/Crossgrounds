@@ -9,7 +9,7 @@ local gui=Instance.new("ScreenGui") gui.Name="CrossgroundsHub" gui.ResetOnSpawn=
 local browser=Cascade.new(gui,"BrowserBackdrop","CROSSGROUNDS")
 browser:AddPane("Modes","MODALIDADES") browser:AddPane("ModeDetails","SOBRE O MODO")
 local selected="ctf" local catalogOpen=true local quickEntry local lastMode=Scope:Get() local cards={}
-local refresh
+local refresh local modeGrid
 local function stay()
  local data=Bridge:Get() local q=data and data.queue
  quickEntry=nil
@@ -175,11 +175,21 @@ function browser:Resize(animate)
   self.Panel.Size=UDim2.fromScale(1,1) self.Panel.Position=UDim2.fromScale(.5,.5)
   self.Panel.PreferenceScale.Scale=1 self.Panes.RootPane.Frame.Visible=false
   layoutHome() selectHome(selectedHome)
- else restoreFocusPaint() end
+ else
+  restoreFocusPaint()
+  if #self.Stack==2 and self.Stack[2]=="Modes" then
+   local w=self.Panel.Size.X.Offset local h=self.Panel.Size.Y.Offset local side=w<620 and 0 or 202
+   self.Panes.RootPane.Frame.Visible=side>0
+   self.Panes.RootPane.Frame.Position=UDim2.fromOffset(0,38) self.Panes.RootPane.Frame.Size=UDim2.fromOffset(side,h-76)
+   self.Panes.Modes.Frame.Position=UDim2.fromOffset(side>0 and side+10 or 0,38) self.Panes.Modes.Frame.Size=UDim2.fromOffset(w-(side>0 and side+10 or 0),h-76)
+   if modeGrid then modeGrid:Resize() end
+  end
+ end
 end
 local cascadePush=browser.Push
 function browser:Push(ids)
  cascadePush(self,ids)
+ if #ids==2 and ids[2]=="Modes" then task.delay(.05,function() if self.Backdrop.Visible and modeGrid then Nav:Focus(modeGrid:DefaultFocus()) end end) end
  if #ids==1 and ids[1]=="RootPane" then
   selectedHome=homeButtons[1] selectHome(selectedHome)
   task.defer(function() if self.Backdrop.Visible and home.Visible then Nav:Focus(selectedHome) end end)
@@ -210,14 +220,20 @@ local cancel=browser:Button("ModeDetails","CancelEntry","Cancelar entrada",funct
 end)
 local status=browser:Info("ModeDetails","Status","",62)
 browser:Button("ModeDetails","StayLobby","Permanecer no lobby",stay)
-for _,v in Catalog:List() do
- local id=v.id
- local b=browser:Button("Modes",id,v.name,function() selected=id browser:Push({"RootPane","Modes","ModeDetails"}) if refresh then refresh() end end,60)
- b.Text=""
- local title=Theme.Text(b,"ModeName",v.name,24,16) title.Position=UDim2.fromOffset(12,8) title.Size=UDim2.new(1,-24,0,24) title.TextTruncate=Enum.TextTruncate.AtEnd title.TextWrapped=false
- local stateText=Theme.Text(b,"State","Carregando...",22,12) stateText.Position=UDim2.fromOffset(12,36) stateText.Size=UDim2.new(1,-24,0,22) stateText.TextWrapped=false stateText.TextTruncate=Enum.TextTruncate.AtEnd
- cards[id]={Button=b,Title=title,State=stateText}
-end
+local modesList=browser.Panes.Modes.List
+local oldLayout=modesList:FindFirstChildOfClass("UIListLayout") if oldLayout then oldLayout:Destroy() end
+modesList.AutomaticCanvasSize=Enum.AutomaticSize.None
+modeGrid=require(script.Parent:WaitForChild("ModeSelectGrid")).new(modesList,Nav,{
+ Details=function(id) selected=id browser:Push({"RootPane","Modes","ModeDetails"}) if refresh then refresh() end end,
+ Play=function(id)
+  local data=Bridge:Get() if not data or Bridge.Pending then return end
+  local item for _,entry in data.catalog or {} do if entry.id==id then item=entry end end
+  if not item or item.canEnter~=true then return end
+  local q=data.queue or {state="idle"} selected=id
+  if q.state=="ready" and q.gameId==id then Bridge:Send("enter",nil,q.ticket)
+  elseif q.state=="idle" or q.state=="failed" then quickEntry=id Bridge:Send("join",id) end
+ end,
+})
 local overlay=Instance.new("Frame") overlay.Name="StatusPanel" overlay.AnchorPoint=Vector2.new(.5,.5) overlay.Position=UDim2.fromScale(.5,.5) overlay.Size=UDim2.fromOffset(360,220) overlay.Visible=false overlay.Parent=gui Theme.Surface(overlay)
 local message=Theme.Text(overlay,"Message","",120,16) message.Position=UDim2.fromOffset(16,16) message.Size=UDim2.new(1,-32,0,128)
 local acknowledge=Instance.new("TextButton") acknowledge.Name="Continue" acknowledge.Text="Voltar ao lobby" acknowledge.Position=UDim2.new(0,16,1,-64) acknowledge.Size=UDim2.new(1,-32,0,48) acknowledge.Parent=overlay Theme.Button(acknowledge)
@@ -236,22 +252,7 @@ refresh=function()
  if not data then return end
  if q.state=="ready" and q.route=="local" and quickEntry==q.gameId and not Bridge.Pending then quickEntry=nil task.defer(function() Bridge:Send("enter",nil,q.ticket) end) end
  local item=definition()
- for index,v in data.catalog do
-  local card=cards[v.id]
-  if card then
-   local playable=v.canEnter==true
-   card.Button.LayoutOrder=(playable and 0 or 1000)+index
-   card.Button.Size=UDim2.new(1,-4,0,playable and 74 or 50)
-   card.Button.BackgroundTransparency=playable and .22 or .6
-   card.Button:SetAttribute("Playable",playable)
-   card.Title.Text=v.name card.Title.TextSize=playable and 16 or 13
-   card.Title.TextColor3=playable and Theme.Colors.Text or Color3.fromRGB(149,151,159)
-   card.Title.Position=UDim2.fromOffset(12,playable and 9 or 5)
-   card.State.Text=playable and "Disponível para jogar" or v.status=="planned" and "Em breve" or "Indisponível"
-   card.State.TextColor3=playable and Color3.fromRGB(121,228,157) or Color3.fromRGB(137,140,149)
-   card.State.Position=UDim2.fromOffset(12,playable and 40 or 27)
-  end
- end
+ modeGrid:Update(data.catalog)
  description.Text=item and (item.name.."\n\n"..item.description.."\n\n"..(item.canEnter and "Escolha Jogar para entrar. Você pode permanecer no lobby pelo menu." or item.reason or "Em desenvolvimento.")) or "Carregando o catálogo..."
  primary.Text=Bridge.Pending and "Aguarde..." or q.state=="ready" and "Confirmar entrada" or item and item.canEnter and "Jogar "..item.name or "Em desenvolvimento"
  cancel.Visible=q.state=="joining" or q.state=="ready"

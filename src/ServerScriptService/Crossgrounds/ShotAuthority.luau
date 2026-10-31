@@ -12,6 +12,13 @@ remote.Name="ShotResult" remote.Parent=game.ReplicatedStorage.Events
 local Kits=require(game.ReplicatedStorage.KitDefinitions)
 local Noise=require(script.Parent.CombatNoise)
 local npcLedgers=setmetatable({},{__mode="k"})
+local Burst=require(game.ReplicatedStorage.Crossgrounds.BurstFire)
+local burstStates=setmetatable({},{__mode="k"})
+local function burstState(tool)
+ local state=burstStates[tool]
+ if not state then state={} burstStates[tool]=state tool.AncestryChanged:Connect(function()burstStates[tool]=nil end) end
+ return state
+end
 local Authority={}
 History.Start()
 local ledgers={} local active={} local connection
@@ -85,7 +92,11 @@ function Authority.Fire(o)
  local cameraLimit=12+math.min(6,math.max(0,ping)*.5*h.WalkSpeed)
  local head=c:FindFirstChild("Head") if not head or (request.cameraOrigin-head.Position).Magnitude>cameraLimit then return reject("camera") end
  if tool:GetAttribute("Reloading") then return reject("reload") end
- if not ledger:Ready(o.weapon,now,o.cooldown or data.Cooldown) then return reject("cadence") end
+ local burst=Burst.Config(data,tool:GetAttribute("BurstConversion")==true)
+ local state=burst and burstState(tool)
+ if burst and not Burst.Ready(state,now) then return reject("burst_cadence") end
+ local fireCooldown=burst and burst.interval or o.cooldown or data.Cooldown
+ if not ledger:Ready(o.weapon,now,fireCooldown) then return reject("cadence") end
  if (tool:GetAttribute("Ammo") or 0)<=0 then return reject("ammo") end
  local config=Shot.Config(data)
  local cameraPath=request.cameraOrigin-head.Position
@@ -108,7 +119,8 @@ function Authority.Fire(o)
  if blockedModel and o.classify(blockedModel)=="target" then origin=head.Position blocked=nil end
  blocked=cover or blocked
  local directions={} for pellet=1,config.pellets do directions[pellet]=Shot.Direction(aim-origin,data.Spread,tool:GetAttribute("ShotSeed"),id,pellet,config.pellets) end
- ledger:Commit(o.weapon,now,o.cooldown or data.Cooldown)
+ ledger:Commit(o.weapon,now,fireCooldown)
+ if burst then Burst.Commit(state,now,burst) end
  local historicalTime,aligned=History.ResolveTime(workspace:GetServerTimeNow(),request.time,ping,request.view,request.cameraOrigin,request.cameraDirection,o.classify)
  tool:SetAttribute("LastShotViewAligned",aligned)
  local endpoint=resolve(o,config,origin,blocked,directions,ping,historicalTime)
@@ -125,14 +137,17 @@ function Authority.FireNPC(o)
  local ledger=npcLedgers[c] if not ledger then ledger=Ledger.new() npcLedgers[c]=ledger end
  local now=os.clock()
  if tool:GetAttribute("Reloading") then return false,"reload" end
- if not ledger:Ready(id,now,data.Cooldown) then return false,"cadence" end
+ local burst=Burst.Config(data,tool:GetAttribute("BurstConversion")==true) local state=burst and burstState(tool)
+ if burst and not Burst.Ready(state,now) then return false,"burst_cadence" end
+ if not ledger:Ready(id,now,burst and burst.interval or data.Cooldown) then return false,"cadence" end
  if (tool:GetAttribute("Ammo") or 0)<=0 then return false,"ammo" end
  local config=Shot.Config(data) local head=c:FindFirstChild("Head") if not head then return false,"head" end
  local aim=Shot.Finite(o.aim) and o.aim or head.Position+o.direction.Unit*config.range
  local origin,blocked=Query.ResolveOrigin(c,tool,aim,nil,o.classify) if not origin then return false,"origin" end
  local blockedModel=blocked and Query.ModelFromPart(blocked.Instance)
  if blockedModel and o.classify(blockedModel)=="target" then origin=head.Position blocked=nil end
- local sequence=ledger.sequence+1 ledger:Receive(sequence,now) ledger:Commit(id,now,data.Cooldown)
+ local sequence=ledger.sequence+1 ledger:Receive(sequence,now) ledger:Commit(id,now,burst and burst.interval or data.Cooldown)
+ if burst then Burst.Commit(state,now,burst) end
  o.data=data o.shotId=sequence
  local directions={} for pellet=1,config.pellets do directions[pellet]=Shot.Direction(aim-origin,data.Spread,tool:GetAttribute("ShotSeed"),sequence,pellet,config.pellets) end
  resolve(o,config,origin,blocked,directions,0,nil)

@@ -7,7 +7,7 @@ local vote=events:FindFirstChild("VoteMap") or Instance.new("RemoteEvent",events
 local snapshot=events:FindFirstChild("GetMapVoteState") or Instance.new("RemoteFunction",events) snapshot.Name="GetMapVoteState"
 local active=false local options={} local votes={} local endsAt=0 local winner
 function Voting:Snapshot(player)
- local available=#options>0 and options or Maps:Catalog()
+ local available=options
  local counts={} for _,o in available do counts[o.id]=0 end
  for _,id in pairs(votes) do if counts[id] then counts[id]+=1 end end
  return {active=active,options=available,counts=counts,vote=player and votes[player],endsAt=endsAt,winner=winner,current=workspace:GetAttribute("CurrentMapId")}
@@ -16,7 +16,7 @@ local function broadcast()
  for _,player in Players:GetPlayers() do update:FireClient(player,Voting:Snapshot(player)) end
 end
 function Voting:Begin(duration)
- options=Maps:Catalog() while #options>3 do table.remove(options,math.random(#options)) end
+ options=require(game.ReplicatedStorage.Crossgrounds.MapVoteOptions).Pick(Maps:Catalog(),4)
  votes={} winner=nil active=true endsAt=workspace:GetServerTimeNow()+duration
  broadcast()
 end

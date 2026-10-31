@@ -27,7 +27,7 @@ function Grid:Resize()
   local modifier=ancestor:FindFirstChildOfClass("UIScale") if modifier then scale*=modifier.Scale end
   ancestor=ancestor.Parent
  end
- local columns,cell,height=Grid.Measure(self.Frame.AbsoluteSize.X/math.max(.1,scale),#self.Order)
+ local columns,cell,height=Grid.Measure(self.Frame.AbsoluteSize.X/math.max(.1,scale),#self.Order,self.MinCard,self.MaxColumns)
  self.Layout.FillDirectionMaxCells=columns self.Layout.CellSize=UDim2.fromOffset(cell,cell)
  self.Frame.Size=UDim2.new(1,-8,0,height)
  for i,card in self.Order do

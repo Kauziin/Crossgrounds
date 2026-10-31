@@ -40,7 +40,7 @@ local killRows={}  local notificationId=0
 local killFeed=Instance.new("Frame") killFeed.Name="KillFeed" killFeed.BackgroundTransparency=1 killFeed.AnchorPoint=Vector2.new(1,0) killFeed.Position=UDim2.new(1,-24,0,200) killFeed.Size=UDim2.fromOffset(360,180) killFeed.Parent=gui
 local feedView=require(script.Parent:WaitForChild("KillFeedView")).new(killFeed,player,3,5)
 local function clearNotifications()
- for _,row in killRows do if row.Parent then row:Destroy() end end killRows={} feedRows={} killFeed.Text=""
+ for _,row in killRows do if row.Parent then row:Destroy() end end killRows={} for _,row in feedView.Rows do row:Destroy() end table.clear(feedView.Rows)
 end
 local function voice(id,volume,speed)
  local audio=Instance.new("Sound") audio.Name="ArenaFeedbackVoice" audio.SoundId=id audio.Volume=volume audio.PlaybackSpeed=speed or 1 audio.Parent=gui
@@ -101,18 +101,18 @@ local function rebuildMaps(options)
  voteGrid:SetOptions(options)
 end
 Nav:SetBack(votePanel,function() if #voteBrowser.Stack>1 then voteBrowser:Push({"RootPane"}) else showVote(false) end end,back)
-local open=button(gui,"OpenVoting","VOTAÇÃO",0,100,166,38,function() showVote(not voteOpen) end) open.AnchorPoint=Vector2.new(1,0) open.Position=UDim2.new(1,-24,0,100)
+local open=button(gui,"OpenVoting","VOTAÇÃO",0,100,166,38,function() Nav:OpenMenu("MapVote") end) open.AnchorPoint=Vector2.new(1,0) open.Position=UDim2.new(1,-24,0,100)
 local returnButton=button(gui,"ReturnCrossgrounds","CROSSGROUNDS",0,144,166,38,function() Bridge:Send("returnHub") end) returnButton.AnchorPoint=Vector2.new(1,0) returnButton.Position=UDim2.new(1,-24,0,144)
 local function snapshot(data)
  if typeof(data)~="table" or data.id~="arena" or not data.options then return end state=data
  rebuildMaps(state.options)
- if state.state=="voting" and state.endsAt~=lastBallot then lastBallot=state.endsAt showVote(true) end
+ if state.state=="voting" and state.endsAt~=lastBallot then lastBallot=state.endsAt showVote(false) end
  if state.state~="voting" then showVote(false) end
  voteGrid:Update(state.counts or {},state.vote,state.state=="voting")
 end
 remotes.State.OnClientEvent:Connect(snapshot)
 Bridge.Changed:Connect(function(data) if data and data.mode=="arena" and data.session then snapshot(data.session) end end)
-Nav.MenuRequested:Connect(function(id) if id=="ArenaVote" and Scope:IsArena() then showVote(true) end end)
+Nav.MenuRequested:Connect(function(id) if id=="ArenaVote" and Scope:IsArena() then Nav:OpenMenu("MapVote") end end)
 local function scope()
  gui.Enabled=Scope:IsArena() if not Scope:IsArena() then showVote(false) markerToken+=1 marker.Visible=false clearNotifications() panel.Rotation=0 if sound then sound:Stop() end
  for _,audio in gui:GetChildren() do if audio:IsA("Sound") and audio.Name=="ArenaFeedbackVoice" then audio:Destroy() end end
@@ -134,10 +134,11 @@ game.ReplicatedStorage.Events:WaitForChild("CombatFeedback").OnClientEvent:Conne
   feedView:Add({killer=data.attacker,victim=data.victim,weapon=data.weapon,headshot=data.headshot,killerUserId=data.killerUserId,victimUserId=data.victimUserId})
  end
 end)
+open.Visible=false
 local elapsed=0
 Run.RenderStepped:Connect(function(dt)
  local modal=voteOpen or player:GetAttribute("ExperienceMenuOpen") or player:GetAttribute("ProgressionMenuOpen") or player:GetAttribute("LobbyMusicMenuOpen")
- for _,element in {status,info,panel,notifications,killFeed,open,returnButton} do element.Visible=not modal end
+ for _,element in {status,info,panel,notifications,killFeed,returnButton} do element.Visible=not modal end
  local v=workspace.CurrentCamera.ViewportSize
  local touch=Mode:Get()==Enum.PreferredInput.Touch
  statusScale.Scale=touch and math.clamp(v.Y/600,.75,1) or 1

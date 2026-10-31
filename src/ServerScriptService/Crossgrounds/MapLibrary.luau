@@ -8,7 +8,7 @@ function Library.Root(mode)
  if mode=="Arena" then return game.ServerStorage:FindFirstChild("CrossgroundsArenaMaps") end
 end
 function Library.Get(mode,id)
- if typeof(id)~="string" or #id>64 then return nil end
+ if typeof(id)~="string" or #id>64 or mode=="Arena" and id=="outpost" then return nil end
  local root=Library.Root(mode) local map=root and root:FindFirstChild(id)
  if not map or map:GetAttribute("Enabled")==false or map:GetAttribute("Sanitized")~=true or not map:FindFirstChild("Geometry") then return nil end
  local points=map:FindFirstChild("Spawns")

@@ -123,6 +123,7 @@ render=function(id)
   if Scope:IsHub() then info("Entre em uma modalidade pelo catálogo para escolher seu loadout. Durante a rodada, a troca vale no próximo nascimento.") resize(true) return end
   if Scope:IsGetOut() then info("Get Out Clássico usa papéis sorteados a cada rodada. O protótipo não possui loadout selecionável.") resize(true) return end
   local mode=Scope:IsArena() and "arena" or "ctf"
+  if mode=="arena" then status.Text="D-pad: inspecionar · A/clique: selecionar · B: voltar" end
   activeLoadoutView=require(script.Parent:WaitForChild("LoadoutMenuView")).new(lists.Detail,{
    Player=player,Navigation=Nav,Definitions=Loadouts,Loadouts=Loadouts.List(mode),Mode=mode,
    Select=function(id) remotes.SelectLoadout:FireServer(mode,id) end,
@@ -165,22 +166,8 @@ render=function(id)
    resize(false)
   end)
  elseif id=="Maps" then
-  if Scope:IsArena() then action("ArenaVote","ABRIR VOTAÇÃO DA ARENA",function() show(false) Nav:OpenMenu("ArenaVote") end)
-  elseif Scope:IsCTF() then
-   info("Votação disponível durante a preparação da rodada.")
-   task.spawn(function()
-    local ok,data=pcall(function() return root.Events.GetMapVoteState:InvokeServer() end)
-    if not ok or page~="Maps" or not shade.Visible then return end
-    local grid=require(script.Parent:WaitForChild("MapVoteGrid")).new(lists.Detail,function(id)root.Events.VoteMap:FireServer(id)end)
-    local function updateVote(snapshot)
-     if page~="Maps" or not shade.Visible or not grid.Frame.Parent then return end
-     grid:SetOptions(snapshot.options or {}) grid:Update(snapshot.counts or {},snapshot.vote,snapshot.active)
-     status.Text=snapshot.active and "Escolha um mapa · um voto por jogador." or "Votação fechada."
-    end
-    hook(root.Events.MapVoteState.OnClientEvent,updateVote) updateVote(data)
-   end)
-  elseif Scope:IsGetOut() then info("O protótipo Get Out usa Facility. A votação de mapas virá após a validação de outros cenários.")
-  else info("Entre em uma modalidade para votar em um mapa.") end
+  if Scope:IsArena() or Scope:IsCTF() then action("MapVote","ABRIR VOTAÇÃO",function() show(false) Nav:OpenMenu("MapVote") end)
+  else info("Entre em uma modalidade para votar.") end
  elseif id=="Development" then
   info("Ferramentas de teste exclusivas do Studio. Nenhum comando é disponibilizado em servidores publicados.")
   if workspace:GetAttribute("DevelopmentToolsAvailable") then
@@ -233,12 +220,14 @@ local function chooseCategory(id)
  remember() category=id page=id if id~="Options" then navSelection.Options=id end buildCategories(id) resize(true)
 end
 resize=function(animate)
+ if activeLoadoutView and (activeLoadoutView.Root.Name=="ArenaLoadout" or activeLoadoutView.Root.Name=="Gunsmith") and (page~="Loadout" or not shade.Visible) then cleanDetail() end
  bindingTabs.Visible=page=="Bindings"
  lists.Detail.Position=UDim2.fromOffset(8,page=="Bindings" and 86 or 52) lists.Detail.Size=UDim2.new(1,-16,1,page=="Bindings" and -94 or -60)
  for device,b in tabButtons do b.BackgroundColor3=device==bindingDevice and Theme.Colors.Selected or Theme.Colors.Button b:SetAttribute("MenuSelected",device==bindingDevice) end
  local v=shade.AbsoluteSize if v.X<200 or v.Y<150 then v=workspace.CurrentCamera.ViewportSize end
  local scale=get("MenuScale") local modifier=panel:FindFirstChild("PreferenceScale") or Instance.new("UIScale") modifier.Name="PreferenceScale" modifier.Scale=scale modifier.Parent=panel
- local w=math.min(1280,(v.X-24)/scale) local h=math.min(720,(v.Y-20)/scale) panel.Size=UDim2.fromOffset(w,h)
+ local ctfLoadout=page=="Loadout" and player:GetAttribute("CrossgroundsMode")=="ctf"
+ local w=math.min(ctfLoadout and 1560 or 1280,(v.X-24)/scale) local h=math.min(720,(v.Y-20)/scale) panel.Size=UDim2.fromOffset(w,h)
  for f,t in paneTweens do t:Cancel() paneTweens[f]=nil end
  local configActive=page~="Main" and not table.find({"Loadout","Exit","Surrender"},page)
  panel:SetAttribute("SettingsOverhaul",configActive)
@@ -402,10 +391,10 @@ Nav.MenuRequested:Connect(function(id)
  elseif id=="Settings" then show(true,"Options")
  elseif id=="Controls" then show(true,"Controls")
  elseif id=="HUDSettings" or id=="Maps" or id=="Loadout" then show(true,id)
- elseif id=="MobileHUD" or id=="Hub" or id=="ArenaVote" or id=="Progress" or id=="Playlist" then show(false) end
+ elseif id=="MobileHUD" or id=="Hub" or id=="ArenaVote" or id=="MapVote" or id=="Progress" or id=="Playlist" then show(false) end
 end)
 Router:Register("Menu",function(s) if s==Enum.UserInputState.Begin then show(not shade.Visible,"Main") end end,{allowMenus=true})
-Router:Register("VoteMenu",function(s) if s==Enum.UserInputState.Begin then if Scope:IsArena() then show(false) Nav:OpenMenu("ArenaVote") else show(true,"Maps") end end end,{allowMenus=true,scope="global"})
+Router:Register("VoteMenu",function(s) if s==Enum.UserInputState.Begin then if Scope:IsArena() or Scope:IsCTF() then show(false) Nav:OpenMenu("MapVote") else show(true,"Maps") end end end,{allowMenus=true,scope="global"})
 Router.CaptureChanged:Connect(function(active,message) status.Text=active and "PRESSIONE UM NOVO BOTÃO · 5s" or message end)
 local function scopeLabels()
  mainButtons.Resume.Text="Continuar"

@@ -29,7 +29,7 @@ function Adapter:IsAvailable() return #self.maps:Catalog()>=2 end
 function Adapter:IsPlaying(player) return self.members[player]~=nil and self.context:GetMode(player)=="arena" and self.phase=="playing" and player:GetAttribute("ArenaPlaying")==true end
 function Adapter:Snapshot(player)
  local counts=self.ballot and self.ballot:Counts() or {}
- return {id="arena",version=self.version,state=self.phase,endsAt=self.endsAt,paused=self.paused==true,remaining=self.paused and self.remaining or math.max(0,self.endsAt-workspace:GetServerTimeNow()),map=self.mapId,options=self.maps:Catalog(),counts=counts,vote=self.ballot and self.ballot.votes[player],prototype=true,message=self.message or "Arena · 20 HP · pistola + Executor",health=Def.Health,sessionXP=player:GetAttribute("ArenaSessionXP") or 0,kills=player:GetAttribute("ArenaKills") or 0,deaths=player:GetAttribute("ArenaDeaths") or 0}
+ return {id="arena",version=self.version,state=self.phase,endsAt=self.endsAt,paused=self.paused==true,remaining=self.paused and self.remaining or math.max(0,self.endsAt-workspace:GetServerTimeNow()),map=self.mapId,options=self.ballotOptions or {},counts=counts,vote=self.ballot and self.ballot.votes[player],prototype=true,message=self.message or "Arena · 20 HP · pistola + Executor",health=Def.Health,sessionXP=player:GetAttribute("ArenaSessionXP") or 0,kills=player:GetAttribute("ArenaKills") or 0,deaths=player:GetAttribute("ArenaDeaths") or 0}
 end
 function Adapter:Publish()
  for player in self.members do if player.Parent then self.stateRemote:FireClient(player,self:Snapshot(player)) end end
@@ -85,7 +85,8 @@ function Adapter:Spawn(player)
 end
 function Adapter:BeginVote()
  self.paused=false self.remaining=nil
- self.phase="voting" self.message=nil self.ballot=Ballot.new(self.maps:Catalog()) self.endsAt=workspace:GetServerTimeNow()+Def.VoteDuration
+ self.ballotOptions=require(game.ReplicatedStorage.Crossgrounds.MapVoteOptions).Pick(self.maps:Catalog(),4)
+ self.phase="voting" self.message=nil self.ballot=Ballot.new(self.ballotOptions) self.endsAt=workspace:GetServerTimeNow()+Def.VoteDuration
  for player in self.members do self:Spawn(player) end self:Publish()
 end
 function Adapter:Targets()

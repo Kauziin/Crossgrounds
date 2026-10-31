@@ -12,6 +12,8 @@ local Presentation=require(script.Parent:WaitForChild("CombatPresentation"))
 local Router=require(script.Parent:WaitForChild("ControlRouter"))
 local Interaction=require(script.Parent:WaitForChild("InteractionController"))
 local prediction=require(game.ReplicatedStorage.Crossgrounds.ShotPrediction).new()
+local Burst=require(game.ReplicatedStorage.Crossgrounds.BurstFire)
+local burstGeneration=0 local bursting=false
 local held=false local nextUse=0 local equipped local shotSequence=0
 local gui=Instance.new("ScreenGui") gui.Name="WeaponHUD" gui.ResetOnSpawn=false gui.IgnoreGuiInset=true gui.DisplayOrder=19 gui.Parent=player:WaitForChild("PlayerGui")
 local reticle=require(game.ReplicatedStorage.Crossgrounds.Reticle).new(gui,"Crosshair")
@@ -21,7 +23,7 @@ rangeText.Size=UDim2.fromOffset(220,22) rangeText.BackgroundTransparency=1 range
 rangeText.TextSize=12 rangeText.TextColor3=Color3.fromRGB(223,232,241) rangeText.TextStrokeTransparency=.4 rangeText.Visible=false rangeText.Parent=gui
 local function scan()
  local c=player.Character local tool=c and c:FindFirstChildOfClass("Tool")
- if tool~=equipped then held=false Presentation:SetFiring(false) Presentation:ClearShots() equipped=tool nextUse=0 end
+ if tool~=equipped then burstGeneration+=1 bursting=false held=false Presentation:SetFiring(false) Presentation:ClearShots() equipped=tool nextUse=0 end
 end
 local function canUse()
  local h=player.Character and player.Character:FindFirstChildOfClass("Humanoid")
@@ -32,7 +34,8 @@ local function use()
  local data=Kits.Weapons[equipped:GetAttribute("WeaponId")] if not data then return end
  if equipped:GetAttribute("Reloading") then return end
  if data.Kind=="Gun" and prediction:Available(equipped)<=0 then reload:FireServer(equipped) nextUse=os.clock()+.3 return end
- local now=os.clock() local cooldown=Scope:IsArena() and data.SourcePack~="ProjectileTest" and math.max(1,data.Cooldown) or data.Cooldown
+ local burst=Burst.Config(data,equipped:GetAttribute("BurstConversion")==true)
+ local now=os.clock() local cooldown=burst and burst.interval or Scope:IsArena() and data.SourcePack~="ProjectileTest" and math.max(1,data.Cooldown) or data.Cooldown
  -- Preserve the schedule across small frame overruns; never send a catch-up burst.
  nextUse=nextUse==0 and now+cooldown or math.max(nextUse+cooldown,now+cooldown-.025)
  local target,cameraOrigin,cameraDirection,hit=Presentation:GetAimWorld(data.Range+12)
@@ -43,11 +46,28 @@ local function use()
  local shotId
  if data.Kind=="Gun" then shotSequence+=1 shotId=shotSequence prediction:Reserve(shotId,equipped,now) Presentation:PredictShot(shotId,equipped,target,request) end
  action:FireServer(equipped,target,Presentation:GetShotOrigin(),shotId,request)
+ return true
+end
+local function beginFire()
+ if bursting then return end
+ local tool=equipped local data=tool and Kits.Weapons[tool:GetAttribute("WeaponId")]
+ local cfg=data and Burst.Config(data,tool:GetAttribute("BurstConversion")==true)
+ if not cfg then use() return end
+ if os.clock()<nextUse then return end
+ bursting=true local token=burstGeneration
+ task.spawn(function()
+  for i=1,cfg.count do
+   if token~=burstGeneration or equipped~=tool or not canUse() or tool:GetAttribute("Reloading") then break end
+   if not use() then break end
+   if i<cfg.count then task.wait(cfg.interval+.01) end
+  end
+  if token==burstGeneration then nextUse=math.max(nextUse,os.clock()+cfg.pause) bursting=false end
+ end)
 end
 Router:Register("Fire",function(state,input)
  if state==Enum.UserInputState.Begin then
   if not canUse() or input.UserInputType==Enum.UserInputType.MouseButton1 and Presentation:PointerOverButton() then return Enum.ContextActionResult.Pass end
-  held=true Presentation:SetFiring(true) use()
+  held=true Presentation:SetFiring(true) beginFire()
  elseif state==Enum.UserInputState.End or state==Enum.UserInputState.Cancel then held=false Presentation:SetFiring(false) end
  return Enum.ContextActionResult.Sink
 end,{touch=true,title="TIRO",position=UDim2.fromScale(.87,.58)})
@@ -112,7 +132,7 @@ RunService:BindToRenderStep("CTFWeaponInput",Enum.RenderPriority.Camera.Value+3,
    rangeText.Text=string.format("%d studs",math.floor(distance+.5))..band
    rangeText.Position=UDim2.fromOffset(point.X,point.Y+32) rangeText.Visible=true
   end
-  if held and data.Kind=="Gun" and data.Automatic then use() end
+  if held and data.Kind=="Gun" and data.Automatic and not Burst.Config(data,equipped:GetAttribute("BurstConversion")==true) then use() end
  end
  if Presentation:IsBlocked() then held=false Presentation:SetFiring(false) end
 end)
