@@ -4,5 +4,27 @@ local Catalog={["sp_r_208_chassis_xrk_sp_lite_208_blitz"]={["id"]="sp_r_208_chas
 local Registry=require(script.Parent.WeaponAssetRegistry)
 for _,a in Catalog do a.description="Somente visual; nenhum bônus funcional." a.attachmentStatIntent={} a.physicalAssetPath=Registry[a.id] if a.status=="Available" then a.mountName=a.slot a.rigDependencies={"Handle."..a.slot} end end
 Catalog.aug_burst_conversion={id="aug_burst_conversion",name="Conversão de rajada (3 tiros)",slot="fireControl",status="Available",compatible={"aug"},functionalBurst=true,description="Conversão funcional: três tiros por acionamento. Sem modelo físico adicional."}
+-- Commando Foregrip
+Catalog.foregrips_commando_foregrip.statMultipliers = {
+    Spread = 0.90,
+    CameraRecoilMin = 0.85,
+    CameraRecoilMax = 0.85,
+}
+
+Catalog.foregrips_commando_foregrip.visualOnly = false
+Catalog.foregrips_commando_foregrip.description =
+    "Reduz dispersão e recuo da câmera."
+
+-- Monolithic Suppressor
+Catalog.suppressors_monolithic_suppressor.statMultipliers = {
+    Range = 1.10,
+    FalloffStart = 1.10,
+    FalloffEnd = 1.10,
+}
+
+Catalog.suppressors_monolithic_suppressor.visualOnly = false
+Catalog.suppressors_monolithic_suppressor.description =
+    "Aumenta o alcance e as distâncias de queda de dano."
+
 return Catalog
 

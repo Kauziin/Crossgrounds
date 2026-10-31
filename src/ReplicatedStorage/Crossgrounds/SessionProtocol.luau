@@ -12,4 +12,3 @@ function Protocol:Validate(command)
  return true
 end
 return Protocol
-

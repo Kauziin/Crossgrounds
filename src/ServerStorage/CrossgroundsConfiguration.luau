@@ -12,4 +12,3 @@ return {
  CTFPlaceId=nil,
  ProtocolVersion=1,
 }
-

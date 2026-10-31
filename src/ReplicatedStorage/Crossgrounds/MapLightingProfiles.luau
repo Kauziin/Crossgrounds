@@ -22,3 +22,4 @@ Profiles.glacier={
  Atmosphere={Density=.28,Offset=.08,Color=Color3.fromRGB(205,171,190),Decay=Color3.fromRGB(88,105,145),Haze=1.4,Glare=.03},
 }
 return table.freeze(Profiles)
+

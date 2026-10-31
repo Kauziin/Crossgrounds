@@ -26,4 +26,3 @@ task.spawn(function()
  Bridge.LocalError="Não foi possível carregar o catálogo do servidor." signal:Fire()
 end)
 return Bridge
-

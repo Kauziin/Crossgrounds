@@ -75,3 +75,4 @@ function Maps:Load(id, selectionPolicy, implemented, canContinue)
 end
 
 return Maps
+

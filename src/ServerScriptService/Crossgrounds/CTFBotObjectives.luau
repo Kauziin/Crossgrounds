@@ -78,3 +78,4 @@ function Adapter:Alternate()
  return own and own.home+Vector3.new(self.team.Name=="Blue" and 16 or -16,0,self.lane*.4)
 end
 return Adapter
+

@@ -43,4 +43,3 @@ end
 function Queue:Clear(player) self.entries[player]=nil end
 function Queue:Destroy() table.clear(self.entries) end
 return Queue
-

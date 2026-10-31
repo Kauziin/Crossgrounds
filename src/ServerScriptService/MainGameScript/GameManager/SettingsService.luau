@@ -4,12 +4,15 @@ local Players=game:GetService("Players") local Run=game:GetService("RunService")
 local Definition=require(game.ReplicatedStorage.ExperienceSettings) local Controls=require(game.ReplicatedStorage.ControlDefinitions)
 local Profile=require(game.ReplicatedStorage.Crossgrounds.PreferenceProfile)
 local events=game.ReplicatedStorage.Events local update=events:FindFirstChild("UpdateExperienceSetting") or Instance.new("RemoteEvent",events) update.Name="UpdateExperienceSetting"
-local store=not Run:IsStudio() and game:GetService("DataStoreService"):GetDataStore("CTF_ExperienceSettings_v1") or nil
+local store= not Run:IsStudio() and game:GetService("DataStoreService"):GetDataStore("CTF_ExperienceSettings_v1") or nil
 local profiles,dirty,revisions,rate,states,connections={},{},{},{},{},{}
 local acknowledgements={}
+local Policy=require(game.ReplicatedStorage.ControlPolicy)
+local normalize
 local scopes={"Global","Mode:ctf","Mode:arena","Device:Keyboard","Device:Gamepad","Device:Touch"}
 local function sync(p)
  local profile=profiles[p] if not profile then return end
+ if normalize then normalize(p) end
  local state=states[p]
  for key,rule in Definition.Rules do
   local value=Profile.Resolve(profile,key,p:GetAttribute("CrossgroundsMode") or "hub")
@@ -30,6 +33,20 @@ end
 local function set(p,scope,key,value,inherit)
  local profile=profiles[p] if not profile or not Profile.Set(profile,scope,key,value,inherit) then return false end
  mark(p,scope,key) return true
+end
+local function rebind(p,action,device,name)
+ local current={} for id in Controls.Actions do current[id]=Profile.Resolve(profiles[p],Controls:Attribute(id,device),"hub") end
+ local plan=Policy.Plan(Controls,current,action,device,name)
+ if not plan then return false end
+ for id,key in plan do if current[id]~=key then set(p,"Device:"..device,Controls:Attribute(id,device),key) end end
+ return true
+end
+normalize=function(p)
+ for _,device in {"Keyboard","Gamepad"} do
+  local current={} for id in Controls.Actions do current[id]=Profile.Resolve(profiles[p],Controls:Attribute(id,device),"hub") end
+  local plan=Policy.Normalize(Controls,current,device)
+  if plan then for id,key in plan do if key~=current[id] then set(p,"Device:"..device,Controls:Attribute(id,device),key) end end end
+ end
 end
 local function save(p)
  if not dirty[p] or not next(dirty[p]) or Run:IsStudio() or p.UserId<=0 then return end
@@ -70,7 +87,10 @@ update.OnServerEvent:Connect(function(p,key,value)
   if sequence~=nil and (typeof(sequence)~="number" or sequence~=sequence or sequence%1~=0 or sequence<1 or sequence>=2147483648) then return end
   local path=scope.."|"..field
   if sequence and sequence<=(acknowledgements[p][path] or 0) then return end
-  if op=="set" then set(p,scope,field,value.value)
+  if op=="set" then
+   local rule=Definition.Rules[field]
+   if rule.Device then if not rebind(p,rule.Action,rule.Device,value.value) then return end
+   else set(p,scope,field,value.value) end
   elseif op=="inherit" then set(p,scope,field,nil,true)
   elseif op=="default" then set(p,scope,field,Definition.Rules[field].Default)
   else return end
@@ -87,8 +107,8 @@ update.OnServerEvent:Connect(function(p,key,value)
     if sequence then acknowledgements[p][path]=sequence end
    end
   end end
- elseif key=="ResetControls" and value==true then
-  for action,data in Controls.Actions do for _,device in {"Gamepad","Keyboard"} do set(p,"Device:"..device,Controls:Attribute(action,device),data[device]) end end
+ elseif key=="ResetControls" and (value==true or value=="Keyboard" or value=="Gamepad") then
+  for action,data in Controls.Actions do for _,device in {"Gamepad","Keyboard"} do if value==true or value==device then set(p,"Device:"..device,Controls:Attribute(action,device),data[device]) end end end
  elseif key=="MobileHUDLayout" then
   if typeof(value)~="table" then return end local clean={} local count,expected=0,0
   for _,rule in Definition.Rules do if rule.MobileLayout then expected+=1 end end
@@ -103,12 +123,8 @@ update.OnServerEvent:Connect(function(p,key,value)
   local clean=Definition:Sanitize(key,value) if clean==nil then return end
   local scope=rule.PreferenceDevice and "Device:"..rule.PreferenceDevice or "Global"
   if rule.Device then
-   local container=Profile.Container(profiles[p],scope) local old=container[key] or rule.Default
-   for other in Controls.Actions do local otherKey=Controls:Attribute(other,rule.Device)
-    if otherKey~=key and Profile.Resolve(profiles[p],otherKey,"hub")==clean then set(p,scope,otherKey,old) break end
-   end
-  end
-  set(p,scope,key,clean)
+   if not rebind(p,rule.Action,rule.Device,clean) then return end
+  else set(p,scope,key,clean) end
  end
  sync(p) p:SetAttribute("SettingsSaveState",Run:IsStudio() and "StudioSessionOnly" or "Pending")
 end)

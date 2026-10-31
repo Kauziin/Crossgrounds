@@ -19,7 +19,7 @@ function Combat:Valid(player,tool)
  local c=player.Character local h=c and c:FindFirstChildOfClass("Humanoid")
  if not h or h.Health<=0 or typeof(tool)~="Instance" or not tool:IsA("Tool") or tool.Parent~=c or tool:GetAttribute("ArenaWeapon")~=true then return end
  local id=tool:GetAttribute("WeaponId")
- if id~="Sword" and id~=Kits.ArenaGunId(player:GetAttribute("ArenaPistolVisual")) then return end
+ if id~=Kits.ArenaWeapons[1] and id~=Kits.ArenaGunId(player:GetAttribute("ArenaPistolVisual")) then return end
  return c,Kits.Weapons[id],id
 end
 function Combat:Strip(player)

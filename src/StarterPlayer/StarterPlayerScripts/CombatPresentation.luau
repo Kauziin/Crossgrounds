@@ -12,6 +12,7 @@ local Gamepad=game:GetService("GamepadService")
 local RunService=game:GetService("RunService")
 local player=Players.LocalPlayer
 local Kits=require(game.ReplicatedStorage:WaitForChild("KitDefinitions"))
+local Stats=require(game.ReplicatedStorage.Crossgrounds.WeaponStats)
 local Settings=require(game.ReplicatedStorage:WaitForChild("ExperienceSettings"))
 local settingRemote=game.ReplicatedStorage.Events:WaitForChild("UpdateExperienceSetting")
 local sourceRecoil=Vector2.zero
@@ -95,7 +96,7 @@ local function current()
  if not Scope:IsCombat() then return end
  local c=player.Character local h=c and c:FindFirstChildOfClass("Humanoid")
  local t=c and c:FindFirstChildOfClass("Tool")
- local data=t and Kits.Weapons[t:GetAttribute("WeaponId")]
+ local data = t and Stats.ResolveTool(t)
  if h and h.Health>0 and c:FindFirstChild("HumanoidRootPart") and data then return c,h,t,data end
 end
 local function cursorMode()
@@ -224,7 +225,8 @@ end
 function Presentation:PredictShot(shotId,tool,target,request)
  if not tool or not tool.Parent then return end
  for id,entry in predicted do if os.clock()>entry.expires then for _,effect in entry.effects do Effects.CancelTrace(effect) end predicted[id]=nil end end
- local data=Kits.Weapons[tool:GetAttribute("WeaponId")] local config=Shot.Config(data)
+ local data = Stats.ResolveTool(tool)
+ local config = Shot.Config(data)
  local classify=clientRelation
  local origin,blocked=Query.ResolveOrigin(player.Character,tool,target,self:GetShotOrigin(),classify)
  if not origin or (target-origin).Magnitude<.05 then return end
@@ -272,11 +274,19 @@ function Presentation:Kick(id)
   tool:SetAttribute("PresentationShotAt",workspace:GetServerTimeNow())
   if firstPerson and renderer then renderer:Flash() end
   local profile=data.VisualRecoil or {Push=.08,Roll=.4}
-  if data.SourcePack=="ProjectileTest" then
-   local low,high=data.CameraRecoilMin,data.CameraRecoilMax
-   sourceRecoil+=Vector2.new(math.rad(-(low.X+math.random()*(high.X-low.X))),math.rad(low.Y+math.random()*(high.Y-low.Y)))
-   sourceFovKick=1
-  end
+  local low = data.CameraRecoilMin
+  local high = data.CameraRecoilMax
+	if typeof(low) == "Vector2" and typeof(high) == "Vector2" then
+		local horizontal = low.X + math.random() * (high.X - low.X)
+		local vertical = low.Y + math.random() * (high.Y - low.Y)
+
+		sourceRecoil += Vector2.new(
+			math.rad(-horizontal),
+			math.rad(vertical)
+		)
+
+		sourceFovKick = 1
+	end
   spring:Kick(profile,math.random()<.5 and -1 or 1)
  else swingAt=os.clock() end
 end

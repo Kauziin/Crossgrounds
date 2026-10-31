@@ -180,4 +180,3 @@ function Author.Apply()
  return report
 end
 return Author
-

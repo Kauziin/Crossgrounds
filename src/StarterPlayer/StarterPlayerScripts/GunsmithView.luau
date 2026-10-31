@@ -59,8 +59,9 @@ function View.new(parent,options)
  end
  local function showModel(id,configuration)
   generation+=1 local token=generation
-  local w=Catalog.Get(id) local stats=Stats.Get(id).baseStats
-  details.Text=(w and (w.name.." · "..w.category.."\n"..w.status) or "Variante · somente prévia").."\nDano: "..tostring(stats.damage or "desconhecido").." | Alcance: "..(stats.range and stats.range.." studs" or "desconhecido").."\nPrecisão: "..(stats.spreadDegrees and stats.spreadDegrees.."° de dispersão atual" or "desconhecida").."\nControle: não catalogado | Mobilidade: regra atual preservada\nCadência: "..(stats.rpm and math.floor(stats.rpm+.5).." RPM" or "desconhecida").."\nCapacidade: "..tostring(stats.capacity or "?").." | Recarga: "..(stats.reloadSeconds and stats.reloadSeconds.." s" or "?").."\nAcessórios visuais: sem bônus. Conversão de rajada altera o disparo."
+  local w = Catalog.Get(id)
+  local stats = Stats.Get(id, configuration).effectiveGameplayStats
+  details.Text=(w and (w.name.." · "..w.category.."\n"..w.status) or "Variante · somente prévia").."\nDano: "..tostring(stats.damage or "desconhecido").." | Alcance: "..(stats.range and stats.range.." studs" or "desconhecido").."\nPrecisão: "..(stats.spreadDegrees and stats.spreadDegrees.."° de dispersão atual" or "desconhecida").."\nControle: não catalogado | Mobilidade: regra atual preservada\nCadência: "..(stats.rpm and math.floor(stats.rpm+.5).." RPM" or "desconhecida").."\nCapacidade: "..tostring(stats.capacity or "?").." | Recarga: "..(stats.reloadSeconds and stats.reloadSeconds.." s" or "?").."\nEstatísticas efetivas com os acessórios equipados."
   local compare=Stats.Compare(draft[slot.."WeaponId"],id)
   local combat=w and w.combatId and require(game.ReplicatedStorage.KitDefinitions).Weapons[w.combatId]
   local burst=combat and require(Root.BurstFire).Config(combat,configuration and configuration.fireControl=="aug_burst_conversion")

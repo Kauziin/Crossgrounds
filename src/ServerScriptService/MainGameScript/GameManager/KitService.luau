@@ -2,6 +2,7 @@ local KitService={}
 local Players=game:GetService("Players")
 local RunService=game:GetService("RunService")
 local definitions=require(game.ReplicatedStorage.KitDefinitions)
+local Stats = require(game.ReplicatedStorage.Crossgrounds.WeaponStats)
 local Factory=require(script.Parent.WeaponFactory)
 local Authority=require(game.ServerScriptService.Crossgrounds.ShotAuthority)
 local Effects=require(game.ReplicatedStorage.Crossgrounds.WeaponEffects)
@@ -20,7 +21,7 @@ local function validTool(player,tool)
  local profile=definitions.Profiles[player:GetAttribute("SelectedKit") or "Regular"]
  local weapons=require(game.ServerScriptService.Crossgrounds.ArsenalLoadouts).Backends(player) or profile and profile.Weapons
  if not weapons or not table.find(weapons,id) then return end
- return c,definitions.Weapons[id],id
+ return c,Stats.ResolveTool(tool) or definitions.Weapons[id],id
 end
 local function rayParams(character)
  local p=RaycastParams.new() p.FilterType=Enum.RaycastFilterType.Exclude p.FilterDescendantsInstances={character} return p
@@ -103,20 +104,21 @@ function KitService:GetProfile(id) return definitions.Profiles[id] or definition
 function KitService:ApplyToCharacter(player,character)
  local profile=self:GetProfile(player:GetAttribute("SelectedKit"))
  local h=character:WaitForChild("Humanoid")
- h.MaxHealth=200 h.Health=200 h.WalkSpeed=profile.WalkSpeed h.UseJumpPower=false h.JumpHeight=profile.JumpHeight
+ h.MaxHealth=300 h.Health=300 h.WalkSpeed=profile.WalkSpeed h.UseJumpPower=false h.JumpHeight=profile.JumpHeight
  player:SetAttribute("KitWalkSpeed",profile.WalkSpeed) player:SetAttribute("KitSprintSpeed",profile.SprintSpeed) player:SetAttribute("KitJumpHeight",profile.JumpHeight)
  for _,container in {player:WaitForChild("Backpack"),player.StarterGear,character} do for _,v in container:GetChildren() do if v:IsA("Tool") then v:Destroy() end end end
  local gun
  local arsenal=require(game.ServerScriptService.Crossgrounds.ArsenalLoadouts)
  local custom=arsenal.Resolve(player)
  local weapons=arsenal.Backends(player) or profile.Weapons
- for index,id in weapons do
-  local tool=Factory:Create(id) local data=definitions.Weapons[id]
+	for index,id in weapons do
+	 local tool = Factory:Create(id)
   if custom and index>1 then
    local visualId=index==2 and custom.primaryWeaponId or custom.secondaryWeaponId
    local configuration=index==2 and custom.primaryAttachments or custom.secondaryAttachments
    require(game.ServerScriptService.Crossgrounds.ImportedWeaponVisuals).Apply(tool,visualId,configuration)
   end
+  local data = Stats.ResolveTool(tool) or definitions.Weapons[id]
   if data.Kind=="Gun" then tool:SetAttribute("Ammo",data.Magazine) tool:SetAttribute("ReserveAmmo",data.Reserve) tool:SetAttribute("Reloading",false) if not gun then gun=tool end end
   tool.Parent=player.Backpack
  end

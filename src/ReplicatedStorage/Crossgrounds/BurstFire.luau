@@ -15,3 +15,4 @@ function Burst.Commit(state,now,config)
  if state.count>=config.count then state.count=0 state.nextAt=scheduled+config.pause else state.nextAt=scheduled+config.interval end
 end
 return Burst
+

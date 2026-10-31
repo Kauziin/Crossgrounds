@@ -55,7 +55,7 @@ function Spawn:Lobby(model)
  local p=workspace.CTFLobby.Spawn.Position+Vector3.new(math.random(-8,8),4,math.random(-6,6))
  model:PivotTo(CFrame.lookAt(p,Vector3.new(0,p.Y,343)))
  local h=model:FindFirstChildOfClass("Humanoid")
- if h then h.MaxHealth=200 h.Health=200 end
+ if h then h.MaxHealth=300 h.Health=300 end
  local shield=Instance.new("ForceField") shield.Name="LobbyShield" shield.Visible=false shield.Parent=model
 end
 return Spawn

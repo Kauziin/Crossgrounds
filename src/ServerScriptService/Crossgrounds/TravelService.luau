@@ -66,4 +66,3 @@ end
 function Travel:Forget(player) self.pending[player]=nil end
 function Travel:Destroy() self.alive=false if self.connection then self.connection:Disconnect() end table.clear(self.pending) end
 return Travel
-

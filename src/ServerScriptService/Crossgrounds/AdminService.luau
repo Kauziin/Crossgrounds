@@ -7,6 +7,11 @@ function Admin:Start(coordinator)
  if self.started then return end self.started=true
  local remote=Instance.new("RemoteFunction") remote.Name="AdminCamera" remote.Parent=game.ReplicatedStorage.Crossgrounds.Remotes
  local sessions={} local rates={} local busy={} local previews={}
+ local terrainAreas={}
+ local function clearTerrain(player)
+  local region=terrainAreas[player] terrainAreas[player]=nil
+  if region then workspace.Terrain:FillRegion(region,4,Enum.Material.Air) end
+ end
  local publishWork=0 local disposeWork=0
  local function dispose(node)
   local count=#node:GetDescendants()+1
@@ -27,6 +32,7 @@ function Admin:Start(coordinator)
   local session=sessions[player] sessions[player]=nil
   if session and session.root.Parent then session.root.Anchored=session.anchored end
   player:SetAttribute("AdminFreecam",false)
+  player:SetAttribute("AdminPhotoUnlimited",nil) clearTerrain(player)
   player:SetAttribute("AdminPhotoMap",nil)player:SetAttribute("AdminPhotoLightingProfile",nil)
   if previews[player] then local preview=previews[player] previews[player]=nil dispose(preview) end
  end
@@ -40,32 +46,51 @@ function Admin:Start(coordinator)
  end
  remote.OnServerInvoke=function(player,enabled,mapId)
   if not self:IsAuthorized(player) then return false,"Sem permissão." end
-  if enabled=="catalog" then return true,require(script.Parent.MapLibrary).Catalog("Arena") end
+  if enabled=="catalog" then return true,require(script.Parent.MapLibrary).PhotoCatalog() end
   if busy[player] or os.clock()-(rates[player] or -10)<.3 then return false,"Aguarde." end
   rates[player]=os.clock()
   if enabled=="preview" then
    if not sessions[player] then return false,"Ative a câmera livre primeiro." end
-   local source=require(script.Parent.MapLibrary).Get("Arena",mapId)
+   local source,mode,id=require(script.Parent.MapLibrary).PhotoGet(mapId)
    if not source then return false,"Mapa indisponível." end
+   local session=sessions[player]
    busy[player]=true
    local ok,result=pcall(function()
+    clearTerrain(player)
     if previews[player] then dispose(previews[player]) previews[player]=nil end
     local preview=Instance.new("Model") preview.Name="AdminPhoto_"..player.UserId
     preview:SetAttribute("CrossgroundsAdminPhoto",true) preview:SetAttribute("MapId",mapId) preview.Parent=workspace previews[player]=preview
-    local geometry=source.Geometry:Clone() local offset=Vector3.new(5000,300,0)
+    local geometry=source.Geometry:Clone()
+    local infrastructure=source:FindFirstChild("CTFInfrastructure")
+    if infrastructure then infrastructure:Clone().Parent=geometry end
+    local offset=Vector3.new(8192+session.slot*2048,512,0)
     for i,obj in geometry:GetDescendants() do
-     if obj:IsA("LuaSourceContainer") then error("Geometria contém script.")
-     elseif obj:IsA("BasePart") then obj.CFrame+=offset
+     if obj:IsA("LuaSourceContainer") then obj:Destroy()
+     elseif obj:IsA("BasePart") then obj.CFrame+=offset obj.Anchored=true
      elseif obj:IsA("Sound") then obj.Playing=false end
      if i%500==0 then task.wait() end
     end
     publish(geometry,preview)
+    if mode=="CTF" then
+     local fallback=game.ServerStorage.CTFMaps:FindFirstChild("riverside")
+     local terrainSource=source:FindFirstChild("TerrainData") and source or fallback
+     local terrain=terrainSource and terrainSource:FindFirstChild("TerrainData")
+     local origin=terrainSource and terrainSource:GetAttribute("TerrainOrigin")
+     if terrain and terrain:IsA("TerrainRegion") and typeof(origin)=="Vector3" then
+      local cell=origin+offset/4
+      local minimum=Vector3.new(cell.X,cell.Y,cell.Z)*4
+      local cells=terrain.SizeInCells
+      terrainAreas[player]=Region3.new(minimum,minimum+Vector3.new(cells.X,cells.Y,cells.Z)*4):ExpandToGrid(4)
+      workspace.Terrain:PasteRegion(terrain,Vector3int16.new(cell.X,cell.Y,cell.Z),true)
+     end
+    end
+    if sessions[player]~=session then error("Sessão de captura encerrada.") end
     local cf,size=preview:GetBoundingBox()
     player:SetAttribute("AdminPhotoMap",mapId)player:SetAttribute("AdminPhotoLightingProfile",source:GetAttribute("LightingProfile")or mapId)
     return {name=source:GetAttribute("DisplayName") or mapId,focus=cf.Position,position=cf.Position+Vector3.new(.7,.8,1).Unit*math.max(size.X,size.Z,80)*1.1}
    end)
    busy[player]=nil
-   if not ok then if previews[player] then dispose(previews[player]) previews[player]=nil end warn(result) return false,"Falha ao preparar cópia para captura." end
+   if not ok then clearTerrain(player) if previews[player] then dispose(previews[player]) previews[player]=nil end warn(result) return false,"Falha ao preparar cópia para captura." end
    return true,result
   end
   if typeof(enabled)~="boolean" then return false,"Comando inválido." end
@@ -88,7 +113,11 @@ function Admin:Start(coordinator)
    if queue.state~="idle" then coordinator.queue:Clear(player) coordinator:Publish(player) end
    local root=player.Character and player.Character:FindFirstChild("HumanoidRootPart")
    if not root or player:GetAttribute("ModeCharacterReady")~=true then return false,"Aguarde o personagem ficar pronto." end
-   sessions[player]={root=root,anchored=root.Anchored}
+   local used={} for _,session in sessions do used[session.slot]=true end
+   local slot=1 while used[slot] do slot+=1 end
+   if slot>50 then return false,"Todas as áreas de captura estão ocupadas." end
+   sessions[player]={root=root,anchored=root.Anchored,slot=slot}
+   player:SetAttribute("AdminPhotoUnlimited",true)
    root.AssemblyLinearVelocity=Vector3.zero root.Anchored=true
    player:SetAttribute("AdminFreecam",true)
    return true
@@ -102,3 +131,4 @@ function Admin:Start(coordinator)
  for _,player in Players:GetPlayers() do added(player) end
 end
 return Admin
+

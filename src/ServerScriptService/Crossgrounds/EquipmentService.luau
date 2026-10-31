@@ -3,11 +3,32 @@ local Service={}
 local Players=game:GetService("Players") local Run=game:GetService("RunService")
 local Kits=require(game.ReplicatedStorage.KitDefinitions)
 local Factory=require(game.ServerScriptService.MainGameScript.GameManager.WeaponFactory)
+local Root = game.ReplicatedStorage.Crossgrounds
+local Stats = require(Root.WeaponStats)
+
+local Arsenal = require(
+	game.ServerScriptService.Crossgrounds.ArsenalLoadouts
+)
+
+local Visuals = require(
+	game.ServerScriptService.Crossgrounds.ImportedWeaponVisuals
+)
 local states={}
 function Service.Expected(player)
- local mode=player:GetAttribute("CrossgroundsMode") or "ctf"
- if mode=="arena" then return Kits.ArenaWeapons end
- if mode=="ctf" then local p=Kits.Profiles[player:GetAttribute("SelectedKit") or "Regular"] return p and p.Weapons end
+	local mode = player:GetAttribute("CrossgroundsMode") or "ctf"
+
+	if mode == "arena" then
+		return Kits.ArenaWeapons
+	end
+
+	if mode == "ctf" then
+		local custom = Arsenal.Backends(player)
+		if custom then return custom end
+
+		local profile = Kits.Profiles[player:GetAttribute("SelectedKit") or "Regular"]
+
+		return profile and profile.Weapons
+	end
 end
 function Service.Ensure(player)
  local c=player.Character local h=c and c:FindFirstChildOfClass("Humanoid") local bag=player:FindFirstChild("Backpack")
@@ -22,19 +43,58 @@ function Service.Ensure(player)
    if id and table.find(ids,id) then
     if not tool:FindFirstChild("Handle") then tool:Destroy()
     else
-     found[id]=tool local data=Kits.Weapons[id]
+	 found[id] = tool
+	 local data = Stats.ResolveTool(tool) or Kits.Weapons[id]
      if tool:GetAttribute("WeaponKind")==nil then tool:SetAttribute("WeaponKind",data.Kind) end
      if data.Kind=="Gun" and tool:GetAttribute("Ammo")==nil then tool:SetAttribute("Ammo",data.Magazine) tool:SetAttribute("ReserveAmmo",data.Reserve) end
     end
    end
   end end
   local repaired=0
-  for _,id in ids do if not found[id] then
-   local data=Kits.Weapons[id] local tool=Factory:Create(id,player:GetAttribute("ArenaPistolVisual"))
-   tool:SetAttribute("ArenaWeapon",player:GetAttribute("CrossgroundsMode")=="arena")
-   if data.Kind=="Gun" then tool:SetAttribute("Ammo",data.Magazine) tool:SetAttribute("ReserveAmmo",data.Reserve) tool:SetAttribute("Reloading",false) end
-   tool:SetAttribute("RecoveredEquipment",true) tool.Parent=bag found[id]=tool repaired+=1
-  end end
+		for index, id in ids do
+			if not found[id] then
+				local tool = Factory:Create(
+					id,
+					player:GetAttribute("ArenaPistolVisual")
+				)
+
+				-- Restaura modelos e acessórios do loadout CTF.
+				local active = Arsenal.Resolve(player)
+
+				if player:GetAttribute("CrossgroundsMode") == "ctf"
+					and active
+					and (index == 2 or index == 3) then
+
+					local visualId = index == 2
+						and active.primaryWeaponId
+						or active.secondaryWeaponId
+
+					local configuration = index == 2
+						and active.primaryAttachments
+						or active.secondaryAttachments
+
+					Visuals.Apply(tool, visualId, configuration)
+				end
+
+				local data = Stats.ResolveTool(tool) or Kits.Weapons[id]
+
+				tool:SetAttribute(
+					"ArenaWeapon",
+					player:GetAttribute("CrossgroundsMode") == "arena"
+				)
+
+				if data.Kind == "Gun" then
+					tool:SetAttribute("Ammo", data.Magazine)
+					tool:SetAttribute("ReserveAmmo", data.Reserve)
+					tool:SetAttribute("Reloading", false)
+				end
+
+				tool:SetAttribute("RecoveredEquipment", true)
+				tool.Parent = bag
+				found[id] = tool
+				repaired += 1
+			end
+		end
   local held=c:FindFirstChildOfClass("Tool")
   if not held then
    local chosen=state.lastEquipped and found[state.lastEquipped]
