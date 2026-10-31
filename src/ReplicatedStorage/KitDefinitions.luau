@@ -4,8 +4,8 @@ Kits.Profiles={
  Leve={Title="LEVE",Description="Mobilidade",WalkSpeed=22,SprintSpeed=29,JumpHeight=9,Weapons={"Knife","SMG"}},
  Regular={Title="REGULAR",Description="Versatilidade",WalkSpeed=18,SprintSpeed=25,JumpHeight=7.2,Weapons={"Sword","Rifle"}},
  Pesado={Title="PESADO",Description="Impacto",WalkSpeed=14,SprintSpeed=20,JumpHeight=5.5,Weapons={"Axe","Sniper"}},
- Invasor={Title="INVASOR",Description="Combate prÃ³ximo",WalkSpeed=19,SprintSpeed=26,JumpHeight=7.5,Weapons={"Baton","Shotgun725"}},
- Demolidor={Title="DEMOLIDOR",Description="PressÃ£o de curta distÃ¢ncia",WalkSpeed=16,SprintSpeed=23,JumpHeight=6.5,Weapons={"Hammer","SPAS12"}},
+ Invasor={Title="INVASOR",Description="Combate próximo",WalkSpeed=19,SprintSpeed=26,JumpHeight=7.5,Weapons={"Baton","Shotgun725"}},
+ Demolidor={Title="DEMOLIDOR",Description="Pressão de curta distância",WalkSpeed=16,SprintSpeed=23,JumpHeight=6.5,Weapons={"Hammer","SPAS12"}},
 }
 Kits.Weapons={
  Pistol={Name="Glock 17",Kind="Gun",Damage=20,MinDamage=10,FalloffStart=20,FalloffEnd=60,Cooldown=.35,Automatic=false,Range=300,Magazine=12,Reserve=60,ReloadTime=1.4,Spread=.2,FireSound=""},
@@ -17,14 +17,14 @@ Kits.Weapons={
  Sniper={Name="Lachmann LMS",Kind="Gun",Damage=150,MinDamage=100,FalloffStart=220,FalloffEnd=600,Cooldown=2.00,Automatic=false,Range=800,Magazine=5,Reserve=30,ReloadTime=2.6,Spread=0,FireSound="rbxassetid://109306405910383"},
  Shotgun725={Name="725",Kind="Gun",Damage=50,MinDamage=12,FalloffStart=32,FalloffEnd=100,Cooldown=.1,Automatic=false,Range=110,Magazine=2,Reserve=40,ReloadTime=2.4,Spread=6.5,ProjectilesPerShot=8,FireSound="rbxassetid://109306405910383",FireVolume=.68,FirePlaybackSpeed=.82,FireRange=150,PunchyAudio=true,VisualRecoil={Push=.7,Pitch=7,Roll=1.2,Spring=135,Damping=22}},
  SPAS12={Name="SPAS-12 Semi-Auto",Kind="Gun",Damage=25,MinDamage=5,FalloffStart=24,FalloffEnd=75,Cooldown=.45,Automatic=false,Range=135,Magazine=8,Reserve=48,ReloadTime=3,Spread=8,ProjectilesPerShot=8,FireSound="rbxassetid://109306405910383",FireVolume=.65,FirePlaybackSpeed=1.12,FireRange=145,PunchyAudio=true,VisualRecoil={Push=.5,Pitch=5.5,Roll=.9,Spring=155,Damping=23}},
- Baton={Name="BastÃ£o",Kind="Melee",Damage=40,Cooldown=.38,Range=6.4,Windup=.06,ActiveTime=.18,FireSound="rbxassetid://74419593834838"},
+ Baton={Name="Bastão",Kind="Melee",Damage=40,Cooldown=.38,Range=6.4,Windup=.06,ActiveTime=.18,FireSound="rbxassetid://74419593834838"},
  Hammer={Name="Martelo",Kind="Melee",Damage=195,Cooldown=.75,Range=7,Windup=.15,ActiveTime=.25,FireSound="rbxassetid://6241709963"},
 }
--- ReferÃªncias MW2019 convertidas para campos existentes de KitDefinitions.
--- Campos nÃ£o pesquisados ficam omitidos; estas definiÃ§Ãµes sÃ£o PARCIAIS, nÃ£o prontas para combate.
--- Damage na fonte histÃ³rica H = dano no peito; na fonte W = primeiro nÃ­vel do perfil.
--- Os demais campos do nÃºcleo (Range, Spread, FireSound etc.) exigem definiÃ§Ã£o prÃ³pria.
--- Escopetas: dano agregado NÃƒO foi inserido em Damage (o motor usa dano por projÃ©til).
+-- Referências MW2019 convertidas para campos existentes de KitDefinitions.
+-- Campos não pesquisados ficam omitidos; estas definições são PARCIAIS, não prontas para combate.
+-- Damage na fonte histórica H = dano no peito; na fonte W = primeiro nível do perfil.
+-- Os demais campos do núcleo (Range, Spread, FireSound etc.) exigem definição própria.
+-- Escopetas: dano agregado NÃO foi inserido em Damage (o motor usa dano por projétil).
 
 	-- Fuzis de assalto
 	Kits.Weapons.fal = {
@@ -760,7 +760,7 @@ Kits.Weapons={
 		PenetrationLoss = 0,
 	}
 
-	-- Fuzis de precisÃ£o semiautomÃ¡ticos / atirador designado
+	-- Fuzis de precisão semiautomáticos / atirador designado
 	Kits.Weapons.ebr14 = {
 		Name = "EBR-14",
 		Kind = "Gun",
@@ -899,7 +899,7 @@ Kits.Weapons={
 		PenetrationLoss = 0.2,
 	}
 
-	-- Fuzis de precisÃ£o
+	-- Fuzis de precisão
 	-- AVISO: Bolt-action exige ciclo de ferrolho proprio.
 	Kits.Weapons.ax_50 = {
 		Name = "AX-50",
@@ -1359,10 +1359,10 @@ Kits.Weapons.Sniper.PenetrationLoss=.2
 function Kits:IsPistolVisual(id) return table.find(self.ArenaPistolVisuals,id)~=nil end
 Kits.Weapons.SMG.VisualRecoil={Push=.13,Pitch=1.8,Roll=.35,Spring=240,Damping=29}
 Kits.Weapons.Rifle.VisualRecoil={Push=.32,Pitch=3.6,Roll=.8,Spring=180,Damping=24}
-Kits.Weapons.Sniper.VisualRecoil={Push=.9,Pitch=7.5,Roll=1.6,Spring=115,Damping=20}
+Kits.Weapons.Sniper.VisualRecoil={Push=.1.4,Pitch=7.5,Roll=1.6,Spring=115,Damping=20}
 -- Original Projectile Test firearms; damage remains server authoritative.
 Kits.Weapons.Blaster={Name="Blaster",Kind="Gun",SourcePack="ProjectileTest",Damage=35,Range=1000,Magazine=10,Reserve=100,ReloadTime=1,Cooldown=.1,Automatic=false,Spread=2,ProjectileRadius=.4,ShotVisual={Speed=200,Length=18,Width=.08,SourcePack="ProjectileTest"},FireSound="rbxassetid://17682716783",CameraRecoilMin=Vector2.new(0,15),CameraRecoilMax=Vector2.new(5,20),VisualRecoil={Push=0,Pitch=0,Roll=0}}
-Kits.Weapons.AutoBlaster={Name="AutoBlaster",Kind="Gun",SourcePack="ProjectileTest",Damage=10,Range=1000,Magazine=30,Reserve=180,ReloadTime=1.5,Cooldown=.1,Automatic=true,Spread=2,ProjectileRadius=.4,ShotVisual={Speed=200,Length=18,Width=.08,SourcePack="ProjectileTest"},FireSound="rbxassetid://17682714653",CameraRecoilMin=Vector2.new(-2,5),CameraRecoilMax=Vector2.new(2,7),VisualRecoil={Push=0,Pitch=0,Roll=0}}
+Kits.Weapons.AutoBlaster={Name="AutoBlaster",Kind="Gun",SourcePack="ProjectileTest",Damage=10,Range=1000,Magazine=60,Reserve=300,ReloadTime=1.5,Cooldown=.05,Automatic=true,Spread=2,ProjectileRadius=.4,ShotVisual={Speed=200,Length=18,Width=.08,SourcePack="ProjectileTest"},FireSound="rbxassetid://17682714653",CameraRecoilMin=Vector2.new(-2,5),CameraRecoilMax=Vector2.new(2,7),VisualRecoil={Push=0,Pitch=0,Roll=0}}
 for _,id in {"Blaster","AutoBlaster"} do
  table.insert(Kits.Order,id)
  Kits.Profiles[id]={Title=id=="Blaster" and "BLASTER" or "AUTO BLASTER",Description="Projectile Test",WalkSpeed=18,SprintSpeed=25,JumpHeight=7.2,Weapons={"Sword",id}}
@@ -1381,8 +1381,8 @@ function Kits.DamageAtDistance(data,distance)
 end
 function Kits.RangeBand(data,distance)
  if distance>data.Range then return "FORA DE ALCANCE" end
- if distance>(data.FalloffStart or data.Range) then return "DANO REDUZIDO" end
- return "ALCANCE EFETIVO"
+ if distance>(data.FalloffStart or data.Range) then return "DANO MÍNIMO" end
+ return "DANO MÁXIMO"
 end
 function Kits.ShotDamage(data,distance,headshot,multiplier)
  local amount=Kits.DamageAtDistance(data,distance)*(multiplier or 1)
@@ -1393,8 +1393,8 @@ end
 -- Burst timing is game tuning, independent of historical sustained RPM.
 Kits.Weapons.fr_5_56.BurstCount=3
 Kits.Weapons.fr_5_56.BurstInterval=.1
-Kits.Weapons.fr_5_56.BurstPause=.28
+Kits.Weapons.fr_5_56.BurstPause=.3
 Kits.Weapons.an_94.BurstCount=2
-Kits.Weapons.an_94.BurstInterval=.08
+Kits.Weapons.an_94.BurstInterval=.036
 Kits.Weapons.an_94.BurstPause=.22
 return Kits
