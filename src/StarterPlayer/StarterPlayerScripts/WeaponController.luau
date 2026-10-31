@@ -32,7 +32,7 @@ local function use()
  local data=Kits.Weapons[equipped:GetAttribute("WeaponId")] if not data then return end
  if equipped:GetAttribute("Reloading") then return end
  if data.Kind=="Gun" and prediction:Available(equipped)<=0 then reload:FireServer(equipped) nextUse=os.clock()+.3 return end
- local now=os.clock() local cooldown=Scope:IsArena() and math.max(1,data.Cooldown) or data.Cooldown
+ local now=os.clock() local cooldown=Scope:IsArena() and data.SourcePack~="ProjectileTest" and math.max(1,data.Cooldown) or data.Cooldown
  -- Preserve the schedule across small frame overruns; never send a catch-up burst.
  nextUse=nextUse==0 and now+cooldown or math.max(nextUse+cooldown,now+cooldown-.025)
  local target,cameraOrigin,cameraDirection,hit=Presentation:GetAimWorld(data.Range+12)
@@ -54,9 +54,11 @@ end,{touch=true,title="TIRO",position=UDim2.fromScale(.87,.58)})
 Router:Register("ReloadInteract",function(state)
  if state==Enum.UserInputState.Begin then
   scan() local data=equipped and Kits.Weapons[equipped:GetAttribute("WeaponId")]
-  if canUse() and data and data.Kind=="Gun" and ((equipped:GetAttribute("Ammo") or 0)<data.Magazine and (equipped:GetAttribute("ReserveAmmo") or 0)>0 or equipped:GetAttribute("Reloading")) then
-   if not equipped:GetAttribute("Reloading") then reload:FireServer(equipped) end
-  else Interaction:Begin() end
+  if Interaction:Nearest() then Interaction:Begin()
+  elseif canUse() and data and data.Kind=="Gun" and not equipped:GetAttribute("Reloading")
+   and (equipped:GetAttribute("Ammo") or 0)<data.Magazine and (equipped:GetAttribute("ReserveAmmo") or 0)>0 then
+   reload:FireServer(equipped)
+  end
  else Interaction:End() end
  return Enum.ContextActionResult.Sink
 end,{touch=true,title="RECARGA / USAR",position=UDim2.fromScale(.74,.7),scope="interaction"})
@@ -70,9 +72,15 @@ end,{touch=true,title="MIRA",position=UDim2.fromScale(.9,.34)})
 Router:Register("SwitchWeapon",function(state)
  if state==Enum.UserInputState.Begin and not Presentation:IsBlocked() then
   local c=player.Character local h=c and c:FindFirstChildOfClass("Humanoid") local profile=Kits.Profiles[player:GetAttribute("SelectedKit")]
-  local weapons=require(script.Parent.ModeScope):IsArena() and Kits.ArenaWeapons or profile and profile.Weapons
+  local weapons=require(script.Parent.ModeScope):IsArena() and {Kits.ArenaWeapons[1],Kits.ArenaGunId(player:GetAttribute("ArenaPistolVisual"))} or profile and profile.Weapons
+  if require(script.Parent.ModeScope):IsCTF() then
+   local raw=player:GetAttribute("CTFArsenalState")
+   local ok,state=pcall(game.HttpService.JSONDecode,game.HttpService,raw or "")
+   local c=ok and state.active
+   if c then local catalog=require(game.ReplicatedStorage.Crossgrounds.WeaponCatalog) weapons={c.meleeWeaponId,catalog.Get(c.primaryWeaponId).combatId,catalog.Get(c.secondaryWeaponId).combatId} end
+  end
   if not h or not weapons or h.Health<=0 then return end
-  local id=equipped and equipped:GetAttribute("WeaponId") local nextId=weapons[1]==id and weapons[2] or weapons[1]
+  local id=equipped and equipped:GetAttribute("WeaponId") local index=table.find(weapons,id) or 0 local nextId=weapons[index%#weapons+1]
   for _,container in {player.Backpack,c} do for _,t in container:GetChildren() do if t:IsA("Tool") and t:GetAttribute("WeaponId")==nextId then h:EquipTool(t) return end end end
  end
 end)
@@ -98,12 +106,13 @@ RunService:BindToRenderStep("CTFWeaponInput",Enum.RenderPriority.Camera.Value+3,
   cross.Position=UDim2.fromOffset(point.X,point.Y)
   local hit,origin=Presentation:GetRangeTarget()
   local model=hit and require(game.ReplicatedStorage.Crossgrounds.ShotQuery).ModelFromPart(hit.Instance)
-  if cross.Visible and player:GetAttribute("CombatAiming") and model and origin then
-   rangeText.Text=Kits.RangeBand(data,(hit.Position-origin).Magnitude)
+  if cross.Visible and hit and origin then
+   local distance=(hit.Position-origin).Magnitude
+   local band=player:GetAttribute("CombatAiming") and model and " · "..Kits.RangeBand(data,distance) or ""
+   rangeText.Text=string.format("%d studs",math.floor(distance+.5))..band
    rangeText.Position=UDim2.fromOffset(point.X,point.Y+32) rangeText.Visible=true
   end
   if held and data.Kind=="Gun" and data.Automatic then use() end
  end
  if Presentation:IsBlocked() then held=false Presentation:SetFiring(false) end
- for _,name in {"Fire","ReloadInteract","Aim","Sprint"} do local b=CAS:GetButton("CTFControl"..name) if b then b.Visible=not Presentation:IsBlocked() and (name=="Sprint" or name=="ReloadInteract" or data~=nil) end end
 end)

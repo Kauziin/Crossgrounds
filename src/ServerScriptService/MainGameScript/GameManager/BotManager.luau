@@ -18,7 +18,8 @@ local function create(team,slot)
  local role=slot<=2 and "Runner" or slot<=4 and "Soldier" or "Guardian"
  m:SetAttribute("CTFRole",role)
  m.Parent=folder
- local h=m:FindFirstChildOfClass("Humanoid") h.MaxHealth=200 h.Health=200 h.DisplayDistanceType=Enum.HumanoidDisplayDistanceType.None
+ local h=m:FindFirstChildOfClass("Humanoid") h.MaxHealth=200 h.Health=200 h.DisplayDistanceType=Enum.HumanoidDisplayDistanceType.Viewer
+ h.NameDisplayDistance=0 h.HealthDisplayDistance=45 h.HealthDisplayType=Enum.HumanoidHealthDisplayType.AlwaysOn
  Avatar:Apply(m,slot+(team.Name=="Red" and 6 or 0),team)
  MatchStats.Attach(m)
  Spawn:Place(m,team)

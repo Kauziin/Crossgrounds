@@ -30,6 +30,15 @@ function Kits:IsPistolVisual(id) return table.find(self.ArenaPistolVisuals,id)~=
 Kits.Weapons.SMG.VisualRecoil={Push=.13,Pitch=1.8,Roll=.35,Spring=240,Damping=29}
 Kits.Weapons.Rifle.VisualRecoil={Push=.32,Pitch=3.6,Roll=.8,Spring=180,Damping=24}
 Kits.Weapons.Sniper.VisualRecoil={Push=.9,Pitch=7.5,Roll=1.6,Spring=115,Damping=20}
+-- Original Projectile Test firearms; damage remains server authoritative.
+Kits.Weapons.Blaster={Name="Blaster",Kind="Gun",SourcePack="ProjectileTest",Damage=35,Range=1000,Magazine=10,Reserve=100,ReloadTime=1,Cooldown=.1,Automatic=false,Spread=2,ProjectileRadius=.4,ShotVisual={Speed=200,Length=18,Width=.08,SourcePack="ProjectileTest"},FireSound="rbxassetid://17682716783",CameraRecoilMin=Vector2.new(0,15),CameraRecoilMax=Vector2.new(5,20),VisualRecoil={Push=0,Pitch=0,Roll=0}}
+Kits.Weapons.AutoBlaster={Name="AutoBlaster",Kind="Gun",SourcePack="ProjectileTest",Damage=10,Range=1000,Magazine=30,Reserve=180,ReloadTime=1.5,Cooldown=.1,Automatic=true,Spread=2,ProjectileRadius=.4,ShotVisual={Speed=200,Length=18,Width=.08,SourcePack="ProjectileTest"},FireSound="rbxassetid://17682714653",CameraRecoilMin=Vector2.new(-2,5),CameraRecoilMax=Vector2.new(2,7),VisualRecoil={Push=0,Pitch=0,Roll=0}}
+for _,id in {"Blaster","AutoBlaster"} do
+ table.insert(Kits.Order,id)
+ Kits.Profiles[id]={Title=id=="Blaster" and "BLASTER" or "AUTO BLASTER",Description="Projectile Test",WalkSpeed=18,SprintSpeed=25,JumpHeight=7.2,Weapons={"Sword",id}}
+ table.insert(Kits.ArenaPistolVisuals,id) Kits.ArenaPistolNames[id]=id
+end
+function Kits.ArenaGunId(visual) return (visual=="Blaster" or visual=="AutoBlaster") and visual or "ArenaPistol" end
 -- All existing guns remain instant hitscan. Simulated travel is opt-in per definition.
 for _,data in Kits.Weapons do if data.Kind=="Gun" then
  data.ShotType=data.ShotType or "hitscan" data.ProjectilesPerShot=data.ProjectilesPerShot or 1

@@ -247,6 +247,8 @@ local function shotgun(tool,h,id)
  tool:SetAttribute("TwoHanded",true) tool.Grip=CFrame.new(0,-.15,-.2)
 end
 function Factory:Create(id,visual)
+ if id=="ArenaPistol" then id=Kits.ArenaGunId(visual) end
+ if id=="Blaster" or id=="AutoBlaster" then return require(game.ReplicatedStorage.Crossgrounds.BlasterWeapons).Create(id) end
  local data=Kits.Weapons[id] if not data then return end
  local tool=Instance.new("Tool") tool.Name=data.Name tool.ToolTip=data.Name tool.CanBeDropped=false
  tool:SetAttribute("ShotSeed",Random.new():NextInteger(1,2147483646)) tool:SetAttribute("ShotAmmoVersion",1)

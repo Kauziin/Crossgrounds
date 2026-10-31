@@ -19,7 +19,7 @@ function Combat:Valid(player,tool)
  local c=player.Character local h=c and c:FindFirstChildOfClass("Humanoid")
  if not h or h.Health<=0 or typeof(tool)~="Instance" or not tool:IsA("Tool") or tool.Parent~=c or tool:GetAttribute("ArenaWeapon")~=true then return end
  local id=tool:GetAttribute("WeaponId")
- if not table.find(Kits.ArenaWeapons,id) then return end
+ if id~="Sword" and id~=Kits.ArenaGunId(player:GetAttribute("ArenaPistolVisual")) then return end
  return c,Kits.Weapons[id],id
 end
 function Combat:Strip(player)
@@ -29,7 +29,7 @@ end
 function Combat:Equip(player)
  self:Strip(player) local gun
  for _,id in Kits.ArenaWeapons do
-  local t=self.factory:Create(id,player:GetAttribute("ArenaPistolVisual")) local data=Kits.Weapons[id] t:SetAttribute("ArenaWeapon",true)
+  local t=self.factory:Create(id,player:GetAttribute("ArenaPistolVisual")) local data=Kits.Weapons[t:GetAttribute("WeaponId")] t:SetAttribute("ArenaWeapon",true)
   if data.Kind=="Gun" then t:SetAttribute("Ammo",data.Magazine) t:SetAttribute("ReserveAmmo",data.Reserve) t:SetAttribute("Reloading",false) gun=t end
   t.Parent=player.Backpack
  end
@@ -54,7 +54,7 @@ function Combat:Damage(player,part,data,id,distance,multiplier)
   local weaponName=id=="ArenaPistol" and tool and tool.Name or data.Name
   self.feedback:FireClient(player,{kind="Kill",victim=target and target.DisplayName or "Alvo de treino",weapon=weaponName,weaponId=id,headshot=headshot,xp=reward.xp,bonusXP=reward.bonusXP,sessionXP=reward.sessionXP,training=reward.training})
   if target then self.feedback:FireClient(target,{kind="Eliminated",character=model,killer=player.Character,killerName=player.DisplayName,weapon=weaponName}) end
-  if target then self.feedback:FireAllClients({kind="ArenaKillFeed",attacker=player.DisplayName,victim=target.DisplayName,weapon=weaponName,headshot=headshot}) end
+  if target then self.feedback:FireAllClients({kind="ArenaKillFeed",killerUserId=player.UserId,victimUserId=target.UserId,attacker=player.DisplayName,victim=target.DisplayName,weapon=weaponName,headshot=headshot}) end
   self.owner:Publish()
  else self.feedback:FireClient(player,{kind="Hit",headshot=headshot}) end
  return true
@@ -80,7 +80,7 @@ end
 function Combat:Attack(player,tool,aim,requestedOrigin,shotId,request)
  local c,data,id=self:Valid(player,tool) if not c then return end
  if data.Kind=="Gun" then
-  Authority.Fire({player=player,character=c,tool=tool,data=data,weapon=id,aim=aim,requestedOrigin=requestedOrigin,shotId=shotId,request=request,cooldown=math.max(1,data.Cooldown),
+  Authority.Fire({player=player,character=c,tool=tool,data=data,weapon=id,aim=aim,requestedOrigin=requestedOrigin,shotId=shotId,request=request,cooldown=data.SourcePack=="ProjectileTest" and data.Cooldown or math.max(1,data.Cooldown),
    valid=function() return self:Valid(player,tool)~=nil end,
    classify=function(model)
     local h=model:FindFirstChildOfClass("Humanoid") if h and h.Health<=0 then return "ignore" end

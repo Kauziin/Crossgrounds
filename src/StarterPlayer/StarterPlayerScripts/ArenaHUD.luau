@@ -36,8 +36,9 @@ local staminaFill=frame(staminaBack,"Fill",0,0,252,6) staminaFill.BackgroundColo
 local notifications=Instance.new("Frame") notifications.Name="Eliminations" notifications.BackgroundTransparency=1 notifications.AnchorPoint=Vector2.new(.5,0) notifications.Position=UDim2.fromScale(.5,.64) notifications.Size=UDim2.fromOffset(420,210) notifications.Parent=gui
 local notificationScale=Instance.new("UIScale") notificationScale.Parent=notifications
 local layout=Instance.new("UIListLayout") layout.Padding=UDim.new(0,5) layout.HorizontalAlignment=Enum.HorizontalAlignment.Center layout.SortOrder=Enum.SortOrder.LayoutOrder layout.Parent=notifications
-local killRows={} local feedRows={} local notificationId=0
-local killFeed=label(gui,"KillFeed","",0,200,360,115,13) killFeed.AnchorPoint=Vector2.new(1,0) killFeed.Position=UDim2.new(1,-24,0,200) killFeed.TextXAlignment=Enum.TextXAlignment.Right killFeed.TextYAlignment=Enum.TextYAlignment.Top killFeed.TextWrapped=true
+local killRows={}  local notificationId=0
+local killFeed=Instance.new("Frame") killFeed.Name="KillFeed" killFeed.BackgroundTransparency=1 killFeed.AnchorPoint=Vector2.new(1,0) killFeed.Position=UDim2.new(1,-24,0,200) killFeed.Size=UDim2.fromOffset(360,180) killFeed.Parent=gui
+local feedView=require(script.Parent:WaitForChild("KillFeedView")).new(killFeed,player,3,5)
 local function clearNotifications()
  for _,row in killRows do if row.Parent then row:Destroy() end end killRows={} feedRows={} killFeed.Text=""
 end
@@ -130,8 +131,7 @@ game.ReplicatedStorage.Events:WaitForChild("CombatFeedback").OnClientEvent:Conne
   elseif sound then voice(sound.SoundId,sound.Volume) end
   task.delay(data.kind=="Kill" and .22 or .12,function() if markerToken==token then marker.Visible=false end end)
  elseif data.kind=="ArenaKillFeed" then
-  table.insert(feedRows,{text=tostring(data.attacker).."  ›  "..tostring(data.victim).."\n"..tostring(data.weapon)..(data.headshot and " · HEADSHOT" or ""),expires=os.clock()+5})
-  while #feedRows>3 do table.remove(feedRows,1) end
+  feedView:Add({killer=data.attacker,victim=data.victim,weapon=data.weapon,headshot=data.headshot,killerUserId=data.killerUserId,victimUserId=data.victimUserId})
  end
 end)
 local elapsed=0
@@ -150,16 +150,15 @@ Run.RenderStepped:Connect(function(dt)
   local portrait=v.Y>v.X
   killFeed.AnchorPoint=portrait and Vector2.new(1,0) or Vector2.new(.5,0)
   killFeed.Position=portrait and UDim2.new(1,-12,0,106) or UDim2.new(.5,0,0,106)
-  killFeed.Size=UDim2.fromOffset(portrait and v.X*.37 or math.min(280,v.X*.34),84) killFeed.TextSize=10
+  killFeed.Size=UDim2.fromOffset(portrait and v.X*.37 or math.min(280,v.X*.34),84)
  else
-  killFeed.AnchorPoint=Vector2.new(1,0) killFeed.Position=UDim2.new(1,-24,0,200) killFeed.Size=UDim2.fromOffset(360,115) killFeed.TextSize=13
+  killFeed.AnchorPoint=Vector2.new(1,0) killFeed.Position=UDim2.new(1,-24,0,200) killFeed.Size=UDim2.fromOffset(360,115)
  end
  notificationScale.Scale=math.min(1,math.max(.45,(v.X-30)/420))
  local lean=Scope:IsArena() and not voteOpen and (player:GetAttribute("CameraMotionRoll") or 0) or 0
  local hudAngle=math.clamp(math.deg(lean)*.45,-1.5,1.5)
  panel.Rotation+=(hudAngle-panel.Rotation)*(1-math.exp(-dt*12))
- for i=#feedRows,1,-1 do if os.clock()>feedRows[i].expires then table.remove(feedRows,i) end end
- local lines={} for _,item in feedRows do table.insert(lines,item.text) end killFeed.Text=table.concat(lines,"\n") killFeed.Visible=not modal and player:GetAttribute("SettingKillFeedVisible")~=false
+ killFeed.Visible=not modal and player:GetAttribute("SettingKillFeedVisible")~=false
  shade.Visible=voteOpen and not player:GetAttribute("ExperienceMenuOpen") player:SetAttribute("ArenaVotingOpen",shade.Visible)
  elapsed+=dt if elapsed<.1 or not Scope:IsArena() then return end elapsed=0
  local seconds=math.max(0,math.ceil(state.paused and (state.remaining or 0) or (state.endsAt or 0)-workspace:GetServerTimeNow()))

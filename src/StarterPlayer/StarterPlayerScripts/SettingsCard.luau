@@ -14,7 +14,7 @@ function Card.new(parent,key,config)
  local rule=config.Settings.Rules[key] local numeric=rule.Min~=nil local Nav=config.Nav local Preferences=config.Preferences
  local row=Instance.new("Frame") row.Name=key row:SetAttribute("SettingsStyled",true) row:SetAttribute("SettingsCard",true) row.BackgroundColor3=C.Card row.BackgroundTransparency=.08 row.BorderSizePixel=0 round(row,13) row.Parent=parent
  local stroke=Instance.new("UIStroke") stroke.Color=C.Border stroke.Transparency=.55 stroke.Parent=row
- local icon=Visual.Icon(row,key:find("Stick") and (key:find("Curve") and "curve" or "target") or rule.Category=="Audio" and "audio" or "gear",30)
+ local icon=Visual.Icon(row,key,30)
  local name=label(row,"Label",16) name.Text=rule.Label name.Font=Enum.Font.GothamBold name.TextWrapped=true
  local description=label(row,"Description",12) description.TextColor3=C.Muted description.TextWrapped=true
  local divider=Instance.new("Frame") divider:SetAttribute("SettingsStyled",true) divider.BackgroundColor3=C.Accent divider.BackgroundTransparency=.6 divider.BorderSizePixel=0 divider.Parent=row

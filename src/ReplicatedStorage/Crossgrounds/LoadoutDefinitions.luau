@@ -5,11 +5,11 @@ function Loadouts.List(mode)
  local ids=mode=="arena" and Kits.ArenaPistolVisuals or mode=="ctf" and Kits.Order or {}
  for i,id in ids do
   local profile=mode=="ctf" and Kits.Profiles[id]
-  local first=profile and profile.Weapons[2] or "ArenaPistol"
+  local first=profile and profile.Weapons[2] or Kits.ArenaGunId(id)
   local second=profile and profile.Weapons[1] or "Sword"
-  table.insert(out,{id=id,number=i,name=Loadouts.Names[mode][id] or ("Loadout "..i),class=profile and profile.Title or "PISTOLA",
+  table.insert(out,{id=id,number=i,name=Loadouts.Names[mode][id] or ("Loadout "..i),class=profile and profile.Title or (first=="AutoBlaster" and "AUTOMÁTICA" or first=="Blaster" and "BLASTER" or "PISTOLA"),
    primary=mode=="arena" and Kits.ArenaPistolNames[id] or Kits.Weapons[first].Name,
-   secondary=Kits.Weapons[second].Name})
+   primaryAsset=mode=="arena" and id or first,secondaryAsset=second,secondary=Kits.Weapons[second].Name})
  end
  return out
 end

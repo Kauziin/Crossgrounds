@@ -14,7 +14,8 @@ function History.Time(now,requested,ping)
  return math.clamp(shot-math.clamp(transit+1/60,1/60,.16),now-History.Window,now)
 end
 -- Slab intersection against a server-captured oriented hitbox.
-function History.Box(origin,direction,range,cf,size)
+function History.Box(origin,direction,range,cf,size,radius)
+ if (radius or 0)>0 then return require(game.ReplicatedStorage.Crossgrounds.SweptSphereBox)(origin,direction,range,cf,size,radius) end
  local o=cf:PointToObjectSpace(origin) local d=cf:VectorToObjectSpace(direction.Unit)
  local near,far=0,range local normal=Vector3.zero
  for _,axis in {Vector3.xAxis,Vector3.yAxis,Vector3.zAxis} do
@@ -126,7 +127,7 @@ function History.Trace(options,time)
     table.insert(ignored,model)
     local nearest
     for part,pose in parts do
-     local distance,normal=History.Box(origin,direction,range,pose.cf,pose.size)
+     local distance,normal=History.Box(origin,direction,range,pose.cf,pose.size,options.radius)
      if distance and (not nearest or distance<nearest.distance) then
       nearest={model=model,distance=distance,hit={Instance=part,Position=origin+direction*distance,Normal=normal,Distance=distance,Material=part.Material}}
      end
@@ -136,7 +137,7 @@ function History.Trace(options,time)
   end
  end
  -- Current world geometry always wins; history never rewinds walls/doors.
- local world=Query.Trace({origin=origin,direction=direction,range=range,shooter=options.shooter,ignore=ignored,
+ local world=Query.Trace({origin=origin,direction=direction,range=range,shooter=options.shooter,ignore=ignored,radius=options.radius,
   classify=function(model) return options.classify(model)=="ignore" and "ignore" or "block" end})
  local obstruction=(world.endpoint-origin).Magnitude
  local currentModel=world.result and Query.ModelFromPart(world.result.Instance)

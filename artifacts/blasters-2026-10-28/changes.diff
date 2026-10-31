@@ -1,0 +1,626 @@
+--- before/ReplicatedStorage\KitDefinitions.luau
++++ after/ReplicatedStorage\KitDefinitions.luau
+@@ -30,6 +30,15 @@
+ Kits.Weapons.SMG.VisualRecoil={Push=.13,Pitch=1.8,Roll=.35,Spring=240,Damping=29}
+ Kits.Weapons.Rifle.VisualRecoil={Push=.32,Pitch=3.6,Roll=.8,Spring=180,Damping=24}
+ Kits.Weapons.Sniper.VisualRecoil={Push=.9,Pitch=7.5,Roll=1.6,Spring=115,Damping=20}
++-- Original Projectile Test firearms; damage remains server authoritative.
++Kits.Weapons.Blaster={Name="Blaster",Kind="Gun",SourcePack="ProjectileTest",Damage=35,Range=1000,Magazine=10,Reserve=100,ReloadTime=1,Cooldown=.1,Automatic=false,Spread=2,ProjectileRadius=.4,ShotVisual={Speed=200,Length=18,Width=.08,SourcePack="ProjectileTest"},FireSound="rbxassetid://17682716783",CameraRecoilMin=Vector2.new(0,15),CameraRecoilMax=Vector2.new(5,20),VisualRecoil={Push=0,Pitch=0,Roll=0}}
++Kits.Weapons.AutoBlaster={Name="AutoBlaster",Kind="Gun",SourcePack="ProjectileTest",Damage=10,Range=1000,Magazine=30,Reserve=180,ReloadTime=1.5,Cooldown=.1,Automatic=true,Spread=2,ProjectileRadius=.4,ShotVisual={Speed=200,Length=18,Width=.08,SourcePack="ProjectileTest"},FireSound="rbxassetid://17682714653",CameraRecoilMin=Vector2.new(-2,5),CameraRecoilMax=Vector2.new(2,7),VisualRecoil={Push=0,Pitch=0,Roll=0}}
++for _,id in {"Blaster","AutoBlaster"} do
++ table.insert(Kits.Order,id)
++ Kits.Profiles[id]={Title=id=="Blaster" and "BLASTER" or "AUTO BLASTER",Description="Projectile Test",WalkSpeed=18,SprintSpeed=25,JumpHeight=7.2,Weapons={"Sword",id}}
++ table.insert(Kits.ArenaPistolVisuals,id) Kits.ArenaPistolNames[id]=id
++end
++function Kits.ArenaGunId(visual) return (visual=="Blaster" or visual=="AutoBlaster") and visual or "ArenaPistol" end
+ -- All existing guns remain instant hitscan. Simulated travel is opt-in per definition.
+ for _,data in Kits.Weapons do if data.Kind=="Gun" then
+  data.ShotType=data.ShotType or "hitscan" data.ProjectilesPerShot=data.ProjectilesPerShot or 1
+--- before/StarterPlayer\StarterPlayerScripts\BlasterCharacterAnimations.luau
++++ after/StarterPlayer\StarterPlayerScripts\BlasterCharacterAnimations.luau
+@@ -0,0 +1,43 @@
++local Players=game:GetService("Players") local Run=game:GetService("RunService")
++local E=require(game.ReplicatedStorage.Crossgrounds.BlasterEffects)
++local active={} local pending={}
++local function register(tool)
++ if not tool:IsA("Tool") or tool:GetAttribute("SourcePack")~="ProjectileTest" or active[tool] or pending[tool] then return end
++ local h=tool.Parent:FindFirstChildOfClass("Humanoid") if not h then return end
++ local animator=h:FindFirstChildOfClass("Animator") if not animator then return end
++ pending[tool]=true
++ local record={character=tool.Parent,tracks={},connections={}}
++ local folder=tool:WaitForChild("Animations",5)
++ if not folder then pending[tool]=nil return end
++ for _,name in {"Idle","Shoot","Reload"}do
++  local animation=folder:WaitForChild(name,5)
++  if not animation then pending[tool]=nil for _,t in record.tracks do t:Stop(0)end return end
++  local track=animator:LoadAnimation(animation) track.Priority=Enum.AnimationPriority.Action track.Looped=animation.Name=="Idle" record.tracks[animation.Name]=track
++  table.insert(record.connections,track:GetMarkerReachedSignal("Sound"):Connect(function(key)
++   local owner=Players:GetPlayerFromCharacter(record.character)
++   if owner~=Players.LocalPlayer or not owner:GetAttribute("FirstPerson") then E.Sound(tool,key)end
++  end))
++ end
++ pending[tool]=nil
++ if tool.Parent~=record.character then for _,t in record.tracks do t:Stop(0)end for _,c in record.connections do c:Disconnect()end return end
++ active[tool]=record
++ record.tracks.Idle:Play(.1)
++end
++workspace.DescendantAdded:Connect(function(v)if v:IsA("Tool")then task.defer(register,v)end end)
++Run.Heartbeat:Connect(function()
++ for tool,r in active do
++  local h=r.character:FindFirstChildOfClass("Humanoid")
++  if tool.Parent~=r.character or not h or h.Health<=0 then
++   for _,t in r.tracks do t:Stop(.1)end for _,c in r.connections do c:Disconnect()end active[tool]=nil
++  else
++   local shot=tool:GetAttribute("PresentationShotAt")
++   if shot and shot~=r.shot then r.shot=shot r.tracks.Shoot:Play(0)end
++   local reload=tool:GetAttribute("Reloading")==true
++   if reload and not r.reload then local t=r.tracks.Reload r.tracks.Shoot:Stop(0)t:Play(.1,1,t.Length>0 and t.Length/math.max(.1,tool:GetAttribute("ReloadDuration")or 1)or 1)
++   elseif not reload and r.reload then r.tracks.Reload:Stop(.1)end
++   if reload and r.tracks.Reload.Length>0 then r.tracks.Reload:AdjustSpeed(r.tracks.Reload.Length/math.max(.1,tool:GetAttribute("ReloadDuration")or 1))end
++   r.reload=reload
++  end
++ end
++end)
++for _,v in workspace:GetDescendants()do if v:IsA("Tool")then register(v)end end
+--- before/StarterPlayer\StarterPlayerScripts\BlasterRenderer.luau
++++ after/StarterPlayer\StarterPlayerScripts\BlasterRenderer.luau
+@@ -0,0 +1,83 @@
++local Renderer={} Renderer.__index=Renderer
++local player=game.Players.LocalPlayer
++local E=require(game.ReplicatedStorage.Crossgrounds.BlasterEffects)
++local Probe=require(script.Parent.LocalLightingProbe)
++local Preferences=require(game.ReplicatedStorage.Crossgrounds.MotionPreferences)
++function Renderer.new(tool)
++ local self=setmetatable({tool=tool,tracks={},connections={},arms={}},Renderer)
++ local gui=Instance.new("ScreenGui") gui.Name="FirstPersonDisplay" gui.DisplayOrder=-10 gui.IgnoreGuiInset=true gui.ResetOnSpawn=false gui.Parent=player.PlayerGui self.gui=gui
++ local viewport=Instance.new("ViewportFrame") viewport.Name="WeaponViewport" viewport.Size=UDim2.fromScale(1,1) viewport.BackgroundTransparency=1 viewport.Parent=gui self.viewport=viewport
++ local camera=Instance.new("Camera") camera.CFrame=CFrame.identity camera.FieldOfView=70 camera.Parent=viewport viewport.CurrentCamera=camera self.camera=camera
++ local world=Instance.new("WorldModel") world.Parent=viewport
++ local model=game.ReplicatedStorage.Crossgrounds.ProjectileTest.ViewModels[tool:GetAttribute("WeaponId")]:Clone()
++ self.Model=model model.Parent=world self.root=model:FindFirstChild("Root") self.muzzle=model:FindFirstChild("MuzzleAttachment",true)
++ for _,v in model:GetDescendants() do if v:IsA("BasePart") then
++  v.Anchored=v==self.root v.CanCollide=false v.CanTouch=false v.CanQuery=false v.CastShadow=false
++ end end
++ -- Keep the source animation rig, and display square R6-named arms with the player's classic skin.
++ local skin=Instance.new("Model") skin.Name="BlockyAvatarArms" skin.Parent=world self.skin=skin
++ local humanoid=Instance.new("Humanoid") humanoid.RequiresNeck=false humanoid.DisplayDistanceType=Enum.HumanoidDisplayDistanceType.None humanoid.Parent=skin
++ for _,class in {"Shirt","BodyColors"} do local v=player.Character and player.Character:FindFirstChildOfClass(class) if v then v:Clone().Parent=skin end end
++ for _,name in {"Torso","Head","HumanoidRootPart","Left Leg","Right Leg"} do local p=Instance.new("Part") p.Name=name p.Transparency=1 p.Anchored=true p.CanCollide=false p.Parent=skin end
++ for _,side in {"Left","Right"} do
++  local source=model:FindFirstChild(side.."Arm") source.Transparency=1
++  local arm=Instance.new("Part") arm.Name=side.." Arm" arm.Size=source.Size arm.Anchored=true arm.CanCollide=false arm.CanTouch=false arm.CanQuery=false arm.CastShadow=false arm.Material=Enum.Material.SmoothPlastic
++  local original=player.Character and (player.Character:FindFirstChild(side.." Arm") or player.Character:FindFirstChild(side.."UpperArm"))
++  arm.Color=original and original.Color or Color3.fromRGB(234,184,146) arm.Parent=skin table.insert(self.arms,{source=source,part=arm})
++ end
++ for _,animation in model.Animations:GetChildren() do
++  local track=model.AnimationController.Animator:LoadAnimation(animation)
++  track.Priority=animation.Name=="Idle" and Enum.AnimationPriority.Idle or Enum.AnimationPriority.Action
++  track.Looped=animation.Name=="Idle" self.tracks[animation.Name]=track
++  for _,c in E.Bind(track,tool,function()return workspace.CurrentCamera.CFrame.Position end) do table.insert(self.connections,c)end
++ end
++ self.tracks.Idle:Play(.1) self.tracks.Equip:Play(0)
++ return self
++end
++function Renderer:SetVisible(on) self.gui.Enabled=on end
++function Renderer:Flash()
++ self.tracks.Shoot:Play(0,Preferences.WeaponWeight(player),1)
++ if self.muzzle then for _,v in self.muzzle:GetChildren() do if v:IsA("ParticleEmitter") then v:Emit(1)end end end
++ self.flashUntil=os.clock()+.045
++end
++function Renderer:Render(dt,camera,character,params)
++ self:SetVisible(true)
++ self.camera.FieldOfView=Preferences.WeaponProjection(camera.FieldOfView,Preferences.Get(player,"WeaponFOVScale",1))
++ self.elapsed=(self.elapsed or 0)+dt
++ if self.elapsed>.15 then self.elapsed=0 local ambient,tint=Probe.Sample(camera,character) self.viewport.Ambient=ambient self.viewport.LightColor=tint end
++ self.viewport.LightDirection=camera.CFrame:VectorToObjectSpace(-game.Lighting:GetSunDirection())
++ local reload=self.tool:GetAttribute("Reloading")==true
++ if reload and not self.reloading then
++  local track=self.tracks.Reload self.tracks.Shoot:Stop(0)
++  track:Play(.1,Preferences.WeaponWeight(player),track.Length>0 and track.Length/math.max(.1,self.tool:GetAttribute("ReloadDuration") or 1)or 1)
++ elseif not reload and self.reloading then self.tracks.Reload:Stop(.1) end
++ self.reloading=reload
++ if reload and self.tracks.Reload.Length>0 then self.tracks.Reload:AdjustSpeed(self.tracks.Reload.Length/math.max(.1,self.tool:GetAttribute("ReloadDuration")or 1))end
++ local velocity=character.HumanoidRootPart.AssemblyLinearVelocity*Vector3.new(1,0,1)
++ self.stride=(self.stride or 0)+velocity.Magnitude*.4*dt
++ local amount=math.min(velocity.Magnitude*.4,1)*.05*Preferences.WeaponWeight(player)
++ local offset=CFrame.new(.9,-1.3-.12*(params.ads or 0),-1.3)
++ self.Model:PivotTo(offset*CFrame.new(math.sin(self.stride)*amount,math.sin(self.stride*2)*amount,0))
++ for _,arm in self.arms do arm.part.CFrame=arm.source.CFrame end
++ -- ViewportFrame particles are not rendered by Roblox; a short visible mesh flash supplies the FP cue.
++ if not self.flash then
++  local p=Instance.new("Part") p.Name="BlasterMuzzleFlash" p.Size=Vector3.new(.13,.13,.42) p.Material=Enum.Material.Neon p.Color=Color3.fromRGB(135,255,211) p.Anchored=true p.CanCollide=false p.Parent=self.Model self.flash=p
++ end
++ self.flash.Transparency=os.clock()<(self.flashUntil or 0) and .12 or 1
++ if self.muzzle then self.flash.CFrame=self.muzzle.WorldCFrame*CFrame.new(0,0,-.2) end
++end
++function Renderer:ShotOrigin(camera)
++ if not self.muzzle then return end
++ local p=self.camera.CFrame:PointToObjectSpace(self.muzzle.WorldPosition) local depth=-p.Z
++ if depth<=.1 then return end
++ local v=camera.ViewportSize local tan=math.tan(math.rad(self.camera.FieldOfView*.5))
++ local x=.5+p.X/(depth*2*tan*v.X/math.max(1,v.Y)) local y=.5-p.Y/(depth*2*tan)
++ local ray=camera:ViewportPointToRay(x*v.X,y*v.Y)
++ return camera.CFrame.Position+ray.Direction*math.min(depth,3)
++end
++function Renderer:Destroy()
++ for _,c in self.connections do c:Disconnect()end
++ for _,t in self.tracks do t:Stop(0)end
++ self.gui:Destroy()
++end
++return Renderer
+--- before/StarterPlayer\StarterPlayerScripts\CombatPresentation.luau
++++ after/StarterPlayer\StarterPlayerScripts\CombatPresentation.luau
+@@ -14,6 +14,8 @@
+ local Kits=require(game.ReplicatedStorage:WaitForChild("KitDefinitions"))
+ local Settings=require(game.ReplicatedStorage:WaitForChild("ExperienceSettings"))
+ local settingRemote=game.ReplicatedStorage.Events:WaitForChild("UpdateExperienceSetting")
++local sourceRecoil=Vector2.zero
++local sourceFovKick=0
+ local yaw,pitch=0,0
+ local stick=Vector2.zero
+ local stickGate={}
+@@ -181,6 +183,7 @@
+ end
+ function Presentation:RenderShot(message)
+  if not Scope:IsCombat() or typeof(message)~="table" or not Shot.Finite(message.endpoint) or not Shot.Finite(message.origin) then return end
++ if message.visual and message.visual.SourcePack=="ProjectileTest" and message.phase~="launch" and message.reason~="range" then require(game.ReplicatedStorage.Crossgrounds.BlasterEffects).Impact(message.endpoint,message.normal,message.reason=="targets") end
+  local own=message.actor==player.Character
+  local entry=own and predicted[message.shotId]
+  if entry then
+@@ -225,7 +228,7 @@
+     shooter=player.Character,classify=classify,radius=config.radius,maxTargets=data.MaxTargets,penetrationLoss=data.PenetrationLoss})
+    table.insert(entry.effects,effect) endpoint=origin+direction*config.range
+   else
+-   endpoint=Query.Trace({origin=origin,direction=direction,range=config.range,shooter=player.Character,ignore=viewmodel and {viewmodel} or {},classify=classify,maxTargets=data.MaxTargets,penetrationLoss=data.PenetrationLoss}).endpoint
++   endpoint=Query.Trace({origin=origin,direction=direction,range=config.range,shooter=player.Character,ignore=viewmodel and {viewmodel} or {},classify=classify,radius=config.radius,maxTargets=data.MaxTargets,penetrationLoss=data.PenetrationLoss}).endpoint
+   end
+   if blocked or config.kind~="projectile" then table.insert(entry.effects,Effects.Trace(origin,endpoint,nil,config.visual)) end
+   player:SetAttribute("LastTraceOrigin",origin) player:SetAttribute("LastTraceEndpoint",endpoint)
+@@ -243,6 +246,7 @@
+ end
+ local function removeViewmodel()
+  if renderer then renderer:Destroy() renderer=nil end viewmodel=nil
++ sourceRecoil=Vector2.zero sourceFovKick=0
+  spring:Reset() carry:Reset() recoil=0 recoilPitch=0 roll=0
+ end
+ local function buildViewmodel(tool)
+@@ -256,6 +260,11 @@
+   tool:SetAttribute("PresentationShotAt",workspace:GetServerTimeNow())
+   if firstPerson and renderer then renderer:Flash() end
+   local profile=data.VisualRecoil or {Push=.08,Roll=.4}
++  if data.SourcePack=="ProjectileTest" then
++   local low,high=data.CameraRecoilMin,data.CameraRecoilMax
++   sourceRecoil+=Vector2.new(math.rad(-(low.X+math.random()*(high.X-low.X))),math.rad(low.Y+math.random()*(high.Y-low.Y)))
++   sourceFovKick=1
++  end
+   spring:Kick(profile,math.random()<.5 and -1 or 1)
+  else swingAt=os.clock() end
+ end
+@@ -384,7 +393,7 @@
+  local movement=setting("StickCurve")==1 and Analog.Dynamic(clean,setting("StickCurveStrength")) or clean
+  local pixels=os.clock()-touchSampleAt<=Intent.TouchTimeout and touchDelta or Vector2.zero touchDelta=Vector2.zero
+  local touchRadians=input==Enum.PreferredInput.Touch and touchLook and Analog.TouchRadians(pixels,camera.ViewportSize.X,setting("LookSensitivity"),aiming and setting("AimSensitivity") or 1) or Vector2.zero
+- touchIntent=touchRadians.Magnitude>0 and Vector2.new(-touchRadians.X,-touchRadians.Y)/(math.max(deltaTime,.001)*2.4) or Vector2.zero
++ touchIntent=Intent.TouchLook(touchIntent,touchRadians,deltaTime,touchLook~=nil,os.clock()-touchSampleAt)
+  if touchIntent.Magnitude>1 then touchIntent=touchIntent.Unit end
+  local assisted local tracking=Vector2.zero
+  assistFriction=1
+@@ -409,8 +418,13 @@
+  if input==Enum.PreferredInput.Touch then
+   yaw-=touchRadians.X*assistFriction pitch=math.clamp(pitch-touchRadians.Y*assistFriction,-1.25,1.25)
+  end
+- if assisted and (locked or firstPerson) then
+-  yaw+=tracking.X pitch=math.clamp(pitch+tracking.Y,-1.25,1.25)
++ if assisted then
++  if locked or firstPerson then yaw+=tracking.X pitch=math.clamp(pitch+tracking.Y,-1.25,1.25)
++  else
++   local scale=camera.ViewportSize.Y/(2*math.tan(math.rad(camera.FieldOfView*.5)))
++   freePoint=(freePoint or camera.ViewportSize*.5)+Vector2.new(-tracking.X,-tracking.Y)*scale
++   freePoint=Vector2.new(math.clamp(freePoint.X,8,camera.ViewportSize.X-8),math.clamp(freePoint.Y,8,camera.ViewportSize.Y-8))
++  end
+  end
+  player:SetAttribute("FilteredRightStick",movement)
+  UIS.MouseBehavior=locked and input==Enum.PreferredInput.KeyboardAndMouse and Enum.MouseBehavior.LockCenter or Enum.MouseBehavior.Default
+@@ -422,6 +436,8 @@
+    protectionRemote:FireServer(character) protectionToken=nil
+   end
+  else protectionToken=nil end
++ yaw+=sourceRecoil.X*dt pitch=math.clamp(pitch+sourceRecoil.Y*dt,-1.25,1.25)
++ sourceRecoil=sourceRecoil:Lerp(Vector2.zero,math.min(dt*10,1))
+  local rotation=CFrame.fromEulerAnglesYXZ(pitch,yaw,0)
+ 
+  local localMove=rotation:VectorToObjectSpace(root.AssemblyLinearVelocity)
+@@ -455,6 +471,7 @@
+  local baseFov=setting("FieldOfView")
+  local sprinting=player:GetAttribute("SprintActive")==true and humanoid.MoveDirection.Magnitude>.1
+  local fov=aiming and baseFov*(tool:GetAttribute("WeaponId")=="Sniper" and 38/70 or 58/70) or baseFov+(sprinting and 6 or 0)
++ sourceFovKick*=math.exp(-deltaTime*20) fov+=sourceFovKick
+  camera.FieldOfView+=(fov-camera.FieldOfView)*MotionPreferences.FOVAlpha(dt,setting("FOVTransitionSpeed"),12)
+  local point=Presentation:GetAimViewport() player:SetAttribute("AimScreenPosition",point)
+  local target=Presentation:GetAimWorld(math.max(850,data.Range+50))
+--- before/StarterPlayer\StarterPlayerScripts\FirstPersonRenderer.luau
++++ after/StarterPlayer\StarterPlayerScripts\FirstPersonRenderer.luau
+@@ -8,6 +8,7 @@
+  p.Anchored=true p.CanCollide=false p.CanTouch=false p.CanQuery=false p.CastShadow=false p.LocalTransparencyModifier=0
+ end
+ function Renderer.new(tool)
++ if tool:GetAttribute("SourcePack")=="ProjectileTest" then return require(script.Parent.BlasterRenderer).new(tool) end
+  local self=setmetatable({parts={},arms={},wall=0,flashUntil=0,tool=tool},Renderer)
+  local gui=Instance.new("ScreenGui") gui.Name="FirstPersonDisplay" gui.DisplayOrder=-10 gui.IgnoreGuiInset=true gui.ResetOnSpawn=false gui.Parent=player.PlayerGui self.gui=gui
+  local viewport=Instance.new("ViewportFrame") viewport.Name="WeaponViewport" viewport.Size=UDim2.fromScale(1,1) viewport.BackgroundTransparency=1 viewport.Ambient=Color3.fromRGB(170,180,190) viewport.LightColor=Color3.fromRGB(255,244,223) viewport.LightDirection=Vector3.new(-1,-2,-3) viewport.Parent=gui self.viewport=viewport
+--- before/StarterPlayer\StarterPlayerScripts\LoadoutMenuView.luau
++++ after/StarterPlayer\StarterPlayerScripts\LoadoutMenuView.luau
+@@ -94,7 +94,7 @@
+  local function show(entry)
+   focusedId=entry.id
+   if previewId==entry.id then return end previewId=entry.id
+-  number.Text=tostring(entry.number) caption.Text="LOADOUT "..entry.number weaponName.Text=entry.primary large.SetAsset(entry.id)
++  number.Text=tostring(entry.number) caption.Text="LOADOUT "..entry.number weaponName.Text=entry.primary kind.Text=entry.class large.SetAsset(entry.id)
+   preview:SetAttribute("LoadoutId",entry.id)
+  end
+  for i,entry in config.Loadouts do
+@@ -102,7 +102,7 @@
+   local selectedEdge=edge(b,accent,2.5,1) local glow=edge(b,accent,7,1)
+   local model=viewport(b,"WeaponModel",entry.id,false) model.Frame.Position=UDim2.fromScale(.30,.04) model.Frame.Size=UDim2.fromScale(.68,.68)
+   local badge=text(b,"Number",tostring(entry.number),16,true) badge.Position=UDim2.fromOffset(12,10) badge.Size=UDim2.fromOffset(28,28) badge.TextXAlignment=Enum.TextXAlignment.Center badge.BackgroundColor3=Color3.fromRGB(54,66,80) badge.BackgroundTransparency=.16 round(badge,7)
+-  local class=text(b,"Class","PISTOLA",10,false) class.Position=UDim2.new(0,12,.44,0) class.Size=UDim2.new(1,-24,0,16) class.TextColor3=muted
++  local class=text(b,"Class",entry.class,10,false) class.Position=UDim2.new(0,12,.44,0) class.Size=UDim2.new(1,-24,0,16) class.TextColor3=muted
+   local name=text(b,"WeaponName",entry.primary,18,true) name.Position=UDim2.new(0,12,.59,0) name.Size=UDim2.new(1,-24,0,24)
+   local secondary=text(b,"Melee","Executor · corpo a corpo",11,false) secondary.Position=UDim2.new(0,12,1,-25) secondary.Size=UDim2.new(1,-24,0,18) secondary.TextColor3=muted
+   rows[i]={Button=b,Entry=entry,Edge=selectedEdge,Glow=glow,Name=name}
+--- before/StarterPlayer\StarterPlayerScripts\TargetingAssist.luau
++++ after/StarterPlayer\StarterPlayerScripts\TargetingAssist.luau
+@@ -2,10 +2,12 @@
+ local Players=game:GetService("Players") local player=Players.LocalPlayer
+ local Scope=require(script.Parent:WaitForChild("ModeScope")) local Mode=require(script.Parent:WaitForChild("InputMode"))
+ local Math=require(game.ReplicatedStorage.Crossgrounds.AimAssist)
+-local models=setmetatable({},{__mode="k"}) local refreshed=-100 local candidates={}
++local models={} local refreshed=-100 local candidates={}
+ local state=Math.NewState()
+ local function track(item) if item:IsA("Humanoid") and item.Parent:IsA("Model") then models[item.Parent]=item end end
+-workspace.DescendantAdded:Connect(track) for _,item in workspace:GetDescendants() do track(item) end
++workspace.DescendantAdded:Connect(track)
++workspace.DescendantRemoving:Connect(function(item) if item:IsA("Humanoid") then models[item.Parent]=nil end end)
++for _,item in workspace:GetDescendants() do track(item) end
+ function Assist:Reset()
+  refreshed=-100 candidates={} Math.Reset(state)
+  player:SetAttribute("AimAssistActive",false) player:SetAttribute("AimAssistFriction",1)
+@@ -15,7 +17,9 @@
+  local other=Players:GetPlayerFromCharacter(model) local team=player.Team
+  local allied=ctf and team and ((other and other.Team==team) or model:GetAttribute("CTFTeam")==team.Name)
+  local protected=math.max(model:GetAttribute("SpawnProtectedUntil") or 0,model:GetAttribute("ArenaProtectedUntil") or 0)>now
+- return Math.Eligible({mode=Scope:Get(),health=h.Health,allied=allied,protected=protected,
++ local lobby=workspace:FindFirstChild("CTFLobby")
++ local practice=ctf and player.Character and player.Character:GetAttribute("AtLobby")==true
++ return Math.Eligible({practiceShooter=practice,targetPractice=lobby and model:IsDescendantOf(lobby) and model:GetAttribute("PracticeDummy")==true,mode=Scope:Get(),health=h.Health,allied=allied,protected=protected,
+   shooterActive=player:GetAttribute(ctf and "InArena" or "ArenaPlaying"),
+   targetActive=other and other:GetAttribute(ctf and "InArena" or "ArenaPlaying"),
+   targetBot=model:GetAttribute("CTFBot"),
+@@ -23,6 +27,7 @@
+ end
+ function Assist:Target(view,point,camera,range,enabled,strength,firearm,viewmodel,aiming,context)
+  local input=Mode:Get()
++ player:SetAttribute("AimAssistInput",input.Name)
+  if not enabled or strength<=0 or not firearm or not Scope:IsCombat() or input~=Enum.PreferredInput.Gamepad and input~=Enum.PreferredInput.Touch then self:Reset() return nil,1,Vector2.zero end
+  if os.clock()-refreshed>.08 then
+   refreshed=os.clock() candidates={}
+@@ -51,6 +56,7 @@
+    end
+   end
+  end
++ player:SetAttribute("AimAssistEligibleTargets",#active)
+  local ray=camera:ViewportPointToRay(point.X,point.Y)
+  local direction=view:VectorToWorldSpace(camera.CFrame:VectorToObjectSpace(ray.Direction))
+  local params=RaycastParams.new() params.FilterType=Enum.RaycastFilterType.Exclude params.FilterDescendantsInstances=ignore
+--- before/StarterPlayer\StarterPlayerScripts\WeaponController.luau
++++ after/StarterPlayer\StarterPlayerScripts\WeaponController.luau
+@@ -32,7 +32,7 @@
+  local data=Kits.Weapons[equipped:GetAttribute("WeaponId")] if not data then return end
+  if equipped:GetAttribute("Reloading") then return end
+  if data.Kind=="Gun" and prediction:Available(equipped)<=0 then reload:FireServer(equipped) nextUse=os.clock()+.3 return end
+- local now=os.clock() local cooldown=Scope:IsArena() and math.max(1,data.Cooldown) or data.Cooldown
++ local now=os.clock() local cooldown=Scope:IsArena() and data.SourcePack~="ProjectileTest" and math.max(1,data.Cooldown) or data.Cooldown
+  -- Preserve the schedule across small frame overruns; never send a catch-up burst.
+  nextUse=nextUse==0 and now+cooldown or math.max(nextUse+cooldown,now+cooldown-.025)
+  local target,cameraOrigin,cameraDirection,hit=Presentation:GetAimWorld(data.Range+12)
+@@ -54,9 +54,11 @@
+ Router:Register("ReloadInteract",function(state)
+  if state==Enum.UserInputState.Begin then
+   scan() local data=equipped and Kits.Weapons[equipped:GetAttribute("WeaponId")]
+-  if canUse() and data and data.Kind=="Gun" and ((equipped:GetAttribute("Ammo") or 0)<data.Magazine and (equipped:GetAttribute("ReserveAmmo") or 0)>0 or equipped:GetAttribute("Reloading")) then
+-   if not equipped:GetAttribute("Reloading") then reload:FireServer(equipped) end
+-  else Interaction:Begin() end
++  if Interaction:Nearest() then Interaction:Begin()
++  elseif canUse() and data and data.Kind=="Gun" and not equipped:GetAttribute("Reloading")
++   and (equipped:GetAttribute("Ammo") or 0)<data.Magazine and (equipped:GetAttribute("ReserveAmmo") or 0)>0 then
++   reload:FireServer(equipped)
++  end
+  else Interaction:End() end
+  return Enum.ContextActionResult.Sink
+ end,{touch=true,title="RECARGA / USAR",position=UDim2.fromScale(.74,.7),scope="interaction"})
+@@ -70,7 +72,7 @@
+ Router:Register("SwitchWeapon",function(state)
+  if state==Enum.UserInputState.Begin and not Presentation:IsBlocked() then
+   local c=player.Character local h=c and c:FindFirstChildOfClass("Humanoid") local profile=Kits.Profiles[player:GetAttribute("SelectedKit")]
+-  local weapons=require(script.Parent.ModeScope):IsArena() and Kits.ArenaWeapons or profile and profile.Weapons
++  local weapons=require(script.Parent.ModeScope):IsArena() and {Kits.ArenaWeapons[1],Kits.ArenaGunId(player:GetAttribute("ArenaPistolVisual"))} or profile and profile.Weapons
+   if not h or not weapons or h.Health<=0 then return end
+   local id=equipped and equipped:GetAttribute("WeaponId") local nextId=weapons[1]==id and weapons[2] or weapons[1]
+   for _,container in {player.Backpack,c} do for _,t in container:GetChildren() do if t:IsA("Tool") and t:GetAttribute("WeaponId")==nextId then h:EquipTool(t) return end end end
+@@ -105,5 +107,4 @@
+   if held and data.Kind=="Gun" and data.Automatic then use() end
+  end
+  if Presentation:IsBlocked() then held=false Presentation:SetFiring(false) end
+- for _,name in {"Fire","ReloadInteract","Aim","Sprint"} do local b=CAS:GetButton("CTFControl"..name) if b then b.Visible=not Presentation:IsBlocked() and (name=="Sprint" or name=="ReloadInteract" or data~=nil) end end
+ end)
+--- before/ServerScriptService\Crossgrounds\ArenaCombat.luau
++++ after/ServerScriptService\Crossgrounds\ArenaCombat.luau
+@@ -19,7 +19,7 @@
+  local c=player.Character local h=c and c:FindFirstChildOfClass("Humanoid")
+  if not h or h.Health<=0 or typeof(tool)~="Instance" or not tool:IsA("Tool") or tool.Parent~=c or tool:GetAttribute("ArenaWeapon")~=true then return end
+  local id=tool:GetAttribute("WeaponId")
+- if not table.find(Kits.ArenaWeapons,id) then return end
++ if id~="Sword" and id~=Kits.ArenaGunId(player:GetAttribute("ArenaPistolVisual")) then return end
+  return c,Kits.Weapons[id],id
+ end
+ function Combat:Strip(player)
+@@ -29,7 +29,7 @@
+ function Combat:Equip(player)
+  self:Strip(player) local gun
+  for _,id in Kits.ArenaWeapons do
+-  local t=self.factory:Create(id,player:GetAttribute("ArenaPistolVisual")) local data=Kits.Weapons[id] t:SetAttribute("ArenaWeapon",true)
++  local t=self.factory:Create(id,player:GetAttribute("ArenaPistolVisual")) local data=Kits.Weapons[t:GetAttribute("WeaponId")] t:SetAttribute("ArenaWeapon",true)
+   if data.Kind=="Gun" then t:SetAttribute("Ammo",data.Magazine) t:SetAttribute("ReserveAmmo",data.Reserve) t:SetAttribute("Reloading",false) gun=t end
+   t.Parent=player.Backpack
+  end
+@@ -80,7 +80,7 @@
+ function Combat:Attack(player,tool,aim,requestedOrigin,shotId,request)
+  local c,data,id=self:Valid(player,tool) if not c then return end
+  if data.Kind=="Gun" then
+-  Authority.Fire({player=player,character=c,tool=tool,data=data,weapon=id,aim=aim,requestedOrigin=requestedOrigin,shotId=shotId,request=request,cooldown=math.max(1,data.Cooldown),
++  Authority.Fire({player=player,character=c,tool=tool,data=data,weapon=id,aim=aim,requestedOrigin=requestedOrigin,shotId=shotId,request=request,cooldown=data.SourcePack=="ProjectileTest" and data.Cooldown or math.max(1,data.Cooldown),
+    valid=function() return self:Valid(player,tool)~=nil end,
+    classify=function(model)
+     local h=model:FindFirstChildOfClass("Humanoid") if h and h.Health<=0 then return "ignore" end
+--- before/ServerScriptService\Crossgrounds\ShotAuthority.luau
++++ after/ServerScriptService\Crossgrounds\ShotAuthority.luau
+@@ -48,7 +48,7 @@
+    visual=config.visual,reason=result.reason,normal=result.result and result.result.Normal})
+  end
+  for _,direction in directions do
+-  local options={origin=origin,direction=direction,range=config.range,shooter=c,maxTargets=data.MaxTargets,
++  local options={origin=origin,direction=direction,range=config.range,shooter=c,radius=config.radius,maxTargets=data.MaxTargets,
+    penetrationLoss=data.PenetrationLoss,classify=o.classify,onHit=o.onHit}
+   if blocked then
+    local result={endpoint=blocked.Position,reason="wall",result=blocked} table.insert(rays,result) visual(result,direction,"blocked")
+--- before/ServerScriptService\Crossgrounds\ShotHistory.luau
++++ after/ServerScriptService\Crossgrounds\ShotHistory.luau
+@@ -14,7 +14,8 @@
+  return math.clamp(shot-math.clamp(transit+1/60,1/60,.16),now-History.Window,now)
+ end
+ -- Slab intersection against a server-captured oriented hitbox.
+-function History.Box(origin,direction,range,cf,size)
++function History.Box(origin,direction,range,cf,size,radius)
++ if (radius or 0)>0 then return require(game.ReplicatedStorage.Crossgrounds.SweptSphereBox)(origin,direction,range,cf,size,radius) end
+  local o=cf:PointToObjectSpace(origin) local d=cf:VectorToObjectSpace(direction.Unit)
+  local near,far=0,range local normal=Vector3.zero
+  for _,axis in {Vector3.xAxis,Vector3.yAxis,Vector3.zAxis} do
+@@ -126,7 +127,7 @@
+     table.insert(ignored,model)
+     local nearest
+     for part,pose in parts do
+-     local distance,normal=History.Box(origin,direction,range,pose.cf,pose.size)
++     local distance,normal=History.Box(origin,direction,range,pose.cf,pose.size,options.radius)
+      if distance and (not nearest or distance<nearest.distance) then
+       nearest={model=model,distance=distance,hit={Instance=part,Position=origin+direction*distance,Normal=normal,Distance=distance,Material=part.Material}}
+      end
+@@ -136,7 +137,7 @@
+   end
+  end
+  -- Current world geometry always wins; history never rewinds walls/doors.
+- local world=Query.Trace({origin=origin,direction=direction,range=range,shooter=options.shooter,ignore=ignored,
++ local world=Query.Trace({origin=origin,direction=direction,range=range,shooter=options.shooter,ignore=ignored,radius=options.radius,
+   classify=function(model) return options.classify(model)=="ignore" and "ignore" or "block" end})
+  local obstruction=(world.endpoint-origin).Magnitude
+  local currentModel=world.result and Query.ModelFromPart(world.result.Instance)
+--- before/ServerScriptService\MainGameScript\GameManager\WeaponFactory.luau
++++ after/ServerScriptService\MainGameScript\GameManager\WeaponFactory.luau
+@@ -247,6 +247,8 @@
+  tool:SetAttribute("TwoHanded",true) tool.Grip=CFrame.new(0,-.15,-.2)
+ end
+ function Factory:Create(id,visual)
++ if id=="ArenaPistol" then id=Kits.ArenaGunId(visual) end
++ if id=="Blaster" or id=="AutoBlaster" then return require(game.ReplicatedStorage.Crossgrounds.BlasterWeapons).Create(id) end
+  local data=Kits.Weapons[id] if not data then return end
+  local tool=Instance.new("Tool") tool.Name=data.Name tool.ToolTip=data.Name tool.CanBeDropped=false
+  tool:SetAttribute("ShotSeed",Random.new():NextInteger(1,2147483646)) tool:SetAttribute("ShotAmmoVersion",1)
+--- before/ReplicatedStorage\Crossgrounds\AimAssist.luau
++++ after/ReplicatedStorage\Crossgrounds\AimAssist.luau
+@@ -13,6 +13,7 @@
+  return Vector2.new(math.atan2(-delta.X,-delta.Z),math.asin(math.clamp(delta.Unit.Y,-1,1)))
+ end
+ function Assist.Eligible(state)
++ if state.practiceShooter then return state.mode=="ctf" and state.targetPractice==true and state.health>0 and not state.protected end
+  if state.health<=0 or state.allied or state.protected or not state.shooterActive then return false end
+  if state.mode=="ctf" then return state.targetActive or state.targetBot or false end
+  if state.mode=="arena" then return state.targetActive or state.targetTraining or false end
+@@ -72,7 +73,7 @@
+ end
+ function Assist.Step(state,window,context)
+  local dt=context.dt or 0 local strength=math.clamp(context.strength or 0,0,1)
+- if not window or strength<=0 or dt<=0 or dt>.075 then Assist.Reset(state) return 1,Vector2.zero end
++ if not window or strength<=0 or dt<=0 or dt>.15 then Assist.Reset(state) return 1,Vector2.zero end
+  local input=context.look or Vector2.zero
+  local magnitude=math.min(1,input.Magnitude)
+  local friction,trackingRange,escape=Assist.Friction(state,window,context)
+@@ -111,9 +112,10 @@
+  if state.age<Assist.Tuning.Reaction then return state.friction,Vector2.zero end
+  local ramp=smooth(Assist.Tuning.Reaction,Assist.Tuning.Reaction+Assist.Tuning.Ramp,state.age)
+  local gain=Assist.Tuning.TrackingFraction*strength*math.clamp(context.tracking or 1,0,1)*trackingRange*window.weight^2*gate*escape*ramp
+- local delta=state.velocity*dt*gain
+- local yawLimit=math.rad(Assist.Tuning.MaxYawRate)*strength*trackingRange*dt
+- local pitchLimit=math.rad(Assist.Tuning.MaxPitchRate)*strength*trackingRange*dt
++ local correctionDt=math.min(dt,.05)
++ local delta=state.velocity*correctionDt*gain
++ local yawLimit=math.rad(Assist.Tuning.MaxYawRate)*strength*trackingRange*correctionDt
++ local pitchLimit=math.rad(Assist.Tuning.MaxPitchRate)*strength*trackingRange*correctionDt
+ 
+  -- Each axis yields immediately when the user lets go or looks the other way.
+  local x=math.abs(input.X)>.025 and input.X*delta.X>0 and math.clamp(delta.X,-yawLimit,yawLimit) or 0
+--- before/ReplicatedStorage\Crossgrounds\AimAssistIntent.luau
++++ after/ReplicatedStorage\Crossgrounds\AimAssistIntent.luau
+@@ -10,4 +10,10 @@
+  elseif c.device~="gamepad" then return Vector2.zero end
+  return look.Magnitude>1 and look.Unit or look
+ end
++function Intent.TouchLook(previous,radians,dt,owned,age)
++ if not owned or age<0 or age>Intent.TouchTimeout then return Vector2.zero end
++ if radians.Magnitude==0 then return previous or Vector2.zero end
++ local look=Vector2.new(-radians.X,-radians.Y)/(math.max(dt,.001)*2.4)
++ return look.Magnitude>1 and look.Unit or look
++end
+ return table.freeze(Intent)
+--- before/ReplicatedStorage\Crossgrounds\BlasterEffects.luau
++++ after/ReplicatedStorage\Crossgrounds\BlasterEffects.luau
+@@ -0,0 +1,42 @@
++local E={}
++local Debris=game:GetService("Debris") local Tween=game:GetService("TweenService")
++function E.Flash(tool)
++ local muzzle=tool:FindFirstChild("MuzzleAttachment",true)
++ if muzzle then for _,v in muzzle:GetChildren() do if v:IsA("ParticleEmitter") then v:Emit(1) end end end
++end
++function E.Sound(tool,key,position)
++ local folder=tool:FindFirstChild("Sounds") local template=folder and folder:FindFirstChild(key)
++ if not template then return end
++ if template:IsA("Folder") then local list=template:GetChildren() if #list==0 then return end template=list[math.random(#list)] end
++ local holder=Instance.new("Part") holder.Name="BlasterAudio" holder.Size=Vector3.one*.05 holder.Transparency=1 holder.Anchored=true holder.CanCollide=false holder.CanTouch=false holder.CanQuery=false
++ holder.Position=position or (tool:FindFirstChild("Handle") and tool.Handle.Position or Vector3.zero)
++ local s=Instance.new("Sound") s.SoundId=template:IsA("AudioPlayer") and template.Asset or template.SoundId
++ local p=game.Players.LocalPlayer local gain=p and p:GetAttribute("SettingGameSFXVolume") or .5
++ s.Volume=template.Volume*(gain or .5) s.PlaybackSpeed=template.PlaybackSpeed s.RollOffMaxDistance=180 s.RollOffMinDistance=12
++ s.Parent=holder holder.Parent=workspace s.Ended:Once(function()holder:Destroy()end) Debris:AddItem(holder,8) s:Play()
++ return holder
++end
++function E.Bind(track,tool,position)
++ local c={}
++ table.insert(c,track:GetMarkerReachedSignal("Sound"):Connect(function(key) E.Sound(tool,key,position and position()) end))
++ -- Shoot is played immediately once by shot prediction/replication, never twice by a marker.
++ return c
++end
++function E.Trace(origin,endpoint)
++ local part=game.ReplicatedStorage.Crossgrounds.ProjectileTest.Objects.LaserBeam:Clone()
++ part.CFrame=CFrame.lookAt(origin,endpoint) part.Anchored=true part.CanCollide=false part.CanTouch=false part.CanQuery=false
++ local beam=part:FindFirstChildOfClass("Beam") local a,b=beam.Attachment0,beam.Attachment1
++ a.Position=Vector3.zero b.Position=Vector3.new(0,0,-(endpoint-origin).Magnitude) part.Parent=workspace
++ local duration=math.max(.02,(endpoint-origin).Magnitude/200)
++ local tween=Tween:Create(a,TweenInfo.new(duration,Enum.EasingStyle.Linear),{Position=b.Position})
++ tween:Play() Debris:AddItem(part,duration+.1)
++ return {blaster=true,part=part,target=b}
++end
++function E.Impact(position,normal,character)
++ local name=character and "CharacterImpact" or "EnvironmentImpact"
++ local part=game.ReplicatedStorage.Crossgrounds.ProjectileTest.Objects[name]:Clone()
++ part.CFrame=CFrame.lookAt(position,position+(normal or Vector3.yAxis)) part.Parent=workspace
++ for _,v in part:GetDescendants() do if v:IsA("ParticleEmitter") then v:Emit(v.Name:lower():find("circle") and 2 or 10) end end
++ Debris:AddItem(part,.5)
++end
++return E
+--- before/ReplicatedStorage\Crossgrounds\BlasterWeapons.luau
++++ after/ReplicatedStorage\Crossgrounds\BlasterWeapons.luau
+@@ -0,0 +1,18 @@
++local Weapons={}
++local Kits=require(game.ReplicatedStorage.KitDefinitions)
++function Weapons.Create(id)
++ local data=Kits.Weapons[id] assert(data and data.SourcePack=="ProjectileTest","Unknown blaster")
++ local tool=game.ReplicatedStorage.Crossgrounds.ProjectileTest.Tools[id]:Clone()
++ tool.Name=data.Name tool.CanBeDropped=false
++ tool:SetAttribute("WeaponId",id) tool:SetAttribute("WeaponKind","Gun") tool:SetAttribute("SourcePack","ProjectileTest")
++ tool:SetAttribute("TwoHanded",false) tool:SetAttribute("ModelVersion",1)
++ tool:SetAttribute("Ammo",data.Magazine) tool:SetAttribute("ReserveAmmo",data.Reserve) tool:SetAttribute("Reloading",false)
++ tool:SetAttribute("ShotSeed",Random.new():NextInteger(1,2147483646)) tool:SetAttribute("ShotAmmoVersion",1)
++ local h=tool.Handle h.Transparency=1
++ for _,v in tool:GetDescendants() do if v:IsA("BasePart") then v.Anchored=false v.CanCollide=false v.CanTouch=false v.CanQuery=false v.Massless=true end end
++ local source=h:FindFirstChild("MuzzleAttachment",true) or tool:FindFirstChild("MuzzleAttachment",true)
++ local muzzle=Instance.new("Attachment") muzzle.Name="Muzzle" muzzle.CFrame=source and h.CFrame:ToObjectSpace(source.WorldCFrame) or CFrame.new(0,0,-2) muzzle.Parent=h
++ tool:SetAttribute("RestGrip",tool.Grip)
++ return tool
++end
++return Weapons
+--- before/ReplicatedStorage\Crossgrounds\LoadoutDefinitions.luau
++++ after/ReplicatedStorage\Crossgrounds\LoadoutDefinitions.luau
+@@ -5,9 +5,9 @@
+  local ids=mode=="arena" and Kits.ArenaPistolVisuals or mode=="ctf" and Kits.Order or {}
+  for i,id in ids do
+   local profile=mode=="ctf" and Kits.Profiles[id]
+-  local first=profile and profile.Weapons[2] or "ArenaPistol"
++  local first=profile and profile.Weapons[2] or Kits.ArenaGunId(id)
+   local second=profile and profile.Weapons[1] or "Sword"
+-  table.insert(out,{id=id,number=i,name=Loadouts.Names[mode][id] or ("Loadout "..i),class=profile and profile.Title or "PISTOLA",
++  table.insert(out,{id=id,number=i,name=Loadouts.Names[mode][id] or ("Loadout "..i),class=profile and profile.Title or (first=="AutoBlaster" and "AUTOMÁTICA" or first=="Blaster" and "BLASTER" or "PISTOLA"),
+    primary=mode=="arena" and Kits.ArenaPistolNames[id] or Kits.Weapons[first].Name,
+    secondary=Kits.Weapons[second].Name})
+  end
+--- before/ReplicatedStorage\Crossgrounds\SweptSphereBox.luau
++++ after/ReplicatedStorage\Crossgrounds\SweptSphereBox.luau
+@@ -0,0 +1,27 @@
++-- Exact ray distance to a rounded OBB; used for rewound sphere shots, not expanded-box corners.
++return function(origin,direction,range,cf,size,radius)
++ local o=cf:PointToObjectSpace(origin) local d=cf:VectorToObjectSpace(direction.Unit)
++ local half=size*.5 local axes={Vector3.xAxis,Vector3.yAxis,Vector3.zAxis}
++ local breaks={0,range}
++ for _,axis in axes do local v=d:Dot(axis)
++  if math.abs(v)>1e-9 then for _,sign in {-1,1}do local t=(sign*half:Dot(axis)-o:Dot(axis))/v if t>0 and t<range then table.insert(breaks,t)end end end
++ end
++ table.sort(breaks)
++ for i=1,#breaks-1 do
++  local lo,hi=breaks[i],breaks[i+1] local mid=(lo+hi)*.5 local a,b,c=0,0,-radius*radius
++  for _,axis in axes do
++   local p,v,h=o:Dot(axis),d:Dot(axis),half:Dot(axis)
++   local at=p+v*mid local q
++   if at < -h then q=p+h elseif at>h then q=p-h end
++   if q then a+=v*v b+=2*q*v c+=q*q end
++  end
++  local t
++  if a*lo*lo+b*lo+c<=1e-8 then t=lo
++  elseif a>1e-12 then local disc=b*b-4*a*c if disc>=0 then local root=(-b-math.sqrt(disc))/(2*a) if root>=lo-1e-7 and root<=hi+1e-7 then t=math.max(lo,root)end end end
++  if t then
++   local point=o+d*t local nearest=Vector3.new(math.clamp(point.X,-half.X,half.X),math.clamp(point.Y,-half.Y,half.Y),math.clamp(point.Z,-half.Z,half.Z))
++   local normal=point-nearest
++   return t,cf:VectorToWorldSpace(normal.Magnitude>1e-7 and normal.Unit or -d)
++  end
++ end
++end
+--- before/ReplicatedStorage\Crossgrounds\WeaponEffects.luau
++++ after/ReplicatedStorage\Crossgrounds\WeaponEffects.luau
+@@ -18,6 +18,7 @@
+  local light=Instance.new("PointLight") light.Name="MuzzleFlash" light.Color=Color3.fromRGB(255,208,116) light.Brightness=3*strength light.Range=9*strength light.Enabled=false light.Parent=muzzle
+ end
+ function Effects.Play(tool)
++ if tool and tool:GetAttribute("SourcePack")=="ProjectileTest" then return require(script.Parent.BlasterEffects).Flash(tool) end
+  local handle=tool and tool:FindFirstChild("Handle") local muzzle=handle and handle:FindFirstChild("Muzzle")
+  if not muzzle then return end
+  local burst=muzzle:FindFirstChild("MuzzleBurst") local beam=muzzle:FindFirstChild("MuzzleFlame") local light=muzzle:FindFirstChild("MuzzleFlash")
+@@ -31,6 +32,7 @@
+ end
+ -- Each tail has an independent spatial emitter, surviving reloads/weapon swaps.
+ function Effects.PlaySound(tool)
++ if tool and tool:GetAttribute("SourcePack")=="ProjectileTest" then return require(script.Parent.BlasterEffects).Sound(tool,"Shoot") end
+  local handle=tool and tool:FindFirstChild("Handle") local source=handle and handle:FindFirstChild("FireSound")
+  if not source then return end
+  local muzzle=handle:FindFirstChild("Muzzle")
+@@ -43,9 +45,12 @@
+  return emitter
+ end
+ local Cosmetics=require(script.Parent.ShotCosmetics)
+-Effects.Trace=Cosmetics.Trace
+-Effects.CancelTrace=Cosmetics.Cancel
+-Effects.CorrectTrace=Cosmetics.Correct
++Effects.Trace=function(origin,endpoint,color,visual)
++ if visual and visual.SourcePack=="ProjectileTest" then return require(script.Parent.BlasterEffects).Trace(origin,endpoint) end
++ return Cosmetics.Trace(origin,endpoint,color,visual)
++end
++Effects.CancelTrace=function(entry) if entry and entry.blaster then entry.part:Destroy() else Cosmetics.Cancel(entry) end end
++Effects.CorrectTrace=function(entry,endpoint) if entry and entry.blaster then if entry.part.Parent then entry.target.WorldPosition=endpoint end else Cosmetics.Correct(entry,endpoint) end end
+ Effects.Projectile=Cosmetics.Projectile
+ Effects.FinishProjectile=Cosmetics.Finish
+ return Effects

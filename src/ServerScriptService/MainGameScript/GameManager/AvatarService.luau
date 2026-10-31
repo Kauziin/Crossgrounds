@@ -15,7 +15,8 @@ local function collect(player)
 end
 local function decorate(bot,team)
  local h=bot:FindFirstChildOfClass("Humanoid") if not h then return end
- h.DisplayDistanceType=Enum.HumanoidDisplayDistanceType.None
+ h.DisplayDistanceType=Enum.HumanoidDisplayDistanceType.Viewer
+ h.NameDisplayDistance=0 h.HealthDisplayDistance=45 h.HealthDisplayType=Enum.HumanoidHealthDisplayType.AlwaysOn
  local tint=team.TeamColor.Color
  local highlight=bot:FindFirstChild("TeamOutline") or Instance.new("Highlight")
  highlight.Name="TeamOutline" highlight.FillTransparency=1 highlight.OutlineTransparency=.5 highlight.OutlineColor=tint highlight.DepthMode=Enum.HighlightDepthMode.Occluded highlight.Parent=bot

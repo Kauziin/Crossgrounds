@@ -1,0 +1,82 @@
+return function(t)
+ local Shot=require(game.ReplicatedStorage.Crossgrounds.ShotMath)
+ local Sim=require(game.ReplicatedStorage.Crossgrounds.ProjectileSimulation)
+ local Ledger=require(game.ReplicatedStorage.Crossgrounds.ShotLedger)
+ local Prediction=require(game.ReplicatedStorage.Crossgrounds.ShotPrediction)
+ t.test("all existing guns retain hitscan and their cadence",function()
+  local kits=require(game.ReplicatedStorage.KitDefinitions)
+  for _,data in kits.Weapons do if data.Kind=="Gun" then t.expect.equal(Shot.Config(data).kind,"hitscan") t.expect.equal(Shot.Config(data).pellets,data.ProjectilesPerShot) end end
+  t.expect.equal(kits.Weapons.ArenaPistol.Cooldown,1) t.expect.equal(kits.Weapons.Sniper.MaxTargets,2)
+ end)
+ t.test("spread is repeatable across client/server and varies between pellets",function()
+  local a=Shot.Direction(Vector3.zAxis,.7,13,10,1)
+  t.expect.equal(a,Shot.Direction(Vector3.zAxis,.7,13,10,1))
+  t.expect.truthy((a-Shot.Direction(Vector3.zAxis,.7,13,10,2)).Magnitude>.00001)
+  t.expect.truthy(a:Dot(Vector3.zAxis)>.999)
+  t.expect.equal(Shot.Direction(Vector3.zero,.7,1,1,1),nil)
+  t.expect.falsy(Shot.Finite(Vector3.new(0/0,0,0)))
+  t.expect.falsy(Shot.Finite(Vector3.new(math.huge,0,0)))
+ end)
+ t.test("ledger rejects replay, out of order, jumps and floods",function()
+  local l=Ledger.new() t.expect.truthy(l:Receive(1,0)) t.expect.falsy(l:Receive(1,.1)) t.expect.falsy(l:Receive(0,.1))
+  t.expect.falsy(l:Receive(10000,.1)) t.expect.truthy(l:Receive(3,.2)) t.expect.falsy(l:Receive(2,.3))
+  for id=4,100 do l:Receive(id,.3) end t.expect.falsy(l:Receive(101,.3))
+ end)
+ t.test("cadence tolerance cannot accumulate a faster firing rate",function()
+  local l=Ledger.new() l:Commit("gun",0,1)
+  t.expect.falsy(l:Ready("gun",.5,1)) t.expect.truthy(l:Ready("gun",.98,1)) l:Commit("gun",.98,1)
+  t.expect.falsy(l:Ready("gun",1.94,1)) t.expect.truthy(l:Ready("gun",1.98,1))
+  l.last.any=3 t.expect.falsy(l:Ready("other",3.02,.13))
+ end)
+ t.test("predicted ammo is reserved and authoritative rejection restores it",function()
+  local tool=Instance.new("Tool") tool:SetAttribute("Ammo",2) tool:SetAttribute("ShotAmmoVersion",1)
+  local p=Prediction.new() p:Reserve(1,tool,0) p:Reserve(2,tool,.1) t.expect.equal(p:Available(tool),0)
+  p:Confirm({tool=tool,shotId=1,accepted=true,ammo=1,version=2}) t.expect.equal(p:Available(tool),0)
+  p:Confirm({tool=tool,shotId=2,accepted=false,ammo=1,version=2}) t.expect.equal(p:Available(tool),1)
+  tool:SetAttribute("Ammo",2) tool:SetAttribute("ShotAmmoVersion",3) t.expect.equal(p:Available(tool),2) tool:Destroy()
+ end)
+ local function simulate(fps,cast,extra)
+  local o={origin=Vector3.new(0,10000,0),direction=Vector3.xAxis,speed=10000,lifetime=2,range=15000,acceleration=Vector3.new(0,-100,0),classify=function() return "block" end,raycast=cast or function() end}
+  for k,v in extra or {} do o[k]=v end
+  local sim=Sim.new(o) for _=1,fps do sim:Step(1/fps) end return sim
+ end
+ t.test("travel and acceleration agree at 30, 60 and 120 simulated FPS",function()
+  local a,b,c=simulate(30),simulate(60),simulate(120)
+  t.expect.truthy((a.position-b.position).Magnitude<.02) t.expect.truthy((a.position-c.position).Magnitude<.02)
+  t.expect.truthy((a.position-Vector3.new(10000,9950,0)).Magnitude<.03)
+ end)
+ t.test("swept casts detect thin obstacles at high speed and variable dt",function()
+  local wall=Instance.new("Part")
+  local function cast(origin,delta)
+   local x=25
+   if origin.X<=x and origin.X+delta.X>=x then local at=(x-origin.X)/delta.X return {Instance=wall,Position=origin+delta*at} end
+  end
+  for _,fps in {30,60,120} do local sim=simulate(fps,cast) t.expect.falsy(sim.active) t.expect.equal(sim.reason,"wall") t.expect.truthy(math.abs(sim.position.X-25)<.001) end
+  local sim=simulate(1,cast) t.expect.falsy(sim.active) wall:Destroy()
+ end)
+ t.test("lifetime, range and cancellation stop logical projectiles",function()
+  local a=simulate(30,nil,{lifetime=.05}) t.expect.equal(a.reason,"lifetime") t.expect.truthy(a.age<=.050001)
+  local b=simulate(30,nil,{range=123}) t.expect.equal(b.reason,"range") t.expect.truthy(math.abs(b.distance-123)<.001)
+  local at=b.position b:Step(1) t.expect.equal(b.position,at)
+ end)
+ t.test("spherecast is selected for configured collision volume",function()
+  local called=0 local wall=Instance.new("Part")
+  local sim=simulate(30,nil,{radius=.5,raycast=false,spherecast=function(origin,radius,delta) called+=1 t.expect.equal(radius,.5) return {Instance=wall,Position=origin+delta*.5} end})
+  t.expect.equal(called,1) t.expect.falsy(sim.active) wall:Destroy()
+ end)
+ t.test("penetration carries across simulation steps without double damage",function()
+  local model=Instance.new("Model") local humanoid=Instance.new("Humanoid") humanoid.Parent=model local part=Instance.new("Part") part.Parent=model
+  local hits=0
+  local sim=simulate(30,function(origin,delta,params)
+   for _,ignored in params.FilterDescendantsInstances do if ignored==model then return end end
+   if origin.X+delta.X>=25 then return {Instance=part,Position=origin+delta*.5} end
+  end,{maxTargets=2,classify=function() return "target" end,onHit=function() hits+=1 return true end,range=500})
+  t.expect.equal(hits,1) t.expect.equal(sim.hits,1) model:Destroy()
+ end)
+ t.test("a volume starting inside solid geometry terminates immediately",function()
+  local part=Instance.new("Part") part.Anchored=true part.Size=Vector3.new(2,2,2) part.Position=Vector3.new(0,12000,0) part.Parent=workspace
+  local sim=Sim.new({origin=part.Position,direction=Vector3.xAxis,speed=20000,range=100,lifetime=1,radius=.3,classify=function() return "block" end})
+  sim:Step(1/30) part:Destroy()
+  t.expect.falsy(sim.active) t.expect.equal(sim.reason,"wall") t.expect.equal(sim.distance,0)
+ end)
+end

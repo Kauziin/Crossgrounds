@@ -14,6 +14,8 @@ local player=Players.LocalPlayer
 local Kits=require(game.ReplicatedStorage:WaitForChild("KitDefinitions"))
 local Settings=require(game.ReplicatedStorage:WaitForChild("ExperienceSettings"))
 local settingRemote=game.ReplicatedStorage.Events:WaitForChild("UpdateExperienceSetting")
+local sourceRecoil=Vector2.zero
+local sourceFovKick=0
 local yaw,pitch=0,0
 local stick=Vector2.zero
 local stickGate={}
@@ -181,6 +183,7 @@ function Presentation:ConfirmShot(message)
 end
 function Presentation:RenderShot(message)
  if not Scope:IsCombat() or typeof(message)~="table" or not Shot.Finite(message.endpoint) or not Shot.Finite(message.origin) then return end
+ if message.visual and message.visual.SourcePack=="ProjectileTest" and message.phase~="launch" and message.reason~="range" then require(game.ReplicatedStorage.Crossgrounds.BlasterEffects).Impact(message.endpoint,message.normal,message.reason=="targets") end
  local own=message.actor==player.Character
  local entry=own and predicted[message.shotId]
  if entry then
@@ -225,7 +228,7 @@ function Presentation:PredictShot(shotId,tool,target,request)
     shooter=player.Character,classify=classify,radius=config.radius,maxTargets=data.MaxTargets,penetrationLoss=data.PenetrationLoss})
    table.insert(entry.effects,effect) endpoint=origin+direction*config.range
   else
-   endpoint=Query.Trace({origin=origin,direction=direction,range=config.range,shooter=player.Character,ignore=viewmodel and {viewmodel} or {},classify=classify,maxTargets=data.MaxTargets,penetrationLoss=data.PenetrationLoss}).endpoint
+   endpoint=Query.Trace({origin=origin,direction=direction,range=config.range,shooter=player.Character,ignore=viewmodel and {viewmodel} or {},classify=classify,radius=config.radius,maxTargets=data.MaxTargets,penetrationLoss=data.PenetrationLoss}).endpoint
   end
   if blocked or config.kind~="projectile" then table.insert(entry.effects,Effects.Trace(origin,endpoint,nil,config.visual)) end
   player:SetAttribute("LastTraceOrigin",origin) player:SetAttribute("LastTraceEndpoint",endpoint)
@@ -243,6 +246,7 @@ local function hideCharacter(character,hide)
 end
 local function removeViewmodel()
  if renderer then renderer:Destroy() renderer=nil end viewmodel=nil
+ sourceRecoil=Vector2.zero sourceFovKick=0
  spring:Reset() carry:Reset() recoil=0 recoilPitch=0 roll=0
 end
 local function buildViewmodel(tool)
@@ -256,6 +260,11 @@ function Presentation:Kick(id)
   tool:SetAttribute("PresentationShotAt",workspace:GetServerTimeNow())
   if firstPerson and renderer then renderer:Flash() end
   local profile=data.VisualRecoil or {Push=.08,Roll=.4}
+  if data.SourcePack=="ProjectileTest" then
+   local low,high=data.CameraRecoilMin,data.CameraRecoilMax
+   sourceRecoil+=Vector2.new(math.rad(-(low.X+math.random()*(high.X-low.X))),math.rad(low.Y+math.random()*(high.Y-low.Y)))
+   sourceFovKick=1
+  end
   spring:Kick(profile,math.random()<.5 and -1 or 1)
  else swingAt=os.clock() end
 end
@@ -384,7 +393,7 @@ RunService:BindToRenderStep("CTFCombatPresentation",Enum.RenderPriority.Camera.V
  local movement=setting("StickCurve")==1 and Analog.Dynamic(clean,setting("StickCurveStrength")) or clean
  local pixels=os.clock()-touchSampleAt<=Intent.TouchTimeout and touchDelta or Vector2.zero touchDelta=Vector2.zero
  local touchRadians=input==Enum.PreferredInput.Touch and touchLook and Analog.TouchRadians(pixels,camera.ViewportSize.X,setting("LookSensitivity"),aiming and setting("AimSensitivity") or 1) or Vector2.zero
- touchIntent=touchRadians.Magnitude>0 and Vector2.new(-touchRadians.X,-touchRadians.Y)/(math.max(deltaTime,.001)*2.4) or Vector2.zero
+ touchIntent=Intent.TouchLook(touchIntent,touchRadians,deltaTime,touchLook~=nil,os.clock()-touchSampleAt)
  if touchIntent.Magnitude>1 then touchIntent=touchIntent.Unit end
  local assisted local tracking=Vector2.zero
  assistFriction=1
@@ -392,6 +401,7 @@ RunService:BindToRenderStep("CTFCombatPresentation",Enum.RenderPriority.Camera.V
  assisted,assistFriction,tracking=Assist:Target(aimFrame or camera.CFrame,Presentation:GetAimViewport(),camera,data.Range,setting("AimAssist"),setting("AimAssistStrength"),data.Kind=="Gun",viewmodel,aiming,{
   dt=deltaTime,look=lookIntent,strafe=humanoid.MoveDirection:Dot((aimFrame or camera.CFrame).RightVector),
   slowdown=setting("AimAssistSlowdown"),tracking=setting("AimAssistTracking"),
+  centering=setting("AimAssistCentering"),aiming=aiming,
  })
  if input==Enum.PreferredInput.Gamepad then
   local speed=2.4*setting("LookSensitivity")*(aiming and setting("AimSensitivity") or 1)*assistFriction
@@ -409,8 +419,13 @@ RunService:BindToRenderStep("CTFCombatPresentation",Enum.RenderPriority.Camera.V
  if input==Enum.PreferredInput.Touch then
   yaw-=touchRadians.X*assistFriction pitch=math.clamp(pitch-touchRadians.Y*assistFriction,-1.25,1.25)
  end
- if assisted and (locked or firstPerson) then
-  yaw+=tracking.X pitch=math.clamp(pitch+tracking.Y,-1.25,1.25)
+ if assisted then
+  if locked or firstPerson then yaw+=tracking.X pitch=math.clamp(pitch+tracking.Y,-1.25,1.25)
+  else
+   local scale=camera.ViewportSize.Y/(2*math.tan(math.rad(camera.FieldOfView*.5)))
+   freePoint=(freePoint or camera.ViewportSize*.5)+Vector2.new(-tracking.X,-tracking.Y)*scale
+   freePoint=Vector2.new(math.clamp(freePoint.X,8,camera.ViewportSize.X-8),math.clamp(freePoint.Y,8,camera.ViewportSize.Y-8))
+  end
  end
  player:SetAttribute("FilteredRightStick",movement)
  UIS.MouseBehavior=locked and input==Enum.PreferredInput.KeyboardAndMouse and Enum.MouseBehavior.LockCenter or Enum.MouseBehavior.Default
@@ -422,6 +437,8 @@ RunService:BindToRenderStep("CTFCombatPresentation",Enum.RenderPriority.Camera.V
    protectionRemote:FireServer(character) protectionToken=nil
   end
  else protectionToken=nil end
+ yaw+=sourceRecoil.X*dt pitch=math.clamp(pitch+sourceRecoil.Y*dt,-1.25,1.25)
+ sourceRecoil=sourceRecoil:Lerp(Vector2.zero,math.min(dt*10,1))
  local rotation=CFrame.fromEulerAnglesYXZ(pitch,yaw,0)
 
  local localMove=rotation:VectorToObjectSpace(root.AssemblyLinearVelocity)
@@ -455,6 +472,7 @@ RunService:BindToRenderStep("CTFCombatPresentation",Enum.RenderPriority.Camera.V
  local baseFov=setting("FieldOfView")
  local sprinting=player:GetAttribute("SprintActive")==true and humanoid.MoveDirection.Magnitude>.1
  local fov=aiming and baseFov*(tool:GetAttribute("WeaponId")=="Sniper" and 38/70 or 58/70) or baseFov+(sprinting and 6 or 0)
+ sourceFovKick*=math.exp(-deltaTime*20) fov+=sourceFovKick
  camera.FieldOfView+=(fov-camera.FieldOfView)*MotionPreferences.FOVAlpha(dt,setting("FOVTransitionSpeed"),12)
  local point=Presentation:GetAimViewport() player:SetAttribute("AimScreenPosition",point)
  local target=Presentation:GetAimWorld(math.max(850,data.Range+50))

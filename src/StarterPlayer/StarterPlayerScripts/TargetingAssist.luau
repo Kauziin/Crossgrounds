@@ -2,10 +2,12 @@ local Assist={}
 local Players=game:GetService("Players") local player=Players.LocalPlayer
 local Scope=require(script.Parent:WaitForChild("ModeScope")) local Mode=require(script.Parent:WaitForChild("InputMode"))
 local Math=require(game.ReplicatedStorage.Crossgrounds.AimAssist)
-local models=setmetatable({},{__mode="k"}) local refreshed=-100 local candidates={}
+local models={} local refreshed=-100 local candidates={}
 local state=Math.NewState()
 local function track(item) if item:IsA("Humanoid") and item.Parent:IsA("Model") then models[item.Parent]=item end end
-workspace.DescendantAdded:Connect(track) for _,item in workspace:GetDescendants() do track(item) end
+workspace.DescendantAdded:Connect(track)
+workspace.DescendantRemoving:Connect(function(item) if item:IsA("Humanoid") then models[item.Parent]=nil end end)
+for _,item in workspace:GetDescendants() do track(item) end
 function Assist:Reset()
  refreshed=-100 candidates={} Math.Reset(state)
  player:SetAttribute("AimAssistActive",false) player:SetAttribute("AimAssistFriction",1)
@@ -15,7 +17,9 @@ local function eligibility(model,h,ctf,now,world)
  local other=Players:GetPlayerFromCharacter(model) local team=player.Team
  local allied=ctf and team and ((other and other.Team==team) or model:GetAttribute("CTFTeam")==team.Name)
  local protected=math.max(model:GetAttribute("SpawnProtectedUntil") or 0,model:GetAttribute("ArenaProtectedUntil") or 0)>now
- return Math.Eligible({mode=Scope:Get(),health=h.Health,allied=allied,protected=protected,
+ local lobby=workspace:FindFirstChild("CTFLobby")
+ local practice=ctf and player.Character and player.Character:GetAttribute("AtLobby")==true
+ return Math.Eligible({practiceShooter=practice,targetPractice=lobby and model:IsDescendantOf(lobby) and model:GetAttribute("PracticeDummy")==true,mode=Scope:Get(),health=h.Health,allied=allied,protected=protected,
   shooterActive=player:GetAttribute(ctf and "InArena" or "ArenaPlaying"),
   targetActive=other and other:GetAttribute(ctf and "InArena" or "ArenaPlaying"),
   targetBot=model:GetAttribute("CTFBot"),
@@ -23,6 +27,7 @@ local function eligibility(model,h,ctf,now,world)
 end
 function Assist:Target(view,point,camera,range,enabled,strength,firearm,viewmodel,aiming,context)
  local input=Mode:Get()
+ player:SetAttribute("AimAssistInput",input.Name)
  if not enabled or strength<=0 or not firearm or not Scope:IsCombat() or input~=Enum.PreferredInput.Gamepad and input~=Enum.PreferredInput.Touch then self:Reset() return nil,1,Vector2.zero end
  if os.clock()-refreshed>.08 then
   refreshed=os.clock() candidates={}
@@ -51,6 +56,7 @@ function Assist:Target(view,point,camera,range,enabled,strength,firearm,viewmode
    end
   end
  end
+ player:SetAttribute("AimAssistEligibleTargets",#active)
  local ray=camera:ViewportPointToRay(point.X,point.Y)
  local direction=view:VectorToWorldSpace(camera.CFrame:VectorToObjectSpace(ray.Direction))
  local params=RaycastParams.new() params.FilterType=Enum.RaycastFilterType.Exclude params.FilterDescendantsInstances=ignore
@@ -60,6 +66,10 @@ function Assist:Target(view,point,camera,range,enabled,strength,firearm,viewmode
   local covered=workspace:Raycast(origin,anchor-origin,params)
   return not covered or covered.Instance:IsDescendantOf(candidate.id)
  end,range,aiming,state.target)
+ if selected then
+  local hit=workspace:Raycast(view.Position,direction.Unit*math.min(range or Math.Tuning.MaxRange,Math.Tuning.MaxRange),params)
+  selected.onTarget=hit~=nil and hit.Instance:IsDescendantOf(selected.candidate.id)
+ end
  context=context or {} context.origin=view.Position context.strength=strength
  context.device=input==Enum.PreferredInput.Gamepad and "gamepad" or "touch"
  local friction,rotation=Math.Step(state,selected,context)

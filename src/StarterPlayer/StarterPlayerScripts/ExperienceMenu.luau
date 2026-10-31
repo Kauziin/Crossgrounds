@@ -123,29 +123,11 @@ render=function(id)
   if Scope:IsHub() then info("Entre em uma modalidade pelo catálogo para escolher seu loadout. Durante a rodada, a troca vale no próximo nascimento.") resize(true) return end
   if Scope:IsGetOut() then info("Get Out Clássico usa papéis sorteados a cada rodada. O protótipo não possui loadout selecionável.") resize(true) return end
   local mode=Scope:IsArena() and "arena" or "ctf"
-  if mode=="arena" then
-   activeLoadoutView=require(script.Parent:WaitForChild("LoadoutMenuView")).new(lists.Detail,{
-    Player=player,Navigation=Nav,Definitions=Loadouts,Loadouts=Loadouts.List(mode),
-    Select=function(id) remotes.SelectLoadout:FireServer(mode,id) end,
-   })
-   resize(true) return
-  end
-  info("Sua escolha entra em vigor no próximo nascimento. O equipamento desta vida é preservado.")
-  local function refresh()
-   local active=player:GetAttribute(Loadouts.ActiveAttribute(mode)) local pending=player:GetAttribute(Loadouts.PendingAttribute(mode))
-   local selected=pending or active
-   for _,b in detailRows do
-    local marked=b:GetAttribute("LoadoutId")==selected
-    b.BackgroundColor3=marked and Theme.Colors.Selected or Theme.Colors.Button
-    b:SetAttribute("MenuSelected",marked)
-   end
-   status.Text=pending and "Loadout agendado para o próximo nascimento." or "Selecione o equipamento para sua próxima vida."
-  end
-  for _,l in Loadouts.List(mode) do
-   local b=action(l.id,tostring(l.number)..".  "..l.name.."  ·  "..l.class.."\n"..l.primary.."  /  "..l.secondary,function() remotes.SelectLoadout:FireServer(mode,l.id) end)
-   b.Size=UDim2.new(1,-4,0,76) b.TextSize=14 b:SetAttribute("LoadoutId",l.id)
-  end
-  hook(player:GetAttributeChangedSignal(Loadouts.PendingAttribute(mode)),refresh) hook(player:GetAttributeChangedSignal(Loadouts.ActiveAttribute(mode)),refresh) refresh()
+  activeLoadoutView=require(script.Parent:WaitForChild("LoadoutMenuView")).new(lists.Detail,{
+   Player=player,Navigation=Nav,Definitions=Loadouts,Loadouts=Loadouts.List(mode),Mode=mode,
+   Select=function(id) remotes.SelectLoadout:FireServer(mode,id) end,
+  })
+  resize(true) return
  elseif id=="HUDSettings" then
   action("EditHUD","EDITAR POSIÇÃO, TAMANHO E OPACIDADE",function() show(false) Nav:OpenMenu("MobileHUD") end).Size=UDim2.new(1,-4,0,64)
   info("Todos os botões ficam expostos no editor, inclusive os específicos de CTF. Arraste um botão, ajuste os valores e toque SALVAR.")
@@ -391,10 +373,11 @@ for index,a in {{"Resume","Continuar"},{"Loadout","Loadout"},{"Progress","Progre
 end
 Nav:Connect(panes.Options.Back,function() page="Main" resize(true) end)
 Nav:Connect(panes.Categories.Back,function() chooseCategory("Options") end)
-Nav:Connect(panes.Detail.Back,function() if pendingConfirmation then local target=pendingConfirmation pendingConfirmation=nil render(target) return end if page=="Loadout" or page=="Exit" or page=="Surrender" then page="Main" resize(true) elseif leafParent[page] then chooseCategory(leafParent[page]) else chooseCategory("Options") end end)
+Nav:Connect(panes.Detail.Back,function() if page=="Loadout" and activeLoadoutView and activeLoadoutView.Back and activeLoadoutView:Back() then return end if pendingConfirmation then local target=pendingConfirmation pendingConfirmation=nil render(target) return end if page=="Loadout" or page=="Exit" or page=="Surrender" then page="Main" resize(true) elseif leafParent[page] then chooseCategory(leafParent[page]) else chooseCategory("Options") end end)
 Nav:Connect(panes.Main.Back,function() show(false) end)
 -- Bumpers share gameplay shoulder/shift-lock inputs; the modal context owns them.
 switchCategory=function(step)
+ if page=="Loadout" and activeLoadoutView and activeLoadoutView.Cycle then activeLoadoutView:Cycle(step) return end
  if pendingConfirmation then return end
  local group=leafParent[page] or (categories[page] and page~="Options" and page) or "Options"
  local entries=categories[group] or categories.Options local eligible={}
@@ -410,7 +393,7 @@ switchCategory=function(step)
  -- resize restores this category's last focus.
 end
 Nav:SetCategories(panel,switchCategory)
-Nav:SetBack(panel,function() if pendingConfirmation then local target=pendingConfirmation pendingConfirmation=nil render(target) return end remember() if page=="Main" then show(false) elseif categories[page] then if page~="Options" then chooseCategory("Options") else page="Main" resize(true) end else
+Nav:SetBack(panel,function() if page=="Loadout" and activeLoadoutView and activeLoadoutView.Back and activeLoadoutView:Back() then return end if pendingConfirmation then local target=pendingConfirmation pendingConfirmation=nil render(target) return end remember() if page=="Main" then show(false) elseif categories[page] then if page~="Options" then chooseCategory("Options") else page="Main" resize(true) end else
  if leafParent[page] then chooseCategory(leafParent[page]) elseif table.find({"Loadout","Exit","Surrender"},page) then page="Main" resize(true) else chooseCategory("Options") end end end,mainButtons.Resume)
 Nav:Connect(launch,function() show(true,"Main") end)
 Nav.MenuRequested:Connect(function(id)
@@ -426,8 +409,12 @@ Router:Register("VoteMenu",function(s) if s==Enum.UserInputState.Begin then if S
 Router.CaptureChanged:Connect(function(active,message) status.Text=active and "PRESSIONE UM NOVO BOTÃO · 5s" or message end)
 local function scopeLabels()
  mainButtons.Resume.Text="Continuar"
- mainButtons.Loadout.Visible=not Scope:IsHub()
- mainButtons.Loadout.Text=Scope:IsHub() and "Jogar / Modalidades" or "Loadout"
+ mainButtons.Loadout.Visible=true
+ mainButtons.Loadout.LayoutOrder=Scope:IsHub() and 4 or 2
+ mainButtons.Options.LayoutOrder=Scope:IsHub() and 5 or 4
+ mainButtons.Surrender.LayoutOrder=6
+ mainButtons.Exit.LayoutOrder=7
+ mainButtons.Loadout.Text=Scope:IsHub() and "Jogar" or "Loadout"
  if Scope:IsGetOut() then mainButtons.Loadout.Text="Papéis do Get Out" end
 end
 Scope.Changed:Connect(function() scopeLabels() show(false) end) scopeLabels()

@@ -1,0 +1,93 @@
+{
+  "date": "2026-10-28",
+  "context": "User reopened Crossgrounds from Studio recent experiences; read-only verification, no reapplication",
+  "placeId": 4375993208,
+  "universeId": 1404405130,
+  "placeVersion": 343,
+  "sourcePlaceId": 106713083062312,
+  "assetRootDescendants": 153,
+  "viewModels": 2,
+  "tools": 2,
+  "previews": [
+    "Blaster",
+    "AutoBlaster"
+  ],
+  "checks": [
+    {
+      "path": "ReplicatedStorage.Crossgrounds.AimAssist",
+      "equal": true
+    },
+    {
+      "path": "ReplicatedStorage.Crossgrounds.AimAssistIntent",
+      "equal": true
+    },
+    {
+      "path": "ReplicatedStorage.Crossgrounds.LoadoutDefinitions",
+      "equal": true
+    },
+    {
+      "path": "ReplicatedStorage.Crossgrounds.WeaponEffects",
+      "equal": true
+    },
+    {
+      "path": "ReplicatedStorage.KitDefinitions",
+      "equal": true
+    },
+    {
+      "path": "ServerScriptService.Crossgrounds.ArenaCombat",
+      "equal": true
+    },
+    {
+      "path": "ServerScriptService.Crossgrounds.ShotAuthority",
+      "equal": true
+    },
+    {
+      "path": "ServerScriptService.Crossgrounds.ShotHistory",
+      "equal": true
+    },
+    {
+      "path": "ServerScriptService.MainGameScript.GameManager.WeaponFactory",
+      "equal": true
+    },
+    {
+      "path": "StarterPlayer.StarterPlayerScripts.CombatPresentation",
+      "equal": true
+    },
+    {
+      "path": "StarterPlayer.StarterPlayerScripts.FirstPersonRenderer",
+      "equal": true
+    },
+    {
+      "path": "StarterPlayer.StarterPlayerScripts.TargetingAssist",
+      "equal": true
+    },
+    {
+      "path": "StarterPlayer.StarterPlayerScripts.WeaponController",
+      "equal": true
+    },
+    {
+      "path": "StarterPlayer.StarterPlayerScripts.LoadoutMenuView",
+      "equal": true
+    },
+    {
+      "path": "ReplicatedStorage.Crossgrounds.BlasterEffects",
+      "equal": true
+    },
+    {
+      "path": "ReplicatedStorage.Crossgrounds.BlasterWeapons",
+      "equal": true
+    },
+    {
+      "path": "ReplicatedStorage.Crossgrounds.SweptSphereBox",
+      "equal": true
+    },
+    {
+      "path": "StarterPlayer.StarterPlayerScripts.BlasterCharacterAnimations",
+      "equal": true
+    },
+    {
+      "path": "StarterPlayer.StarterPlayerScripts.BlasterRenderer",
+      "equal": true
+    }
+  ]
+}

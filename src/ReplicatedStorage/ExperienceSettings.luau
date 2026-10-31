@@ -1,5 +1,5 @@
 local Settings={}
-Settings.Order={"AutoSprint","ReducedMenuMotion","FieldOfView","AimSensitivity","LookSensitivity","LeftStickDeadzone","RightStickDeadzone","StickCurve","StickCurveStrength","AimAssist","AimAssistStrength","AimAssistSlowdown","AimAssistTracking","MenuVolume","MenuSFXVolume","Shoulder","FirstPerson","ShiftLock","DamageFlash","CameraMotion"}
+Settings.Order={"AutoSprint","ReducedMenuMotion","FieldOfView","AimSensitivity","LookSensitivity","LeftStickDeadzone","RightStickDeadzone","StickCurve","StickCurveStrength","AimAssist","AimAssistStrength","AimAssistSlowdown","AimAssistTracking","AimAssistCentering","MenuVolume","MenuSFXVolume","Shoulder","FirstPerson","ShiftLock","DamageFlash","CameraMotion"}
 Settings.Rules={
  AutoSprint={Label="Corrida automática no toque",Default=false},
  ReducedMenuMotion={Label="Reduzir movimento dos menus",Default=false},
@@ -14,6 +14,7 @@ Settings.Rules={
  AimAssistStrength={Label="Intensidade da assistência (%)",Default=.45,Min=0,Max=1,Step=.05,Percent=true},
  AimAssistSlowdown={Label="Desaceleração perto do alvo (%)",Default=1,Min=0,Max=1,Step=.05,Percent=true},
  AimAssistTracking={Label="Acompanhamento do movimento (%)",Default=1,Min=0,Max=1,Step=.05,Percent=true},
+ AimAssistCentering={Label="Atração suave ao alvo (%)",Default=.65,Min=0,Max=1,Step=.05,Percent=true},
  MenuVolume={Label="Música do lobby",Default=.22,Min=0,Max=.7,Step=.01},
  MenuSFXVolume={Label="Sons de navegação",Default=.18,Min=0,Max=.7,Step=.01},
  Shoulder={Label="Ombro",Default=1,Choices={-1,1},Labels={[-1]="ESQUERDO",[1]="DIREITO"}},
@@ -64,7 +65,7 @@ local Controls=require(script.Parent.ControlDefinitions)
 for action,data in pairs(Controls.Actions) do
  for _,device in {"Gamepad","Keyboard"} do Settings.Rules[Controls:Attribute(action,device)]={Default=data[device],Device=device,Action=action} end
 end
-local categories={Gameplay={"AutoSprint"},Camera={"FieldOfView","WeaponFOVScale","FirstPerson","ShiftLock","Shoulder","CameraMotion"},Aim={"LookSensitivity","AimSensitivity","AimAssist","AimAssistStrength","AimAssistSlowdown","AimAssistTracking"},Analog={"LeftStickDeadzone","RightStickDeadzone","StickCurve","StickCurveStrength"},Audio={"MenuVolume","MenuSFXVolume","GameSFXVolume","BeastProximityVolume"},Accessibility={"FontScale","HighContrast","ReducedMenuMotion","SimpleAnimations","WeaponAnimationIntensity","FOVTransitionSpeed","DamageFlash"},Interface={"MenuScale","HUDScale","KillFeedVisible"}}
+local categories={Gameplay={"AutoSprint"},Camera={"FieldOfView","WeaponFOVScale","FirstPerson","ShiftLock","Shoulder","CameraMotion"},Aim={"LookSensitivity","AimSensitivity","AimAssist","AimAssistStrength","AimAssistSlowdown","AimAssistTracking","AimAssistCentering"},Analog={"LeftStickDeadzone","RightStickDeadzone","StickCurve","StickCurveStrength"},Audio={"MenuVolume","MenuSFXVolume","GameSFXVolume","BeastProximityVolume"},Accessibility={"FontScale","HighContrast","ReducedMenuMotion","SimpleAnimations","WeaponAnimationIntensity","FOVTransitionSpeed","DamageFlash"},Interface={"MenuScale","HUDScale","KillFeedVisible"}}
 categories.Reticle={"ReticleColor","ReticleSize","ReticleThickness","ReticleGap","ReticleDot","ReticleOutline","ReticleOpacity","ReticleDynamic"}
 categories.Graphics={"GraphicsQuality"}
 Settings.Categories=categories

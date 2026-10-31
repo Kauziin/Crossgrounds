@@ -342,7 +342,7 @@ Run:BindToRenderStep("CTFMenuCursor",Enum.RenderPriority.Last.Value,function(dt)
   Navigation:Focus(hovered,false)
  end
  local filteredScroll=Filter.Axis(scrollStick,zone("RightStickDeadzone"))
- if math.abs(filteredScroll)>0 and focused then local ancestor=focused.Parent while ancestor and ancestor~=root do if ancestor:IsA("ScrollingFrame") then ancestor.CanvasPosition+=Vector2.new(0,-filteredScroll*dt*350) break end ancestor=ancestor.Parent end end
+ if math.abs(filteredScroll)>0 and focused and not focused:GetAttribute("ConsumesRightStick") then local ancestor=focused.Parent while ancestor and ancestor~=root do if ancestor:IsA("ScrollingFrame") then ancestor.CanvasPosition+=Vector2.new(0,-filteredScroll*dt*350) break end ancestor=ancestor.Parent end end
  local visual=point
  if focused and visible(focused,true) then
   visual=dockCursor(focused)

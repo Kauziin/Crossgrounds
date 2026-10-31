@@ -78,7 +78,7 @@ Router:Register("Leave",function(state)
  if state==Enum.UserInputState.Begin then open() end
 end)
 local function equip(index)
- if shade.Visible or player:GetAttribute("ExperienceMenuOpen") then return end
+ if shade.Visible or Router:IsBlocked() then return end
  local p=Kits.Profiles[player:GetAttribute("SelectedKit")] local c=player.Character local h=c and c:FindFirstChildOfClass("Humanoid")
  if not p or not h or h.Health<=0 then return end
  for _,container in {player.Backpack,c} do for _,t in container:GetChildren() do if t:IsA("Tool") and t:GetAttribute("WeaponId")==p.Weapons[index] then h:EquipTool(t) return end end end
@@ -86,19 +86,9 @@ end
 for i,b in slots do Nav:Connect(b,function() equip(i) end) end
 UIS.InputBegan:Connect(function(input,processed) if processed then return end if input.KeyCode==Enum.KeyCode.One then equip(1) elseif input.KeyCode==Enum.KeyCode.Two then equip(2) end end)
 local feed=frame(gui,"KillFeed",UDim2.new(1,-24,0,126),UDim2.fromOffset(345,155),dark,1) feed.AnchorPoint=Vector2.new(1,0)
-local layout=Instance.new("UIListLayout") layout.Padding=UDim.new(0,4) layout.HorizontalAlignment=Enum.HorizontalAlignment.Right layout.Parent=feed
-local entries={}
-local function esc(s) return tostring(s or ""):gsub("&","&amp;"):gsub("<","&lt;"):gsub(">","&gt;") end
-local function short(s) s=tostring(s or "") local bot=s:match(" · IA$") s=s:gsub(" · IA$","") local n=utf8.offset(s,11) return (n and s:sub(1,n-1).."…" or s)..(bot and " · IA" or "") end
-local function color(team) return team=="Blue" and "#83bcff" or "#ff9c92" end
+local feedView=require(script.Parent:WaitForChild("KillFeedView")).new(feed,player,5,6)
 events:WaitForChild("KillFeed").OnClientEvent:Connect(function(data)
- if not Scope:IsCTF() then return end
- local row=label(feed,"Entry","",UDim2.new(),UDim2.new(1,0,0,25),12) row.TextXAlignment=Enum.TextXAlignment.Right row.RichText=true row.BackgroundColor3=dark row.BackgroundTransparency=1 round(row,4)
- if data.killer then row.Text='<font color="'..color(data.killerTeam)..'">'..esc(short(data.killer))..'</font>  '..esc(data.weapon)..' › <font color="'..color(data.victimTeam)..'">'..esc(short(data.victim))..'</font>'
- else row.Text='<font color="'..color(data.victimTeam)..'">'..esc(short(data.victim))..'</font>  eliminado' end
- table.insert(entries,row)
- if #entries>5 then local old=table.remove(entries,1) old:Destroy() end
- task.delay(6,function() local i=table.find(entries,row) if i then table.remove(entries,i) end if row.Parent then Tween:Create(row,TweenInfo.new(.2),{TextTransparency=1,BackgroundTransparency=1}):Play() task.wait(.2) row:Destroy() end end)
+ if Scope:IsCTF() then feedView:Add(data) end
 end)
 local toast=label(gui,"KillToast","",UDim2.new(.5,-220,1,-165),UDim2.fromOffset(440,28),16) toast.TextXAlignment=Enum.TextXAlignment.Center toast.Font=Enum.Font.GothamBold toast.TextStrokeTransparency=.45
 local toastToken=0

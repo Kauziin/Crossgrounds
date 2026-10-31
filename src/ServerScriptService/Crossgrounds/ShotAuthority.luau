@@ -48,7 +48,7 @@ local function resolve(o,config,origin,blocked,directions,ping,historicalTime)
    visual=config.visual,reason=result.reason,normal=result.result and result.result.Normal})
  end
  for _,direction in directions do
-  local options={origin=origin,direction=direction,range=config.range,shooter=c,maxTargets=data.MaxTargets,
+  local options={origin=origin,direction=direction,range=config.range,shooter=c,radius=config.radius,maxTargets=data.MaxTargets,
    penetrationLoss=data.PenetrationLoss,classify=o.classify,onHit=o.onHit}
   if blocked then
    local result={endpoint=blocked.Position,reason="wall",result=blocked} table.insert(rays,result) visual(result,direction,"blocked")

@@ -73,11 +73,11 @@ function Damage:ResolveDeath(model,h)
    local xp=p and Progress.CTFKill(p,model:GetAttribute("CTFBot")==true) or 0
    if p and p:FindFirstChild("leaderstats") and p.leaderstats:FindFirstChild("Kills") then p.leaderstats.Kills.Value+=1 end
    local data=Kits.Weapons[c.weapon]
-   feed:FireAllClients({killer=name(killer),victim=name(model),weapon=data and data.Name or c.weapon,killerTeam=killerTeam.Name,victimTeam=team.Name,headshot=c.headshot})
+   feed:FireAllClients({killerUserId=p and p.UserId,victimUserId=victimPlayer and victimPlayer.UserId,killer=name(killer),victim=name(model),weapon=data and data.Name or c.weapon,killerTeam=killerTeam.Name,victimTeam=team.Name,headshot=c.headshot})
    if victimPlayer then feedback:FireClient(victimPlayer,{kind="Eliminated",character=model,killer=killer,killerName=name(killer),weapon=data and data.Name or c.weapon}) end
    if p then feedback:FireClient(p,{kind="Kill",victim=name(model),weapon=data and data.Name or c.weapon,xp=xp,headshot=c.headshot}) end
   else
-   feed:FireAllClients({victim=name(model),victimTeam=team.Name,weapon="Eliminado"})
+   feed:FireAllClients({victimUserId=victimPlayer and victimPlayer.UserId,victim=name(model),victimTeam=team.Name,weapon="Eliminado"})
   end
   credits[h]=nil
 end

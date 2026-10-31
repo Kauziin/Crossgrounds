@@ -1,4 +1,4 @@
--- Arena presentation only. Selection is delegated to the existing pending-loadout remote.
+-- Shared Arena/CTF presentation. Selection is delegated to the existing pending-loadout remote.
 local View={}
 local accent=Color3.fromRGB(37,213,235)
 local white=Color3.fromRGB(239,245,249)
@@ -25,10 +25,13 @@ local function surface(v)
 end
 
 function View.new(parent,config)
+ if config.Mode=="ctf" then return require(script.Parent.GunsmithView).new(parent,config) end
  local player,nav,definitions=config.Player,config.Navigation,config.Definitions
+ local mode=config.Mode or "arena"
+ local function primaryAsset(entry) return entry.primaryAsset or entry.id end
  local assets=game.ReplicatedStorage.Crossgrounds:FindFirstChild("LoadoutPreviews")
  local originalParentSize=parent.Size
- local root=object("Frame","ArenaLoadout",parent) root.Size=UDim2.new(1,-8,0,500)
+ local root=object("Frame",mode=="arena" and "ArenaLoadout" or "CTFLoadout",parent) root.Size=UDim2.new(1,-8,0,500)
  local connections={} local cameras={} local rows={} local focusedId local previewId local dead=false
  local function hook(signal,callback) local c=signal:Connect(callback) table.insert(connections,c) return c end
  local function cleanup() if dead then return end dead=true for _,c in connections do c:Disconnect() end table.clear(cameras) if parent.Parent then parent.Size=originalParentSize end end
@@ -60,6 +63,7 @@ function View.new(parent,config)
   local world=Instance.new("WorldModel") world.Parent=frame
   local record={Frame=frame,Camera=camera,World=world,Melee=melee}
   local function setAsset(id)
+   if record.Model and frame:GetAttribute("PreviewAsset")==id then return end
    world:ClearAllChildren() record.Model=nil
    local template=assets and assets:FindFirstChild(id)
    if template then
@@ -84,7 +88,7 @@ function View.new(parent,config)
  local caption=text(preview,"LoadoutName","LOADOUT 1",12,true) caption.Position=UDim2.fromOffset(66,16) caption.Size=UDim2.new(1,-82,0,24) caption.TextColor3=muted
  local weaponName=text(preview,"WeaponName","",28,true) weaponName.Position=UDim2.fromOffset(66,40) weaponName.Size=UDim2.new(1,-82,0,40)
  local kind=text(preview,"WeaponClass","PISTOLA",11,false) kind.Position=UDim2.fromOffset(20,86) kind.Size=UDim2.fromOffset(90,22) kind.TextColor3=muted
- local large=viewport(preview,"PrimaryModel",config.Loadouts[1].id,false)
+ local large=viewport(preview,"PrimaryModel",primaryAsset(config.Loadouts[1]),false)
  local melee=object("Frame","Melee",preview) surface(melee)
  local meleeView=viewport(melee,"ExecutorModel","Sword",true)
  local meleeClass=text(melee,"Class","CORPO A CORPO",10,false) meleeClass.TextColor3=muted meleeClass.Position=UDim2.fromOffset(14,10) meleeClass.Size=UDim2.new(.55,-14,0,20)
@@ -94,17 +98,18 @@ function View.new(parent,config)
  local function show(entry)
   focusedId=entry.id
   if previewId==entry.id then return end previewId=entry.id
-  number.Text=tostring(entry.number) caption.Text="LOADOUT "..entry.number weaponName.Text=entry.primary large.SetAsset(entry.id)
+  number.Text=tostring(entry.number) caption.Text="LOADOUT "..entry.number weaponName.Text=entry.primary kind.Text=entry.class large.SetAsset(primaryAsset(entry))
+  meleeView.SetAsset(entry.secondaryAsset or "Sword") meleeName.Text=entry.secondary meleeNote.Text="Equipamento corpo a corpo do loadout."
   preview:SetAttribute("LoadoutId",entry.id)
  end
  for i,entry in config.Loadouts do
-  local b=object("TextButton",entry.id,grid) b.Text="" b.AutoButtonColor=false b.LayoutOrder=i b:SetAttribute("LoadoutId",entry.id) b:SetAttribute("AccessibleLabel",entry.primary.." e Executor, corpo a corpo") surface(b)
+  local b=object("TextButton",entry.id,grid) b.Text="" b.AutoButtonColor=false b.LayoutOrder=i b:SetAttribute("LoadoutId",entry.id) b:SetAttribute("AccessibleLabel",entry.primary.." e "..entry.secondary..", corpo a corpo") surface(b)
   local selectedEdge=edge(b,accent,2.5,1) local glow=edge(b,accent,7,1)
-  local model=viewport(b,"WeaponModel",entry.id,false) model.Frame.Position=UDim2.fromScale(.30,.04) model.Frame.Size=UDim2.fromScale(.68,.68)
+  local model=viewport(b,"WeaponModel",primaryAsset(entry),false) model.Frame.Position=UDim2.fromScale(.30,.04) model.Frame.Size=UDim2.fromScale(.68,.68)
   local badge=text(b,"Number",tostring(entry.number),16,true) badge.Position=UDim2.fromOffset(12,10) badge.Size=UDim2.fromOffset(28,28) badge.TextXAlignment=Enum.TextXAlignment.Center badge.BackgroundColor3=Color3.fromRGB(54,66,80) badge.BackgroundTransparency=.16 round(badge,7)
-  local class=text(b,"Class","PISTOLA",10,false) class.Position=UDim2.new(0,12,.44,0) class.Size=UDim2.new(1,-24,0,16) class.TextColor3=muted
+  local class=text(b,"Class",entry.class,10,false) class.Position=UDim2.new(0,12,.44,0) class.Size=UDim2.new(1,-24,0,16) class.TextColor3=muted
   local name=text(b,"WeaponName",entry.primary,18,true) name.Position=UDim2.new(0,12,.59,0) name.Size=UDim2.new(1,-24,0,24)
-  local secondary=text(b,"Melee","Executor · corpo a corpo",11,false) secondary.Position=UDim2.new(0,12,1,-25) secondary.Size=UDim2.new(1,-24,0,18) secondary.TextColor3=muted
+  local secondary=text(b,"Melee",entry.secondary.." · corpo a corpo",11,false) secondary.Position=UDim2.new(0,12,1,-25) secondary.Size=UDim2.new(1,-24,0,18) secondary.TextColor3=muted
   rows[i]={Button=b,Entry=entry,Edge=selectedEdge,Glow=glow,Name=name}
   nav:Connect(b,function() show(entry) config.Select(entry.id) end)
  end
@@ -114,10 +119,10 @@ function View.new(parent,config)
   if i%2==0 then row.Button.NextSelectionLeft=rows[i-1].Button elseif rows[i+1] then row.Button.NextSelectionRight=rows[i+1].Button end
  end
  local function selected()
-  return player:GetAttribute(definitions.PendingAttribute("arena")) or player:GetAttribute(definitions.ActiveAttribute("arena")) or config.Loadouts[1].id
+  return player:GetAttribute(definitions.PendingAttribute(mode)) or player:GetAttribute(definitions.ActiveAttribute(mode)) or config.Loadouts[1].id
  end
  local function refresh()
-  local id=selected() local pending=player:GetAttribute(definitions.PendingAttribute("arena"))
+  local id=selected() local pending=player:GetAttribute(definitions.PendingAttribute(mode))
   for _,row in rows do
    local on=row.Entry.id==id row.Edge.Transparency=on and .04 or 1 row.Glow.Transparency=on and .85 or 1
    row.Button:SetAttribute("MenuSelected",on)
@@ -128,8 +133,8 @@ function View.new(parent,config)
  function self:DefaultFocus()
   for _,row in rows do if row.Entry.id==selected() then return row.Button end end return rows[1].Button
  end
- hook(player:GetAttributeChangedSignal(definitions.PendingAttribute("arena")),refresh)
- hook(player:GetAttributeChangedSignal(definitions.ActiveAttribute("arena")),refresh)
+ hook(player:GetAttributeChangedSignal(definitions.PendingAttribute(mode)),refresh)
+ hook(player:GetAttributeChangedSignal(definitions.ActiveAttribute(mode)),refresh)
  hook(nav.FocusChanged,function(focus) for _,row in rows do if row.Button==focus then show(row.Entry) break end end end)
  local function reflow()
   if dead or not root.Parent then return end
@@ -143,7 +148,7 @@ function View.new(parent,config)
   local stacked=width<780 local fontScale=player:GetAttribute("SettingFontScale") or 1
   local noticeHeight=fontScale>1.15 and 48 or 34
   local gap=14 local cardHeight=math.clamp((available-noticeHeight-38)/3,116,174)
-  local gridHeight=cardHeight*3+24+14
+  local gridHeight=cardHeight*math.ceil(#config.Loadouts/2)+math.max(0,math.ceil(#config.Loadouts/2)-1)*12+14
   local previewHeight=stacked and math.max(340,math.min(420,width*.6)) or math.max(350,available-noticeHeight)
   local gridWidth=stacked and width or math.floor((width-gap)*.53)
   root.Size=UDim2.new(1,-8,0,stacked and noticeHeight+gridHeight+gap+previewHeight or math.max(available,noticeHeight+previewHeight))

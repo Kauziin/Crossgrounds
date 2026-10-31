@@ -18,7 +18,8 @@ local function validTool(player,tool)
  if typeof(tool)~="Instance" or not tool:IsA("Tool") or tool.Parent~=c then return end
  local id=tool:GetAttribute("WeaponId")
  local profile=definitions.Profiles[player:GetAttribute("SelectedKit") or "Regular"]
- if not profile or not table.find(profile.Weapons,id) then return end
+ local weapons=require(game.ServerScriptService.Crossgrounds.ArsenalLoadouts).Backends(player) or profile and profile.Weapons
+ if not weapons or not table.find(weapons,id) then return end
  return c,definitions.Weapons[id],id
 end
 local function rayParams(character)
@@ -106,9 +107,17 @@ function KitService:ApplyToCharacter(player,character)
  player:SetAttribute("KitWalkSpeed",profile.WalkSpeed) player:SetAttribute("KitSprintSpeed",profile.SprintSpeed) player:SetAttribute("KitJumpHeight",profile.JumpHeight)
  for _,container in {player:WaitForChild("Backpack"),player.StarterGear,character} do for _,v in container:GetChildren() do if v:IsA("Tool") then v:Destroy() end end end
  local gun
- for _,id in profile.Weapons do
+ local arsenal=require(game.ServerScriptService.Crossgrounds.ArsenalLoadouts)
+ local custom=arsenal.Resolve(player)
+ local weapons=arsenal.Backends(player) or profile.Weapons
+ for index,id in weapons do
   local tool=Factory:Create(id) local data=definitions.Weapons[id]
-  if data.Kind=="Gun" then tool:SetAttribute("Ammo",data.Magazine) tool:SetAttribute("ReserveAmmo",data.Reserve) tool:SetAttribute("Reloading",false) gun=tool end
+  if custom and index>1 then
+   local visualId=index==2 and custom.primaryWeaponId or custom.secondaryWeaponId
+   local configuration=index==2 and custom.primaryAttachments or custom.secondaryAttachments
+   require(game.ServerScriptService.Crossgrounds.ImportedWeaponVisuals).Apply(tool,visualId,configuration)
+  end
+  if data.Kind=="Gun" then tool:SetAttribute("Ammo",data.Magazine) tool:SetAttribute("ReserveAmmo",data.Reserve) tool:SetAttribute("Reloading",false) if not gun then gun=tool end end
   tool.Parent=player.Backpack
  end
  Damage:Watch(character)

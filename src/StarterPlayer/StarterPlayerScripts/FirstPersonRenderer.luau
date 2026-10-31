@@ -8,6 +8,7 @@ local function safePart(p)
  p.Anchored=true p.CanCollide=false p.CanTouch=false p.CanQuery=false p.CastShadow=false p.LocalTransparencyModifier=0
 end
 function Renderer.new(tool)
+ if tool:GetAttribute("SourcePack")=="ProjectileTest" then return require(script.Parent.BlasterRenderer).new(tool) end
  local self=setmetatable({parts={},arms={},wall=0,flashUntil=0,tool=tool},Renderer)
  local gui=Instance.new("ScreenGui") gui.Name="FirstPersonDisplay" gui.DisplayOrder=-10 gui.IgnoreGuiInset=true gui.ResetOnSpawn=false gui.Parent=player.PlayerGui self.gui=gui
  local viewport=Instance.new("ViewportFrame") viewport.Name="WeaponViewport" viewport.Size=UDim2.fromScale(1,1) viewport.BackgroundTransparency=1 viewport.Ambient=Color3.fromRGB(170,180,190) viewport.LightColor=Color3.fromRGB(255,244,223) viewport.LightDirection=Vector3.new(-1,-2,-3) viewport.Parent=gui self.viewport=viewport

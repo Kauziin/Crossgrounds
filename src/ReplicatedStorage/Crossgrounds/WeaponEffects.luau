@@ -18,6 +18,7 @@ function Effects.Attach(tool,strength)
  local light=Instance.new("PointLight") light.Name="MuzzleFlash" light.Color=Color3.fromRGB(255,208,116) light.Brightness=3*strength light.Range=9*strength light.Enabled=false light.Parent=muzzle
 end
 function Effects.Play(tool)
+ if tool and tool:GetAttribute("SourcePack")=="ProjectileTest" then return require(script.Parent.BlasterEffects).Flash(tool) end
  local handle=tool and tool:FindFirstChild("Handle") local muzzle=handle and handle:FindFirstChild("Muzzle")
  if not muzzle then return end
  local burst=muzzle:FindFirstChild("MuzzleBurst") local beam=muzzle:FindFirstChild("MuzzleFlame") local light=muzzle:FindFirstChild("MuzzleFlash")
@@ -31,6 +32,7 @@ function Effects.Play(tool)
 end
 -- Each tail has an independent spatial emitter, surviving reloads/weapon swaps.
 function Effects.PlaySound(tool)
+ if tool and tool:GetAttribute("SourcePack")=="ProjectileTest" then return require(script.Parent.BlasterEffects).Sound(tool,"Shoot") end
  local handle=tool and tool:FindFirstChild("Handle") local source=handle and handle:FindFirstChild("FireSound")
  if not source then return end
  local muzzle=handle:FindFirstChild("Muzzle")
@@ -43,9 +45,12 @@ function Effects.PlaySound(tool)
  return emitter
 end
 local Cosmetics=require(script.Parent.ShotCosmetics)
-Effects.Trace=Cosmetics.Trace
-Effects.CancelTrace=Cosmetics.Cancel
-Effects.CorrectTrace=Cosmetics.Correct
+Effects.Trace=function(origin,endpoint,color,visual)
+ if visual and visual.SourcePack=="ProjectileTest" then return require(script.Parent.BlasterEffects).Trace(origin,endpoint) end
+ return Cosmetics.Trace(origin,endpoint,color,visual)
+end
+Effects.CancelTrace=function(entry) if entry and entry.blaster then entry.part:Destroy() else Cosmetics.Cancel(entry) end end
+Effects.CorrectTrace=function(entry,endpoint) if entry and entry.blaster then if entry.part.Parent then entry.target.WorldPosition=endpoint end else Cosmetics.Correct(entry,endpoint) end end
 Effects.Projectile=Cosmetics.Projectile
 Effects.FinishProjectile=Cosmetics.Finish
 return Effects
