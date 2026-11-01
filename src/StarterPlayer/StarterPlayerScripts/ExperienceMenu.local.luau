@@ -123,7 +123,7 @@ render=function(id)
   if Scope:IsHub() then info("Entre em uma modalidade pelo catálogo para escolher seu loadout. Durante a rodada, a troca vale no próximo nascimento.") resize(true) return end
   if Scope:IsGetOut() then info("Get Out Clássico usa papéis sorteados a cada rodada. O protótipo não possui loadout selecionável.") resize(true) return end
   local mode=Scope:IsArena() and "arena" or "ctf"
-  if mode=="arena" then status.Text="D-pad: inspecionar · A/clique: selecionar · B: voltar" end
+  status.Text=mode=="arena" and "D-pad: inspecionar · A/clique: selecionar · B: voltar" or "D-pad: navegar · A: escolher · X: ação contextual · LB/RB: categorias · B: voltar"
   activeLoadoutView=require(script.Parent:WaitForChild("LoadoutMenuView")).new(lists.Detail,{
    Player=player,Navigation=Nav,Definitions=Loadouts,Loadouts=Loadouts.List(mode),Mode=mode,
    Select=function(id) remotes.SelectLoadout:FireServer(mode,id) end,
@@ -309,6 +309,8 @@ resize=function(animate)
    if not categories[page] then table.insert(stack,"Detail") end
   end
  end
+ local armamentFocused=page=='Loadout' and player:GetAttribute('ArsenalFocused')==true
+ if armamentFocused then stack={'Detail'} end
  if page~="Main" and not simple and not categoryButtons.Options then buildCategories("Options") end
  if controlLeaf and not categoryButtons[leafParent[page]] then buildCategories(leafParent[page]) end
  panel:SetAttribute("CascadeDepth",#stack)
@@ -319,7 +321,7 @@ resize=function(animate)
  for i,id in stack do
   local f=panes[id] f.Visible=not narrow or i==#stack f.Active=true f.ZIndex=i
   local x=narrow and 0 or (i-1)*step local y=narrow and 32 or 38+(i-1)*5
-  local width=narrow and w or #stack==1 and math.min(w,240) or i==#stack and w-x or step-8
+  local width=armamentFocused and w or narrow and w or #stack==1 and math.min(w,240) or i==#stack and w-x or step-8
   f.Size=UDim2.fromOffset(width,narrow and h-54 or h-70-(i-1)*5)
   Theme.CascadeDepth(f,#stack-i,animate and not Theme.ReducedMotion())
   for _,b in lists[id]:GetChildren() do if b:IsA("TextButton") then b.TextWrapped=i==#stack b.TextTruncate=i==#stack and Enum.TextTruncate.None or Enum.TextTruncate.AtEnd end end
@@ -403,7 +405,7 @@ local function scopeLabels()
  mainButtons.Options.LayoutOrder=Scope:IsHub() and 5 or 4
  mainButtons.Surrender.LayoutOrder=6
  mainButtons.Exit.LayoutOrder=7
- mainButtons.Loadout.Text=Scope:IsHub() and "Jogar" or player:GetAttribute("CTFPracticeRange")==true and "Armeiro" or "Loadout"
+ mainButtons.Loadout.Text=Scope:IsHub() and "Jogar" or Scope:IsCTF() and "Armeiro" or "Loadout"
  if Scope:IsGetOut() then mainButtons.Loadout.Text="Papéis do Get Out" end
 end
 Scope.Changed:Connect(function() scopeLabels() show(false) end) scopeLabels()
@@ -411,6 +413,7 @@ player:GetAttributeChangedSignal("CTFPracticeRange"):Connect(scopeLabels)
 player:GetAttributeChangedSignal("CTFPracticeRange"):Connect(scopeLabels)
 workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(function() resize(false) end)
 player:GetAttributeChangedSignal("SettingMenuScale"):Connect(function() resize(false) end)
+player:GetAttributeChangedSignal('ArsenalFocused'):Connect(function() resize(false) end)
 shade:GetPropertyChangedSignal("AbsoluteSize"):Connect(function() resize(false) end)
 player:GetAttributeChangedSignal("HUDLayoutEditing"):Connect(function() resize(false) end)
 player:SetAttribute("ExperienceMenuOpen",false) resize(false)

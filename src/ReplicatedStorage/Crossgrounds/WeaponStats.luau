@@ -1,3 +1,4 @@
+local Effects=require(script.Parent.AttachmentEffects)
 local Root = script.Parent
 
 local Catalog = require(Root.WeaponCatalog)
@@ -56,11 +57,13 @@ function Stats.Resolve(weaponId, configuration)
 	end
 
 	local data = table.clone(base)
-	data.AdsSpeedMultiplier = 1
-	data.MovementSpeedMultiplier = 1
+	data.AdsSpeedMultiplier = data.AdsSpeedMultiplier or 1
+	data.MovementSpeedMultiplier = data.MovementSpeedMultiplier or 1
 
-	for _, attachmentId in clean do
-		local attachment = Attachments[attachmentId]
+	local selected={} local slots={}
+ for key in clean do table.insert(slots,key) end table.sort(slots)
+ for _,key in slots do table.insert(selected,Attachments[clean[key]]) end
+ for _, attachment in selected do
 
 		for field, factor in attachment.statMultipliers or {} do
 			local value = data[field]
@@ -89,6 +92,8 @@ function Stats.Resolve(weaponId, configuration)
 			end
 		end
 
+ end
+ for _,attachment in selected do
 		for field, amount in attachment.statAdd or {} do
 			local value = data[field]
 
@@ -172,6 +177,12 @@ local function visible(data)
 		rpm = data.Cooldown and 60 / data.Cooldown,
 		capacity = data.Magazine,
 		reloadSeconds = data.ReloadTime,
+  controlRollDegrees = data.VisualRecoil and data.VisualRecoil.Roll,
+  movementMultiplier = data.MovementSpeedMultiplier or 1,
+  adsMultiplier = data.AdsSpeedMultiplier or 1,
+  falloffStart = data.FalloffStart,
+  falloffEnd = data.FalloffEnd,
+  projectileSpeed = data.ProjectileSpeed,
 	}
 end
 

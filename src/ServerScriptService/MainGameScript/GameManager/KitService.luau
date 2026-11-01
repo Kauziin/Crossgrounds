@@ -86,6 +86,7 @@ local function startReload(player,tool,data)
  if data.Kind~="Gun" or tool:GetAttribute("Reloading") then return end
  local ammo=tool:GetAttribute("Ammo") or 0 local reserve=tool:GetAttribute("ReserveAmmo") or 0
  if ammo>=data.Magazine or reserve<=0 then return end
+ tool:SetAttribute("ReloadWasEmpty",ammo<=0)
  tool:SetAttribute("Reloading",true) tool:SetAttribute("ReloadStartedAt",workspace:GetServerTimeNow()) tool:SetAttribute("ReloadDuration",data.ReloadTime)
  local sound=tool.Handle:FindFirstChild("ReloadSound") if sound then sound:Play() end
  task.delay(data.ReloadTime,function()

@@ -3,7 +3,7 @@ local Policy={}
 local combat={"ctf","arena"}
 local world={"ctf","arena","survivor","hacking","beast","waiting","hub","admin"}
 Policy.Contexts={
- SniperZoom=combat,Fire=combat,Aim=combat,Sprint=combat,Perspective=combat,SwitchWeapon=combat,ShiftLock=combat,Shoulder=combat,
+ ScopeZoomIn=combat,ScopeZoomOut=combat,SniperZoom=combat,Fire=combat,Aim=combat,Sprint=combat,Perspective=combat,SwitchWeapon=combat,ShiftLock=combat,Shoulder=combat,
  Jump=combat,ReloadInteract={"ctf","arena","survivor","beast"},
  Menu={"ctf","arena","survivor","hacking","beast","waiting","hub","admin","menu"},
  KitMenu={"ctf"},VoteMenu={"ctf","arena"},Leave={"ctf","arena","survivor","hacking","beast","waiting"},
@@ -23,6 +23,10 @@ function Policy.Context(s)
  return s.mode
 end
 function Policy.Conflicts(a,b)
+ local zoom={ScopeZoomIn=true,ScopeZoomOut=true}
+ local contextual={KitMenu=true,VoteMenu=true,AdminSpeedUp=true,AdminSpeedDown=true}
+ if zoom[a] and contextual[b] or zoom[b] and contextual[a] then return false end
+ if a=="SniperZoom" and b=="Sprint" or a=="Sprint" and b=="SniperZoom" then return false end
  -- Zoom requires ADS in combat; admin mode is unavailable during a match.
  if a=="SniperZoom" and b=="AdminMode" or a=="AdminMode" and b=="SniperZoom" then return false end
  if a=="Slide" and b=="Leave" or a=="Leave" and b=="Slide" then return false end
@@ -63,43 +67,19 @@ function Policy.Priority(action)
  if action:match("^Admin") then return 500 end
  return 100
 end
--- Reassign every overlapping action, then verify the entire graph before committing.
--- Incompatible legacy profiles fail without partially changing any binding.
+-- Shared keys are intentional. Runtime context/priority arbitrates them; rebinding
+-- one action must never steal the key from another action.
 function Policy.Plan(definitions,bindings,action,device,name)
  if not definitions.Actions[action] or not definitions:IsAllowed(device,name,action) then return nil,"invalid" end
- local plan=table.clone(bindings) local old=plan[action] plan[action]=name
- local affected={[action]=true}
- for other in definitions.Actions do
-  if other~=action and Policy.Conflicts(action,other) and plan[other]==name then
-   if not definitions:IsAllowed(device,old,other) then return nil,"reserved" end
-   plan[other]=old affected[other]=true
-  end
- end
- for first in definitions.Actions do
-  for second in definitions.Actions do
-   if first<second and (affected[first] or affected[second]) and plan[first]==plan[second] and Policy.Conflicts(first,second) then return nil,"conflict" end
-  end
- end
+ local plan=table.clone(bindings) plan[action]=name
  return plan
 end
 function Policy.Normalize(definitions,bindings,device)
- local result={} local order={}
- for action in definitions.Actions do table.insert(order,action) end
- table.sort(order,function(a,b) local x,y=Policy.Priority(a),Policy.Priority(b) return x==y and a<b or x>y end)
- local function free(action,key)
-  if not definitions:IsAllowed(device,key,action) then return false end
-  for other,value in result do if value==key and Policy.Conflicts(action,other) then return false end end
-  return true
- end
- for _,action in order do
+ local result={}
+ for action,data in definitions.Actions do
   local key=bindings[action]
-  if not free(action,key) then
-   local candidates={definitions.Actions[action][device]}
-   if device=="Gamepad" then for _,value in definitions.GamepadKeys do table.insert(candidates,value) end
-   else for _,value in {"F8","F9","F10","F11","F12","Z","X","C","B","N","H","J","U","I","O","P","T","Y","Equals","Minus","LeftBracket","RightBracket"} do table.insert(candidates,value) end end
-   key=nil for _,candidate in candidates do if free(action,candidate) then key=candidate break end end
-  end
-  if not key then return nil,"no-free-binding:"..action end
+  if not definitions:IsAllowed(device,key,action) then key=data[device] end
+  if not definitions:IsAllowed(device,key,action) then return nil,"invalid-default:"..action end
   result[action]=key
  end
  return result

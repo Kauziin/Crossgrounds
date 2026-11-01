@@ -1,6 +1,6 @@
 local Definition=require(game.ReplicatedStorage.ExperienceSettings)
 local Profile={}
-function Profile.New() return {Version=2,Global={},Modes={ctf={},arena={}},Devices={Keyboard={},Gamepad={},Touch={}}} end
+function Profile.New() return {Version=2,ControlBindingVersion=1,Global={},Modes={ctf={},arena={}},Devices={Keyboard={},Gamepad={},Touch={}}} end
 function Profile.Container(profile,scope)
  if scope=="Global" then return profile.Global end
  local kind,id=scope:match("^(%w+):(%w+)$")
@@ -31,6 +31,9 @@ function Profile.Migrate(saved)
    if typeof(container)=="table" then local count=0 for key,value in container do count+=1 if count>256 then break end if typeof(key)=="string" then Profile.Set(profile,scope,key,value) end end end
   end
  end
+ -- One-time recovery from the old collision normalizer. Later custom choices
+ -- retain this marker and are preserved, including shared keys.
+ if saved.ControlBindingVersion~=1 then Profile.Set(profile,'Device:Gamepad','BindSwitchWeaponGamepad',Definition.Rules.BindSwitchWeaponGamepad.Default) end
  return profile
 end
 return Profile

@@ -1,3 +1,5 @@
+local AttachmentEffects=require(game.ReplicatedStorage.Crossgrounds.AttachmentEffects)
+local WeaponStats=require(game.ReplicatedStorage.Crossgrounds.WeaponStats)
 -- One authoritative firearm path. Mode adapters retain ownership and damage rules.
 local Shot=require(game.ReplicatedStorage.Crossgrounds.ShotMath)
 local Query=require(script.Parent.Ballistics)
@@ -118,7 +120,7 @@ function Authority.Fire(o)
  local blockedModel=blocked and Query.ModelFromPart(blocked.Instance)
  if blockedModel and o.classify(blockedModel)=="target" then origin=head.Position blocked=nil end
  blocked=cover or blocked
- local directions={} for pellet=1,config.pellets do directions[pellet]=Shot.Direction(aim-origin,data.Spread,tool:GetAttribute("ShotSeed"),id,pellet,config.pellets) end
+ local directions={} for pellet=1,config.pellets do directions[pellet]=Shot.Direction(aim-origin,AttachmentEffects.Spread(data,tool),tool:GetAttribute("ShotSeed"),id,pellet,config.pellets) end
  ledger:Commit(o.weapon,now,fireCooldown)
  if burst then Burst.Commit(state,now,burst) end
  local historicalTime,aligned=History.ResolveTime(workspace:GetServerTimeNow(),request.time,ping,request.view,request.cameraOrigin,request.cameraDirection,o.classify)
@@ -132,7 +134,7 @@ function Authority.FireNPC(o)
  local c,tool=o.character,o.tool
  local h=c and c:FindFirstChildOfClass("Humanoid")
  if not c or c.Parent~=workspace:FindFirstChild("CTFBots") or not c:GetAttribute("CTFBot") or not h or h.Health<=0 or not tool or tool.Parent~=c or not o.valid() then return false,"state" end
- local id=tool:GetAttribute("WeaponId") local data=Kits.Weapons[id]
+ local id=tool:GetAttribute("WeaponId") local data=WeaponStats.ResolveTool(tool) or Kits.Weapons[id]
  if not data or data.Kind~="Gun" or not Shot.Finite(o.direction) or o.direction.Magnitude<.01 then return false,"weapon" end
  local ledger=npcLedgers[c] if not ledger then ledger=Ledger.new() npcLedgers[c]=ledger end
  local now=os.clock()
@@ -149,7 +151,7 @@ function Authority.FireNPC(o)
  local sequence=ledger.sequence+1 ledger:Receive(sequence,now) ledger:Commit(id,now,burst and burst.interval or data.Cooldown)
  if burst then Burst.Commit(state,now,burst) end
  o.data=data o.shotId=sequence
- local directions={} for pellet=1,config.pellets do directions[pellet]=Shot.Direction(aim-origin,data.Spread,tool:GetAttribute("ShotSeed"),sequence,pellet,config.pellets) end
+ local directions={} for pellet=1,config.pellets do directions[pellet]=Shot.Direction(aim-origin,AttachmentEffects.Spread(data,tool),tool:GetAttribute("ShotSeed"),sequence,pellet,config.pellets) end
  resolve(o,config,origin,blocked,directions,0,nil)
  return true
 end

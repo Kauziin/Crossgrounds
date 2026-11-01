@@ -11,6 +11,9 @@ local listeners={} local capture local generation=0
 local changed=Instance.new("BindableEvent") Router.Changed=changed.Event
 local captureChanged=Instance.new("BindableEvent") Router.CaptureChanged=captureChanged.Event
 function Router:Key(action,device)
+ local options=listeners[action]
+ local inherited=options and options.overrides and options.overrides[device]
+ if inherited then action=inherited end
  local key=Definition:Attribute(action,device)
  return player:GetAttribute("Setting"..key) or Definition.Actions[action][device]
 end
@@ -115,7 +118,7 @@ local function route(name,state,input)
  for action in listeners do
   if (Router:Key(action,"Keyboard")==name or Router:Key(action,"Gamepad")==name) and Router:IsAvailable(action,s) then table.insert(candidates,action) end
  end
- table.sort(candidates,function(a,b) local x,y=Policy.Priority(a),Policy.Priority(b) return x==y and a<b or x>y end)
+ table.sort(candidates,function(a,b) local x,y=Policy.Priority(a)+((listeners[a].overrides or listeners[a].overridePriority) and 1000 or 0),Policy.Priority(b)+((listeners[b].overrides or listeners[b].overridePriority) and 1000 or 0) return x==y and a<b or x>y end)
  for _,action in candidates do
   local result=Router:Dispatch(action,state,input)
   if result~=Enum.ContextActionResult.Pass then return result end
@@ -179,7 +182,7 @@ local function finish(success,name)
  if not capture then return end
  local request=capture capture=nil player:SetAttribute("Rebinding",false)
  if success then success=Router:Commit(request.action,request.device,name) end
- captureChanged:Fire(false,success and "Controle atualizado. Atalhos em conflito foram trocados." or "Controle não aplicado. Conflito ou captura cancelada; o anterior foi mantido.")
+ captureChanged:Fire(false,success and "Controle atualizado. Outros atalhos foram mantidos; o contexto define a ação." or "Controle não aplicado. Entrada inválida ou captura cancelada; o anterior foi mantido.")
  local completedGeneration=generation
  task.delay(.15,function() if not capture and generation==completedGeneration then CAS:UnbindAction("CTFCaptureBinding") end end)
 end

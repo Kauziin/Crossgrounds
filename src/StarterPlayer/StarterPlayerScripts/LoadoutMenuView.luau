@@ -1,11 +1,13 @@
 -- Shared Arena/CTF presentation. Selection is delegated to the existing pending-loadout remote.
 local View={}
+local PreviewStyle=require(script.Parent.ArsenalPreviewStyle)
 local accent=Color3.fromRGB(37,213,235)
 local white=Color3.fromRGB(239,245,249)
 local muted=Color3.fromRGB(169,192,205)
 
 local function object(class,name,parent)
  local v=Instance.new(class) v.Name=name
+ if v:IsA('TextButton') then v:SetAttribute('ArsenalFocus',true) end
  if v:IsA("GuiObject") then v:SetAttribute("CascadeDecoration",true) v.BackgroundTransparency=1 v.BorderSizePixel=0 end
  v.Parent=parent return v
 end
@@ -59,11 +61,13 @@ function View.new(parent,config)
    distance=math.max(distance,math.abs(p.X)/(tangent*aspect)+p.Z,math.abs(p.Y)/tangent+p.Z)
   end end end
   record.Camera.CFrame=CFrame.lookAt(cf.Position+direction*math.max(.5,distance*1.13),cf.Position)
+  PreviewStyle.Aim(record.Frame,record.Camera)
  end
  local function viewport(holder,name,assetName,melee)
   local fallback=text(holder,name.."Unavailable","Modelo indisponível",11,false) fallback.Visible=false fallback.Size=UDim2.new(1,0,0,24)
   local frame=object("ViewportFrame",name,holder) frame.Ambient=Color3.fromRGB(161,178,192) frame.LightColor=Color3.fromRGB(255,246,231) frame.LightDirection=Vector3.new(-1,-2,-3)
   local camera=Instance.new("Camera") camera.FieldOfView=32 camera.Parent=frame frame.CurrentCamera=camera
+  PreviewStyle.Attach(frame)
   local world=Instance.new("WorldModel") world.Parent=frame
   local record={Frame=frame,Camera=camera,World=world,Melee=melee}
   local function setAsset(id)

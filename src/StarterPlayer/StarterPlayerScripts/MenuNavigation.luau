@@ -58,7 +58,11 @@ local function nativePolicy()
  end
 end
 local Router=require(script.Parent:WaitForChild("ControlRouter"))
-local registered={} local back={} local defaults={} local categoryHandlers={}
+local registered={} local back={} local defaults={} local categoryHandlers={} local floatingRoot
+function Navigation:SetFloatingRoot(object,callback,default)
+ floatingRoot=object
+ if object then back[object]=callback defaults[object]=default object.Destroying:Once(function() if floatingRoot==object then floatingRoot=nil end back[object]=nil defaults[object]=nil end) end
+end
 local focused local root local point=Vector2.zero local stick=Vector2.zero local scrollStick=0 local keyboardStick=Vector2.zero
 local keyboardNavigation=false
 local dragging=false local repeatAt=0 local heldDirection local analog=false
@@ -107,6 +111,7 @@ local function dockCursor(object)
  return nil
 end
 local function modal()
+ if floatingRoot and floatingRoot.Parent and floatingRoot.Visible then return floatingRoot end
  local p=player.PlayerGui local experience=p:FindFirstChild("ExperienceMenu") local join=p:FindFirstChild("JoinMenu") local hud=p:FindFirstChild("CombatHUD")
  local voting=p:FindFirstChild("FloatingMapVote")
  if voting and voting.Enabled and player:GetAttribute("MapVotingMenuOpen")==true then return voting.Panel end
@@ -253,11 +258,12 @@ CAS:BindActionAtPriority("CTFAccessibleMenu",function(_,state,input)
   elseif key==Enum.KeyCode.ButtonA then Navigation:Activate()
   elseif key==Enum.KeyCode.ButtonX or key==Enum.KeyCode.X then if not Navigation:ContextAction("custom") then return Enum.ContextActionResult.Pass end
   elseif key==Enum.KeyCode.ButtonY or key==Enum.KeyCode.Y then if not Navigation:ContextAction("reset") then return Enum.ContextActionResult.Pass end
+  elseif key==Enum.KeyCode.ButtonL3 then if not Navigation:ContextAction('options') then return Enum.ContextActionResult.Pass end
   elseif key==Enum.KeyCode.ButtonB then local callback=back[root] if callback then Audio:Play("Back") callback() end
   else direction(key) heldDirection=key repeatAt=os.clock()+.4 end
  elseif state==Enum.UserInputState.End or state==Enum.UserInputState.Cancel then heldDirection=nil end
  return Enum.ContextActionResult.Sink
-end,false,6000,Enum.KeyCode.ButtonA,Enum.KeyCode.ButtonB,Enum.KeyCode.Thumbstick1,Enum.KeyCode.Thumbstick2,Enum.KeyCode.DPadLeft,Enum.KeyCode.DPadRight,Enum.KeyCode.DPadUp,Enum.KeyCode.DPadDown,Enum.KeyCode.Up,Enum.KeyCode.Down,Enum.KeyCode.Left,Enum.KeyCode.Right,Enum.KeyCode.Return,Enum.KeyCode.KeypadEnter,Enum.KeyCode.Escape,Enum.KeyCode.Tab,Enum.KeyCode.ButtonX,Enum.KeyCode.ButtonY,Enum.KeyCode.X,Enum.KeyCode.Y)
+end,false,6000,Enum.KeyCode.ButtonA,Enum.KeyCode.ButtonB,Enum.KeyCode.ButtonL3,Enum.KeyCode.Thumbstick1,Enum.KeyCode.Thumbstick2,Enum.KeyCode.DPadLeft,Enum.KeyCode.DPadRight,Enum.KeyCode.DPadUp,Enum.KeyCode.DPadDown,Enum.KeyCode.Up,Enum.KeyCode.Down,Enum.KeyCode.Left,Enum.KeyCode.Right,Enum.KeyCode.Return,Enum.KeyCode.KeypadEnter,Enum.KeyCode.Escape,Enum.KeyCode.Tab,Enum.KeyCode.ButtonX,Enum.KeyCode.ButtonY,Enum.KeyCode.X,Enum.KeyCode.Y)
 local fake={Thumbstick1Right=Vector2.new(1,0),Thumbstick1Left=Vector2.new(-1,0),Thumbstick1Up=Vector2.new(0,1),Thumbstick1Down=Vector2.new(0,-1)}
 local textFocusAt=0
 UIS.TextBoxFocused:Connect(function() textFocusAt=os.clock() end)
@@ -304,6 +310,10 @@ Run:BindToRenderStep("CTFMenuCursor",Enum.RenderPriority.Last.Value,function(dt)
  local settingsRoot=root and root:GetAttribute("SettingsOverhaul")==true
  local tokens=settingsRoot and require(script.Parent.MenuTheme).Settings
  if tokens then focusStroke.Color=tokens.Focus glowStroke.Color=tokens.Accent else focusStroke.Color=Color3.fromRGB(220,243,255) glowStroke.Color=Color3.fromRGB(116,193,255) end
+ local arsenalFocus=focused and focused:GetAttribute('ArsenalFocus')==true
+ if arsenalFocus then focusStroke.Color=require(script.Parent.AccentTheme).Color() glowStroke.Color=focusStroke.Color end
+ focusStroke.Thickness=arsenalFocus and (player:GetAttribute('SettingHighContrast') and 3 or 2) or 4
+ glowStroke.Thickness=arsenalFocus and 6 or 10 glowStroke.Transparency=arsenalFocus and .92 or .82
  settingHelp.Visible=settingsRoot==true
  settingHelp.Text="← → AJUSTAR  ·  "..Icons:Name("ButtonX").." VALOR  ·  "..Icons:Name("ButtonY").." PADRÃO"
  local footerWidth=settingsRoot and 890 or hasCategories and 530 or 340

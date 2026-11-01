@@ -422,14 +422,26 @@ function Factory:Create(id,visual)
   specialPistol(tool,handle,visual)
   if visual~="Magnum" then piece(tool,handle,"Magazine",Vector3.new(.23,.60,.27),CFrame.new(0,-.17,.10)*CFrame.Angles(math.rad(-15),0,0),steel):SetAttribute("ReloadGroup","Magazine") end
   for _,v in tool:GetChildren() do if v:IsA("BasePart") then
-   if visual=="Magnum" and (v.Name:find("Cylinder") or v.Name:find("Chamber")) then v:SetAttribute("ReloadGroup","Cylinder")
+   if visual=="Magnum" and v.Name~="CylinderLatch" and (v.Name:find("Cylinder") or v.Name:find("Chamber")) then v:SetAttribute("ReloadGroup","Cylinder")
    elseif v.Name=="GripBase" and visual~="Magnum" then v:SetAttribute("ReloadGroup","Magazine")
-   elseif v.Name:find("Slide") or v.Name:find("Serration") then v:SetAttribute("ReloadGroup","Slide") end
+   elseif (v.Name:find("Slide") and v.Name~="SlideCatch") or v.Name:find("Serration") then v:SetAttribute("ReloadGroup","Slide") end
   end end
  elseif data.Kind=="Gun" then
   for _,v in tool:GetChildren() do if id~="SPAS12" and id~="Shotgun725" and v.Name:find("Magazine") then v:SetAttribute("ReloadGroup","Magazine") end end
  end
  if id=="SPAS12" then for _,part in tool:GetChildren() do if part:GetAttribute("ReloadGroup")=="TubeShell" then part.Transparency=1 part:SetAttribute("ReloadOnly",true) end end end
+ if id=='ArenaPistol' then
+  if visual=='Magnum' then
+   attachment(handle,'ReloadPivot_Cylinder',CFrame.new(0,.46,-.48)) attachment(handle,'ReloadPivot_Speedloader',CFrame.new(0,.46,-.48))
+   local loader=cylinder(tool,handle,'ReloadSpeedloader',.12,.33,CFrame.new(-.14,.46,-.25),dark) loader:SetAttribute('ReloadGroup','Speedloader') loader:SetAttribute('ReloadOnly',true) loader.Transparency=1
+   for i=1,6 do local a=i*math.pi/3 local round=cylinder(tool,handle,'ReloadRound'..i,.25,.07,CFrame.new(-.14+math.cos(a)*.12,.46+math.sin(a)*.12,-.38),Color3.fromRGB(160,128,55)) round:SetAttribute('ReloadGroup','Speedloader') round:SetAttribute('ReloadOnly',true) round.Transparency=1 end
+  elseif visual=='Luger' then attachment(handle,'ReloadPivot_Toggle',CFrame.new(0,.55,-.55)) end
+  -- Grouped cosmetics need local animation joints in third person as well as FP.
+  for _,part in tool:GetChildren() do if part:IsA('BasePart') and part:GetAttribute('ReloadGroup') then
+   for _,joint in part:GetChildren() do if joint:IsA('WeldConstraint') then joint:Destroy() end end
+   local joint=Instance.new('Motor6D') joint.Name='ReloadPart' joint.Part0=handle joint.Part1=part joint.C0=handle.CFrame:ToObjectSpace(part.CFrame) joint.Parent=part
+  end end
+ end
  if data.Kind=="Gun" then Effects.Attach(tool,(id=="Sniper" or id=="Shotgun725" or id=="SPAS12") and 1.4 or id=="ArenaPistol" and .7 or 1) end
  local sound=Instance.new("Sound") sound.Name="FireSound" sound.SoundId=data.FireSound sound.Volume=data.FireVolume or (data.Kind=="Gun" and .42 or .55) sound.PlaybackSpeed=data.FirePlaybackSpeed or 1 sound.RollOffMaxDistance=data.FireRange or 100 sound.Parent=handle
  if data.PunchyAudio then

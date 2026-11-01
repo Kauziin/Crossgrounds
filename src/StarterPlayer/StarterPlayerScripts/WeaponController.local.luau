@@ -128,7 +128,8 @@ RunService:BindToRenderStep("CTFWeaponInput",Enum.RenderPriority.Camera.Value+3,
  scan() prediction:Prune(os.clock())
  if equipped then equipped:SetAttribute("PredictedAmmo",prediction:Available(equipped)) end
  local data=equipped and Stats.ResolveTool(equipped)
- cross.Visible=data and data.Kind=="Gun" and canUse() or false
+ local axScope=equipped and equipped:GetAttribute("WeaponId")=="ax_50" and (player:GetAttribute("SniperZoomLevel") or 0)>0
+ cross.Visible=data and data.Kind=="Gun" and canUse() and not axScope or false
  rangeText.Visible=false
  if data then
   reticle:Update(function(key) local v=player:GetAttribute("Setting"..key) if v==nil then v=require(game.ReplicatedStorage.ExperienceSettings).Rules[key].Default end return v end,math.clamp((player.Character.HumanoidRootPart.AssemblyLinearVelocity.Magnitude/30)+(held and .25 or 0),0,1))

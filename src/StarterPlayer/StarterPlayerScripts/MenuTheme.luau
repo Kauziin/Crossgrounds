@@ -2,6 +2,7 @@ local Theme={}
 local Tween=game:GetService("TweenService")
 local player=game.Players.LocalPlayer
 local Gui=game:GetService("GuiService")
+local Accent=require(script.Parent:WaitForChild('AccentTheme'))
 function Theme.ReducedMotion()
  local state=player.PlayerGui:FindFirstChild("PreferenceState")
  if state and state:GetAttribute("PreferenceGlobalReducedMenuMotion")~=nil then return player:GetAttribute("SettingReducedMenuMotion")==true end
@@ -10,6 +11,8 @@ function Theme.ReducedMotion()
 end
 Theme.Colors={Surface=Color3.fromRGB(17,18,22),Button=Color3.fromRGB(30,31,37),Selected=Color3.fromRGB(62,65,75),Text=Color3.fromRGB(245,246,249),Muted=Color3.fromRGB(182,186,196)}
 Theme.Settings={Surface=Color3.fromRGB(7,18,24),Card=Color3.fromRGB(13,29,36),Accent=Color3.fromRGB(16,224,227),Text=Color3.fromRGB(240,247,250),Muted=Color3.fromRGB(177,193,200),Track=Color3.fromRGB(48,66,74),Border=Color3.fromRGB(80,112,119),Focus=Color3.fromRGB(232,255,255)}
+Theme.Settings.Accent=Accent.Color()
+player:GetAttributeChangedSignal('SettingAccentHue'):Connect(function() Theme.Settings.Accent=Accent.Color() end)
 local styled=setmetatable({},{__mode="k"})
 local function transparency(value)
  if player:GetAttribute("SettingHighContrast") then return 0 end
@@ -76,6 +79,7 @@ function Theme.Text(parent,name,value,height,size)
 end
 local surfaces={Main=true,Options=true,Categories=true,Detail=true,RootPane=true,Dialog=true,Tools=true}
 function Theme.Apply(gui)
+ Accent.Bind(gui)
  gui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling
  local function style(v)
   if not v:IsA("GuiObject") or v:GetAttribute("CascadeDecoration") or v:GetAttribute("SettingsStyled") then return end

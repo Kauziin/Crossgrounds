@@ -1,0 +1,3480 @@
+{
+  "source": "Studio Edit, place 4375993208, ImportedArsenalOriginals, 2026-11-01",
+  "registeredAssets": 267,
+  "containers": 1328,
+  "missingRegisteredAssets": [],
+  "sameSourceAliases": [
+    [
+      "suppressors_monolithic_suppressor",
+      "suppressors_colossus_suppressor"
+    ],
+    [
+      "barrels_zlr_j_3600_torrent_jak_12",
+      "barrels_zlr_j_3600_torrent"
+    ],
+    [
+      "underbarrel_launchers_40mm_concussive",
+      "underbarrel_launchers_40mm_concussive_eglm"
+    ],
+    [
+      "handguards_laser_mount_mlok_rail",
+      "handguards_laser_mount_mlok_rail_mp5"
+    ],
+    [
+      "magazines_40rnd_7_62x39mm_magazine",
+      "magazines_40rnd_7_62x39mm_magazine_ak_47"
+    ],
+    [
+      "magazines_50rnd_9x19mm_drum_magazine",
+      "magazines_50rnd_9x19mm_drum_magazine_iso"
+    ],
+    [
+      "optics_monocle_reflex_sight",
+      "optics_monocle_reflex_sight_that_s_weird_it_looked_like_an_okp_7"
+    ],
+    [
+      "optics_cronen_c480_4x30",
+      "optics_cronen_c480_4x30_idk_doomguy_censored_it"
+    ],
+    [
+      "magazines_32rnd_41_ae_magazine",
+      "magazines_32rnd_41_ae_magazine_uzi"
+    ],
+    [
+      "magazines_30rnd_9x19mm_magazine_iso",
+      "magazines_30rnd_9x19mm_magazine"
+    ],
+    [
+      "magazines_30rnd_5_56x45mm_nato_magazine",
+      "magazines_30rnd_5_56x45mm_nato_magazine_kilo"
+    ],
+    [
+      "suppressors_oil_filter_suppressor",
+      "suppressors_oil_filter_suppressor_anyone_heard_of_apoc_rising_2"
+    ],
+    [
+      "optics_cronen_2x2_red_dot_ram_7",
+      "optics_cronen_2x2_red_dot"
+    ],
+    [
+      "magazines_21rnd_9mm_para_magazine_m19",
+      "magazines_21rnd_9mm_para_magazine"
+    ],
+    [
+      "barrels_fss_11_8_squall",
+      "barrels_fss_11_8_squall_cr_56"
+    ]
+  ],
+  "sameGeometryCandidates": [
+    [
+      "foregrips_commando_foregrip",
+      "foregrips_commando_foregrip_desert_unofficial"
+    ],
+    [
+      "suppressors_monolithic_suppressor",
+      "suppressors_colossus_suppressor"
+    ],
+    [
+      "barrels_zlr_j_3600_torrent_jak_12",
+      "barrels_zlr_j_3600_torrent"
+    ],
+    [
+      "underbarrel_launchers_40mm_concussive",
+      "underbarrel_launchers_40mm_concussive_eglm"
+    ],
+    [
+      "handguards_laser_mount_mlok_rail",
+      "handguards_laser_mount_mlok_rail_mp5"
+    ],
+    [
+      "magazines_40rnd_7_62x39mm_magazine",
+      "magazines_40rnd_7_62x39mm_magazine_ak_47"
+    ],
+    [
+      "magazines_50rnd_9x19mm_drum_magazine",
+      "magazines_50rnd_9x19mm_drum_magazine_iso"
+    ],
+    [
+      "optics_monocle_reflex_sight",
+      "optics_monocle_reflex_sight_that_s_weird_it_looked_like_an_okp_7"
+    ],
+    [
+      "optics_cronen_c480_4x30",
+      "optics_cronen_c480_4x30_idk_doomguy_censored_it"
+    ],
+    [
+      "magazines_32rnd_41_ae_magazine",
+      "magazines_32rnd_41_ae_magazine_uzi"
+    ],
+    [
+      "m4a1",
+      "variant_m4a1_dark",
+      "variant_m4a1_pure_white_requested_from_bb_server"
+    ],
+    [
+      "magazines_30rnd_9x19mm_magazine_iso",
+      "magazines_30rnd_9x19mm_magazine"
+    ],
+    [
+      "kilo_141_cosmetics_kilo_141_emblem_action_elite",
+      "kilo_141_cosmetics_kilo_141_emblem_mardemon",
+      "kilo_141_cosmetics_kilo_141_emblem_stylis_symbol",
+      "kilo_141_cosmetics_kilo_141_emblem_ravenholm",
+      "kilo_141_cosmetics_kilo_141_emblem_rekt",
+      "kilo_141_cosmetics_kilo_141_emblem_doomguy",
+      "kilo_141_cosmetics_kilo_141_emblem_arccw",
+      "kilo_141_cosmetics_kilo_141_emblem_this_is_america",
+      "kilo_141_cosmetics_kilo_141_emblem_stylis_studios_forum_logo",
+      "kilo_141_cosmetics_kilo_141_emblem_dio_brando",
+      "kilo_141_cosmetics_kilo_141_emblem_mw",
+      "kilo_141_cosmetics_kilo_141_emblem_jortelleni"
+    ],
+    [
+      "magazines_30rnd_5_56x45mm_nato_magazine",
+      "magazines_30rnd_5_56x45mm_nato_magazine_kilo"
+    ],
+    [
+      "handguards_laser_mount_corvus_custom_marksman_handguard",
+      "handguards_laser_mount_corvus_custom_marksman_handguard_desert"
+    ],
+    [
+      "x16",
+      "variant_x16_alternate_color",
+      "variant_x16_dark_hl1_fire_sound"
+    ],
+    [
+      "suppressors_oil_filter_suppressor",
+      "suppressors_oil_filter_suppressor_anyone_heard_of_apoc_rising_2"
+    ],
+    [
+      "m1911",
+      "variant_1911_rusted"
+    ],
+    [
+      "optics_cronen_2x2_red_dot_ram_7",
+      "optics_cronen_2x2_red_dot"
+    ],
+    [
+      "magazines_21rnd_9mm_para_magazine_m19",
+      "magazines_21rnd_9mm_para_magazine"
+    ],
+    [
+      "barrels_fss_11_8_squall",
+      "barrels_fss_11_8_squall_cr_56"
+    ]
+  ],
+  "unmappedCandidateContainers": [
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.SP-R 208 Chassis",
+      "children": 4,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.SP-R 208 Chassis.XRK SP-Lite 208 Blitz",
+      "children": 5,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.SP-R 208 Chassis.ZLR SP-R Overseer",
+      "children": 4,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.SP-R 208 Chassis.FSS Virtuoso Pro",
+      "children": 6,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.SP-R 208 Chassis.XRK SP-TAC 208 Ultimate",
+      "children": 6,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Underbarrel Launchers",
+      "children": 4,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Underbarrel Launchers.12 Gauge Deputy",
+      "children": 6,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Underbarrel Launchers.M203 Mini",
+      "children": 4,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Underbarrel Launchers.40mm Concussive (EGLM)",
+      "children": 4,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Underbarrel Launchers.M203 40mm",
+      "children": 4,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Optics",
+      "children": 21,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Optics.APX5 Scope",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Optics.Solozero Variable Zoom Scope",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Optics.Cronen CR40x Scope",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Optics.Combat Corp Sight",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Optics.Viper Reflex Sight",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Optics.Cronen 2x2 Red Dot (RAM-7)",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Optics.Corvus Defense PBX Holo 7",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Optics.XRK Operator Reflex Sight",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Optics.Scout Combat Optic",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Optics.VLK 3.0x Scope",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Optics.Corvus Defense Integral Hybrid",
+      "children": 4,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Optics.Aim Op Reflex Sight (Riser)",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Optics.Aim Op Reflex Sight",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Optics.FSS Magnifier",
+      "children": 4,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Optics.Monocle Reflex Sight (That's Weird, It looked Like an OKP-7)",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Optics.Solozero NVG Enhanced",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Optics.Cronen C480 4x30 (idk Doomguy Censored it)",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Optics.G.I Mini Reflex (Yikes, I Used The Same Rail Mount)",
+      "children": 4,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Optics.Merc Thermal Optic",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Optics.Cronen LP945",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Optics.Solozero Mini Dot Sight",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.SP-R 208 Barrels",
+      "children": 4,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.SP-R 208 Barrels.ZLR Asp",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.SP-R 208 Barrels.SP-R 26\"",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.SP-R 208 Barrels.ZLR Veratwist 9.6\"",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Kilo 141 Cosmetics",
+      "children": 13,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Foregrips",
+      "children": 8,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Magazines",
+      "children": 12,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Magazines.32rnd Corvus Defense Drum Magazine",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Magazines.20rnd Corvus Defense Drum Magazine",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Magazines.6rnd .338 Lapua Mag",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Magazines.50rnd 9x19mm Drum Magazine (ISO)",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Magazines.10rnd .300 Win Mag",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Magazines.21rnd 9mm Para Magazine (M19)",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Magazines.30rnd 9x19mm Magazine (ISO)",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Magazines.32rnd .41 AE Magazine (Uzi)",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Magazines.30rnd 5.56x45mm NATO Magazine (Kilo)",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Magazines.40rnd 7.62x39mm Magazine (AK-47)",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Magazines.20rnd 5.56x45mm Normal Magazine",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Magazines.30rnd 5.56x45mm Holger Magazine",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Lasers",
+      "children": 6,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Lasers.Laser Cylinder",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Lasers.5mW Laser",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Lasers.Tac Laser",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Lasers.1mW Laser",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Lasers.Corvus Defense 1mW Laser",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Suppressors",
+      "children": 7,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.AMMO BOXES",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.AMMO BOXES.Artoria Armory .300 Win Mag Box",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.AMMO BOXES.Artoria Armory .300 Win Mag Box.Model",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.AMMO BOXES.Artoria Armory .300 Win Mag Box.Model.8x Bullets",
+      "children": 6,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.AMMO BOXES.Artoria Armory .300 Win Mag Box.Model.8x Bullets.2x Bullet",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.AMMO BOXES.Artoria Armory .300 Win Mag Box.Model.8x Bullets.2x Bullet",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.AMMO BOXES.Artoria Armory .300 Win Mag Box.Model.8x Bullets.2x Bullet",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.AMMO BOXES.Artoria Armory .300 Win Mag Box.Model.8x Bullets.2x Bullet",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.AMMO BOXES.Artoria Armory .300 Win Mag Box.Model.8x Bullets.2x Bullet",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.AMMO BOXES.Artoria Armory .300 Win Mag Box.Model.8x Bullets.2x Bullet",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.AMMO BOXES.Artoria Armory .300 Win Mag Box.Model.8x Bullets",
+      "children": 4,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.AMMO BOXES.Artoria Armory .300 Win Mag Box.Model.8x Bullets.2x Bullet",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.AMMO BOXES.Artoria Armory .300 Win Mag Box.Model.8x Bullets.2x Bullet",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.AMMO BOXES.Artoria Armory .300 Win Mag Box.Model.8x Bullets.2x Bullet",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.AMMO BOXES.Artoria Armory .300 Win Mag Box.Model.8x Bullets.2x Bullet",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.AMMO BOXES.XRK 9mm M19",
+      "children": 31,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.AMMO BOXES..357 Magnum Bullets",
+      "children": 27,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Handguards/Laser Mount",
+      "children": 4,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Handguards/Laser Mount.Corvus Custom Marksman Handguard",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Handguards/Laser Mount.Corvus Custom Marksman Handguard (Desert)",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Barrels",
+      "children": 5,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Barrels.ZLR J-3600 Torrent (JAK-12)",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Barrels.ZLR J-2800 Influx",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Barrels.FSS 20.8 Nexus",
+      "children": 5,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Barrels.FSS 11.8 Squall (CR-56)",
+      "children": 4,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Barrels.AX-50 Extended Barrel",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Model",
+      "children": 5,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Model.Singuard Arms Invader",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Model.Forge Tac CQS",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Model.Forge Tac Ultralight",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Model.Forge Tac Hunter",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.CoD:MW Weapon/Attachment Props.ATTACHMENTS.Model.FSS Close Quarters Stock",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.M4A1.Magazines.STANAG",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.M4A1.Magazines.PMAG Black",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.M4A1.Magazines.PMAG Tan",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.M4A1.Sights.Carrying Handle",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.M4A1.Sights.Magpul BUIS",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.M4A1.Sights.Magpul BUIS.Front Sight",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.M4A1.Sights.Magpul BUIS.Rear Sight",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.M4A1.Sights.Magpul BUIS.Rear Sight.Flipped",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.M4A1.Sights.ELCAN Specter",
+      "children": 5,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.M4A1.Sights.EOTECH EXPS3 Black",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.M4A1.Sights.EOTECH EXPS3 Tan",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.M4A1.Sights.KAC BUIS",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.M4A1.Sights.Aimpoint Micro T-1",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.M4A1.Sights.M150",
+      "children": 8,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.M4A1.Handguard Attachments.M203",
+      "children": 6,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.M4A1.Handguard Attachments.AN/PEQ-15",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.M4A1.Handguard Attachments.Black Rails",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.M4A1.Handguard Attachments.Tan Rails",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.M4A1.Handguard Attachments.Grenade Launcher Leaf Sight",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.M4A1.Muzzle Devices.Sound Suppressor Kit",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Black Ops Cold War Reloaded.Attachments.Suppressed Barrel (MP5)",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Black Ops Cold War Reloaded.Attachments.Suppressed Barrel (MP5).Handguard",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Black Ops Cold War Reloaded.Attachments.9.5\" Ranger",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Black Ops Cold War Reloaded.Attachments.30rnd 9x19mm Prototype Magazine (MP5)",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Black Ops Cold War Reloaded.Attachments.Walnut Chassis Kit (DMR-14)",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Black Ops Cold War Reloaded.Attachments.50rnd 9x19mm Drum Magazine",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Black Ops Cold War Reloaded.Attachments.71rnd 7.62x25mm Soviet Drum (PPSh-41)",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Black Ops Cold War Reloaded.Attachments.12 Gauge Shells",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Black Ops Cold War Reloaded.Attachments.A2 SF Parts Kit (AUG)",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Black Ops Cold War Reloaded.Attachments.A2 SF Parts Kit (AUG).Swarovski Scope (A2)",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.MWII : Rifles Part 2.Gunsmith Parts.Carrack .300 Attachments",
+      "children": 4,
+      "class": "Folder"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.MWII : Rifles Part 2.Gunsmith Parts.Carrack .300 Attachments.\"Variable Zoom\" Scope (Carrack .300)",
+      "children": 4,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.MWII : Rifles Part 2.Gunsmith Parts.Carrack .300 Attachments.Hitman Sieger Synthetic Black Kit (Carrack .300)",
+      "children": 4,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.MWII : Rifles Part 2.Gunsmith Parts.Carrack .300 Attachments.\"30 Flintfire (Carrack .300)",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.MWII : Rifles Part 2.Gunsmith Parts.Carrack .300 Attachments.300 Subsound (Carrack .300)",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.MWII : Rifles Part 2.Gunsmith Parts.Magazines",
+      "children": 3,
+      "class": "Folder"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.MWII : Rifles Part 2.Gunsmith Parts.Magazines.10rnd 7.62x51mm NATO Magazine",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.MWII : Rifles Part 2.Gunsmith Parts.Magazines.5rnd 6.5mm Creedmoor Magazine (TAQ-M)",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.MWII : Rifles Part 2.Gunsmith Parts.Magazines.7rnd .300 Win Magnum Magazine",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.MWII : Rifles Part 2.Gunsmith Parts.Barrels",
+      "children": 3,
+      "class": "Folder"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.MWII : Rifles Part 2.Gunsmith Parts.Barrels.22\" OMX-456 (MCPR-300)",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.MWII : Rifles Part 2.Gunsmith Parts.Unarranged",
+      "children": 2,
+      "class": "Folder"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.MWII : Rifles Part 2.Gunsmith Parts.Unarranged.TT HG-40 (M110 Conversion)",
+      "children": 6,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.MWII : Rifles Part 2.Gunsmith Parts.Azura MK2 Handguards",
+      "children": 3,
+      "class": "Folder"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.MWII : Rifles Part 2.Gunsmith Parts.Azura MK2 Handguards.Azura Combat Guard (Azura MK2)",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.MWII : Rifles Part 2.Gunsmith Parts.Azura MK2 Handguards.Azura Commando Guard (Azura MK2)",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.MW3 : Machine Guns & Shotguns.Gunsmith Parts.Shotgun Attachments",
+      "children": 2,
+      "class": "Folder"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.MW3 : Machine Guns & Shotguns.Gunsmith Parts.Shotgun Attachments.Unarranged",
+      "children": 4,
+      "class": "Folder"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.MW3 : Machine Guns & Shotguns.Gunsmith Parts.Shotgun Attachments.Unarranged.25rnd 12x70mm Gauge Drum Magazine (Haymaker)",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.MW3 : Machine Guns & Shotguns.Gunsmith Parts.Shotgun Attachments.Unarranged..410 Gauge Shell Types",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.MW3 : Machine Guns & Shotguns.Gunsmith Parts.Shotgun Attachments.Unarranged.30rnd .410 Gauge Magazine (Riveter)",
+      "children": 7,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.MW3 : Machine Guns & Shotguns.Gunsmith Parts.Shotgun Attachments.Unarranged.30rnd .410 Gauge Magazine (Riveter).Shells",
+      "children": 7,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.MW3 : Machine Guns & Shotguns.Gunsmith Parts.Shotgun Attachments.Unarranged.30rnd .410 Gauge Magazine (Riveter).Shells (Dual)",
+      "children": 4,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.MW3 : Machine Guns & Shotguns.Gunsmith Parts.Shotgun Attachments.Unarranged.30rnd .410 Gauge Magazine (Riveter).Shells (Dual)",
+      "children": 4,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.MW3 : Machine Guns & Shotguns.Gunsmith Parts.Shotgun Attachments.Azura 680 Attachments",
+      "children": 7,
+      "class": "Folder"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.MW3 : Machine Guns & Shotguns.Gunsmith Parts.Shotgun Attachments.Azura 680 Attachments.Azura Defender Heavy Long Barrel (Azura 680)",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.MW3 : Machine Guns & Shotguns.Gunsmith Parts.Shotgun Attachments.Azura 680 Attachments.Azura Defender Heavy Long Barrel (Azura 680).Rail Cover",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.MW3 : Machine Guns & Shotguns.Gunsmith Parts.Shotgun Attachments.Azura 680 Attachments.Azura Defender Heavy Long Barrel (Azura 680).Secondary Rail Cover",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.MW3 : Machine Guns & Shotguns.Gunsmith Parts.Shotgun Attachments.Azura 680 Attachments.Black Ops 2 Kit",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.MW3 : Machine Guns & Shotguns.Gunsmith Parts.Shotgun Attachments.Azura 680 Attachments.Black Ops 2 Kit.Black Ops 2 Grip (Azura 680, Kitbash)",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.MW3 : Machine Guns & Shotguns.Gunsmith Parts.Shotgun Attachments.Azura 680 Attachments.Black Ops 2 Kit.Black Ops 2 Shell Holder (Azura 680)",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.MW3 : Machine Guns & Shotguns.Gunsmith Parts.Shotgun Attachments.Azura 680 Attachments.FSS Guardian Stock (Universal)",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.MW3 : Machine Guns & Shotguns.Gunsmith Parts.Shotgun Attachments.Azura 680 Attachments.FSS Guardian Stock (Universal).FSS Guardian Stock",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.MW3 : Machine Guns & Shotguns.Gunsmith Parts.Shotgun Attachments.Azura 680 Attachments.Matuzek Lightbearer Ergo Pump (Azura 680)",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.MW3 : Machine Guns & Shotguns.Gunsmith Parts.Light Machine Gun Attachments",
+      "children": 10,
+      "class": "Folder"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.MW3 : Machine Guns & Shotguns.Gunsmith Parts.Light Machine Gun Attachments.7.62mm NATO Barrel (TAQ Evolvere)",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.MW3 : Machine Guns & Shotguns.Gunsmith Parts.Light Machine Gun Attachments.Bruen 18\" Para",
+      "children": 5,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.MW3 : Machine Guns & Shotguns.Gunsmith Parts.Light Machine Gun Attachments.\"150\"rnd 7.62x51mm NATO Beta-C Magazine (TAQ Eradicator)",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.MW3 : Machine Guns & Shotguns.Gunsmith Parts.Light Machine Gun Attachments.100rnd 5.56x45mm NATO Beta-C Holger Drum Magazine",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.MW3 : Machine Guns & Shotguns.Gunsmith Parts.Light Machine Gun Attachments.100rnd 5.56x45mm NATO Box Magazine (TAQ Evolvere)",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.MW3 : Machine Guns & Shotguns.Gunsmith Parts.Light Machine Gun Attachments.100rnd 5.56x45mm NATO Box Magazine (TAQ Evolvere).Belt",
+      "children": 26,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.MW3 : Machine Guns & Shotguns.Gunsmith Parts.Light Machine Gun Attachments.200rnd 5.56x45mm NATO TV Ammo Box (Bruen MK9)",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.MW3 : Machine Guns & Shotguns.Gunsmith Parts.Light Machine Gun Attachments.200rnd 5.56x45mm NATO TV Ammo Box (Bruen MK9).Box",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.MW3 : Machine Guns & Shotguns.Gunsmith Parts.Light Machine Gun Attachments.200rnd 5.56x45mm NATO TV Ammo Box (Bruen MK9).Belt",
+      "children": 27,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.MW3 : Machine Guns & Shotguns.Gunsmith Parts.Light Machine Gun Attachments.200rnd 556x45mm NATO Box Magazine (TAQ Evolvere)",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.MW3 : Machine Guns & Shotguns.Gunsmith Parts.Light Machine Gun Attachments.200rnd 556x45mm NATO Box Magazine (TAQ Evolvere).Belt",
+      "children": 34,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.MW3 : Machine Guns & Shotguns.Gunsmith Parts.Light Machine Gun Attachments.Tour-56 Stock (Bruen MK9)",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.MW3 : Machine Guns & Shotguns.Gunsmith Parts.Light Machine Gun Attachments.Ivanov Bluff Heavy Stock (Pulemyot)",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Underbarrel Grenade Launchers",
+      "children": 7,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Underbarrel Grenade Launchers.TL40 Firedrake",
+      "children": 4,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Underbarrel Grenade Launchers.SPW 40mm",
+      "children": 5,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Underbarrel Grenade Launchers.Hellscream 40mm (TAQ Platform)",
+      "children": 4,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Underbarrel Grenade Launchers.KL40 (Kastovia Platform)",
+      "children": 5,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Underbarrel Grenade Launchers.DEMO Masterkey",
+      "children": 5,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Underbarrel Grenade Launchers.TTL GS-40 (DG Platform)",
+      "children": 6,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Underbarrel Grenade Launchers.TTL GS-40 (DG Platform).40mm Grenade",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Underbarrel Grenade Launchers.SPW 40mm (Full-Length)",
+      "children": 5,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Indicators",
+      "children": 37,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Support Attachments",
+      "children": 9,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Support Attachments.Riser (Universal Small Sight Support)",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Unarranged",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Unarranged.JAK Bullseye (Literal Joke Sight Ever)",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Reflex & Holographic Sights",
+      "children": 28,
+      "class": "Folder"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Reflex & Holographic Sights.Chrios Holo",
+      "children": 4,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Reflex & Holographic Sights.Solozero Sigma-IV Sight",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Reflex & Holographic Sights.Cronen Mini Pro (Canted)",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Reflex & Holographic Sights.Corvus SOL-76",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Reflex & Holographic Sights.Solozero Recharge DX",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Reflex & Holographic Sights.Aim-OP V4 (SMG)",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Reflex & Holographic Sights.Aim-OP V4 (AR)",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Reflex & Holographic Sights.Corio RE-X Pro Reflex",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Reflex & Holographic Sights.Corp Combat Holo Sight",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Reflex & Holographic Sights.VLK Kazan Holographic Sight",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Reflex & Holographic Sights.Quarters Reflex Sight (Generic)",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Reflex & Holographic Sights.Cronen Mini Pro",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Reflex & Holographic Sights.G.I. Mini Reflex",
+      "children": 4,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Reflex & Holographic Sights.Solozero Mini-Reflex",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Reflex & Holographic Sights.Cronen LP945 Mini-Reflex",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Reflex & Holographic Sights.Solozero Lonewolf Optic",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Reflex & Holographic Sights.Kilo-Reiner Riser + Solozero Optics Minitac 40 Sight",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Reflex & Holographic Sights.Kilo-Reiner Riser + Solozero Optics Minitac 40 Sight.Solozero Minitac Sight",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Reflex & Holographic Sights.XRK On-Point Reflex Sight",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Reflex & Holographic Sights.Corio Enforcer Optic",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Reflex & Holographic Sights.Hybrid Firepoint",
+      "children": 5,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Reflex & Holographic Sights.TOS Incendio Reflex",
+      "children": 6,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Reflex & Holographic Sights.Monocle CT90",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Reflex & Holographic Sights.QTG Reflex Sight",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Reflex & Holographic Sights.Solozero Optics Dragon's Eye Sight",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Reflex & Holographic Sights.TOS Rhino Reflex Sight",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Reflex & Holographic Sights.Solozero Battle Optic",
+      "children": 4,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Box Lasers",
+      "children": 8,
+      "class": "Folder"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Box Lasers.\"Canted\" Vibro Dot-7",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Box Lasers.1mW Laser Box",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Box Lasers.5mW Laser -MW2019",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Box Lasers.Corvus Beam-5",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Box Lasers.Second-Line Razorhawk Laser",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Box Lasers.STVOL DR Laser Box",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Box Lasers.Solozero 1MW PEQ",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Medium Range Optics",
+      "children": 13,
+      "class": "Folder"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Medium Range Optics.AOK 4.0x RQ-9 Recon",
+      "children": 5,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Medium Range Optics.Solozero Optics SRO-7",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Medium Range Optics.Luca Canis 4x (Universal)",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Medium Range Optics.VLK 4.0x Optic",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Medium Range Optics.Cronen C480 Pro Optic",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Medium Range Optics.Second-Line TrueSight 2.5x",
+      "children": 4,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Medium Range Optics.Scout Combat Optic",
+      "children": 4,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Medium Range Optics.Schlager 3.4x",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Medium Range Optics.Solozero Bullseye Optic",
+      "children": 4,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Medium Range Optics.TX4 Havoc Sight",
+      "children": 8,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Medium Range Optics.Cronen Zero-P Optic",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Medium Range Optics.Akilina ELT-10 2.5x Scope",
+      "children": 5,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Medium Range Optics.Forge Tac Delta 4 Scope",
+      "children": 4,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Thermal/Night Vision Optics",
+      "children": 3,
+      "class": "Folder"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Thermal/Night Vision Optics.Drexton Somers Prime-90 Thermal",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Thermal/Night Vision Optics.Teplo OP3 Thermal Scope",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Thermal/Night Vision Optics.Heinrichter 9.0x Hybrid Thermal Scope",
+      "children": 4,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Cylinder Lasers",
+      "children": 6,
+      "class": "Folder"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Cylinder Lasers.Schlager Tactical Laser",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Cylinder Lasers.Hipshot L20",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Cylinder Lasers.1mW Quick Fire Laser",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Cylinder Lasers.1mW Artemis Laser",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Foregrips & Bipods",
+      "children": 21,
+      "class": "Folder"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Foregrips & Bipods.Level-Aim Bipod",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Foregrips & Bipods.Sidegrips (RAAL MG)",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Foregrips & Bipods.Bipod V9 Foregrip",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Foregrips & Bipods.CHEWK Angled Grip",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Foregrips & Bipods.DEMO Cleanshot 40 Hinged Foregrip",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Foregrips & Bipods.Expedite Firearms Backdraft Foregrip",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Pistol Lasers",
+      "children": 5,
+      "class": "Folder"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Pistol Lasers.Kilo-Reiner HX-15 Pistol Laser",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Pistol Lasers.DZM-1000 Flashlight",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Magnifiers",
+      "children": 2,
+      "class": "Folder"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Magnifiers.DR582 Magnifier",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Magnifiers.DR582 Magnifier.Magnifier",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Magnifiers.Vortex-90 Magnifier",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Magnifiers.Vortex-90 Magnifier.Magnifier",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Vanguard Sights",
+      "children": 3,
+      "class": "Folder"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Vanguard Sights.MK3 Reflector",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Vanguard Sights.MK3 Reflector.Riser (Universal Small Sight Support)",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Vanguard Sights.Nydar Model 2023 Sight",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Vanguard Sights.Nydar Model 2023 Sight.Riser (Universal Small Sight Support)",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Vanguard Sights.Slate Reflector Sight",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Vanguard Sights.Slate Reflector Sight.Riser (Universal Small Sight Support)",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Sniper Rifle Scopes",
+      "children": 10,
+      "class": "Folder"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Sniper Rifle Scopes.Cronen EBR Scope - MW2019",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Sniper Rifle Scopes.Luca Optics Bandera Scope",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Sniper Rifle Scopes.Drexton Somers Farsight 11",
+      "children": 4,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Sniper Rifle Scopes.Corio VRS 13x Scope",
+      "children": 8,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Sniper Rifle Scopes.Luca Field-6",
+      "children": 4,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Sniper Rifle Scopes.DXS Coriolis V4 Scope",
+      "children": 6,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Sniper Rifle Scopes.HMW-20 Scope",
+      "children": 3,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Sniper Rifle Scopes.Hurricane 9 13.0X - 15.0X",
+      "children": 6,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Sniper Rifle Scopes.Solozero Optics HM5 Precision 3.7X Hybrid Scope",
+      "children": 4,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Sniper Rifle Scopes.Solozero Ultra 11.5X Scope",
+      "children": 4,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Suppressors",
+      "children": 4,
+      "class": "Folder"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Suppressors.Assault Rifle Suppressors",
+      "children": 4,
+      "class": "Folder"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Suppressors.Assault Rifle Suppressors.Harbinger D20",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Suppressors.Assault Rifle Suppressors.Echoline GS",
+      "children": 2,
+      "class": "Model"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Suppressors.Pistol Suppressors",
+      "children": 4,
+      "class": "Folder"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Suppressors.Submachine Gun Suppressors",
+      "children": 3,
+      "class": "Folder"
+    },
+    {
+      "path": "ServerStorage.ImportedArsenalOriginals.Modern Warfare Reloaded - Shared.Suppressors.Unarranged",
+      "children": 5,
+      "class": "Folder"
+    }
+  ],
+  "catalog": [
+    {
+      "name": ".357 Magnum Bullets",
+      "slot": "special",
+      "id": "ammo_boxes_357_magnum_bullets",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "AMMO BOXES",
+        ".357 Magnum Bullets"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 27
+    },
+    {
+      "name": "Artoria Armory .300 Win Mag Box",
+      "slot": "special",
+      "id": "ammo_boxes_artoria_armory_300_win_mag_box",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "AMMO BOXES",
+        "Artoria Armory .300 Win Mag Box"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 22
+    },
+    {
+      "name": "XRK 9mm M19",
+      "slot": "special",
+      "id": "ammo_boxes_xrk_9mm_m19",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "AMMO BOXES",
+        "XRK 9mm M19"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 31
+    },
+    {
+      "name": "40mm Grenade",
+      "slot": "special",
+      "id": "attachments_40mm_grenade",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "40mm Grenade"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 1
+    },
+    {
+      "name": "Shotgun Shell",
+      "slot": "special",
+      "id": "attachments_shotgun_shell",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Shotgun Shell"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 1
+    },
+    {
+      "name": "Conversão de rajada (3 tiros)",
+      "slot": "fireControl",
+      "id": "aug_burst_conversion",
+      "compatible": [
+        "aug"
+      ],
+      "status": "Available",
+      "auditStatus": "Verified existing mount",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 0
+    },
+    {
+      "name": "AX-50 Extended Barrel",
+      "slot": "barrel",
+      "id": "barrels_ax_50_extended",
+      "compatible": [
+        "ax_50"
+      ],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Barrels",
+        "AX-50 Extended Barrel"
+      ],
+      "status": "Available",
+      "auditStatus": "Verified existing mount",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 2
+    },
+    {
+      "name": "FSS 11.8 Squall (CR-56)",
+      "slot": "special",
+      "id": "barrels_fss_11_8_squall_cr_56",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Barrels",
+        "FSS 11.8 Squall (CR-56)"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 4
+    },
+    {
+      "name": "FSS 20.8 Nexus",
+      "slot": "special",
+      "id": "barrels_fss_20_8_nexus",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Barrels",
+        "FSS 20.8 Nexus"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 5
+    },
+    {
+      "name": "ZLR J-2800 Influx",
+      "slot": "special",
+      "id": "barrels_zlr_j_2800_influx",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Barrels",
+        "ZLR J-2800 Influx"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 2
+    },
+    {
+      "name": "ZLR J-3600 Torrent (JAK-12)",
+      "slot": "special",
+      "id": "barrels_zlr_j_3600_torrent_jak_12",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Barrels",
+        "ZLR J-3600 Torrent (JAK-12)"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 3
+    },
+    {
+      "name": "Commando Foregrip",
+      "slot": "underbarrel",
+      "id": "foregrips_commando_foregrip",
+      "compatible": [
+        "m4a1",
+        "ax_50"
+      ],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Foregrips",
+        "Commando Foregrip"
+      ],
+      "status": "Available",
+      "auditStatus": "Verified existing mount",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 1
+    },
+    {
+      "name": "Commando Foregrip (Desert, Unofficial)",
+      "slot": "underbarrel",
+      "id": "foregrips_commando_foregrip_desert_unofficial",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Foregrips",
+        "Commando Foregrip (Desert, Unofficial)"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 1
+    },
+    {
+      "name": "Merc Foregrip",
+      "slot": "underbarrel",
+      "id": "foregrips_merc_foregrip",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Foregrips",
+        "Merc Foregrip"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 1
+    },
+    {
+      "name": "Operator Foregrip",
+      "slot": "underbarrel",
+      "id": "foregrips_operator_foregrip",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Foregrips",
+        "Operator Foregrip"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 1
+    },
+    {
+      "name": "Operator Foregrip (alt)",
+      "slot": "underbarrel",
+      "id": "foregrips_operator_foregrip_alt",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Foregrips",
+        "Operator Foregrip (alt)"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 1
+    },
+    {
+      "name": "Ranger Foregrip",
+      "slot": "underbarrel",
+      "id": "foregrips_ranger_foregrip",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Foregrips",
+        "Ranger Foregrip"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 1
+    },
+    {
+      "name": "Ranger Foregrip (alt)",
+      "slot": "underbarrel",
+      "id": "foregrips_ranger_foregrip_alt",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Foregrips",
+        "Ranger Foregrip (alt)"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 1
+    },
+    {
+      "name": "Tac Foregrip",
+      "slot": "underbarrel",
+      "id": "foregrips_tac_foregrip",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Foregrips",
+        "Tac Foregrip"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 1
+    },
+    {
+      "name": "Corvus Custom Marksman Handguard",
+      "slot": "special",
+      "id": "handguards_laser_mount_corvus_custom_marksman_handguard",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Handguards/Laser Mount",
+        "Corvus Custom Marksman Handguard"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 2
+    },
+    {
+      "name": "Corvus Custom Marksman Handguard (Desert)",
+      "slot": "special",
+      "id": "handguards_laser_mount_corvus_custom_marksman_handguard_desert",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Handguards/Laser Mount",
+        "Corvus Custom Marksman Handguard (Desert)"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 2
+    },
+    {
+      "name": "Laser Mount",
+      "slot": "special",
+      "id": "handguards_laser_mount_laser_mount",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Handguards/Laser Mount",
+        "Laser Mount"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 1
+    },
+    {
+      "name": "MLOK Rail (MP5)",
+      "slot": "special",
+      "id": "handguards_laser_mount_mlok_rail_mp5",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Handguards/Laser Mount",
+        "MLOK Rail (MP5)"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 1
+    },
+    {
+      "name": "Kilo 141 Emblem: Action Elite",
+      "slot": "special",
+      "id": "kilo_141_cosmetics_kilo_141_emblem_action_elite",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Kilo 141 Cosmetics",
+        "Kilo 141 Emblem: Action Elite"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 1
+    },
+    {
+      "name": "Kilo 141 Emblem: ArcCW+",
+      "slot": "special",
+      "id": "kilo_141_cosmetics_kilo_141_emblem_arccw",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Kilo 141 Cosmetics",
+        "Kilo 141 Emblem: ArcCW+"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 1
+    },
+    {
+      "name": "Kilo 141 Emblem: Dio Brando",
+      "slot": "special",
+      "id": "kilo_141_cosmetics_kilo_141_emblem_dio_brando",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Kilo 141 Cosmetics",
+        "Kilo 141 Emblem: Dio Brando"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 1
+    },
+    {
+      "name": "Kilo 141 Emblem: Doomguy",
+      "slot": "special",
+      "id": "kilo_141_cosmetics_kilo_141_emblem_doomguy",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Kilo 141 Cosmetics",
+        "Kilo 141 Emblem: Doomguy"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 1
+    },
+    {
+      "name": "Kilo 141 Emblem: Jortelleni",
+      "slot": "special",
+      "id": "kilo_141_cosmetics_kilo_141_emblem_jortelleni",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Kilo 141 Cosmetics",
+        "Kilo 141 Emblem: Jortelleni"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 1
+    },
+    {
+      "name": "Kilo 141 Emblem: Mardemon",
+      "slot": "special",
+      "id": "kilo_141_cosmetics_kilo_141_emblem_mardemon",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Kilo 141 Cosmetics",
+        "Kilo 141 Emblem: Mardemon"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 1
+    },
+    {
+      "name": "Kilo 141 Emblem: MW",
+      "slot": "special",
+      "id": "kilo_141_cosmetics_kilo_141_emblem_mw",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Kilo 141 Cosmetics",
+        "Kilo 141 Emblem: MW"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 1
+    },
+    {
+      "name": "Kilo 141 Emblem: Ravenholm",
+      "slot": "special",
+      "id": "kilo_141_cosmetics_kilo_141_emblem_ravenholm",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Kilo 141 Cosmetics",
+        "Kilo 141 Emblem: Ravenholm"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 1
+    },
+    {
+      "name": "Kilo 141 Emblem: Rekt",
+      "slot": "special",
+      "id": "kilo_141_cosmetics_kilo_141_emblem_rekt",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Kilo 141 Cosmetics",
+        "Kilo 141 Emblem: Rekt"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 1
+    },
+    {
+      "name": "Kilo 141 Emblem: StyLiS Studios Forum Logo",
+      "slot": "special",
+      "id": "kilo_141_cosmetics_kilo_141_emblem_stylis_studios_forum_logo",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Kilo 141 Cosmetics",
+        "Kilo 141 Emblem: StyLiS Studios Forum Logo"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 1
+    },
+    {
+      "name": "Kilo 141 Emblem: StyLiS Symbol",
+      "slot": "special",
+      "id": "kilo_141_cosmetics_kilo_141_emblem_stylis_symbol",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Kilo 141 Cosmetics",
+        "Kilo 141 Emblem: StyLiS Symbol"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 1
+    },
+    {
+      "name": "Kilo 141 Emblem: This is America",
+      "slot": "special",
+      "id": "kilo_141_cosmetics_kilo_141_emblem_this_is_america",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Kilo 141 Cosmetics",
+        "Kilo 141 Emblem: This is America"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 1
+    },
+    {
+      "name": "Kilo 141 Emblem: UK",
+      "slot": "special",
+      "id": "kilo_141_cosmetics_kilo_141_emblem_uk",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Kilo 141 Cosmetics",
+        "Kilo 141 Emblem: UK"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 1
+    },
+    {
+      "name": "1mW Laser",
+      "slot": "laser",
+      "id": "lasers_1mw_laser",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Lasers",
+        "1mW Laser"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 2
+    },
+    {
+      "name": "5mW Laser",
+      "slot": "laser",
+      "id": "lasers_5mw_laser",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Lasers",
+        "5mW Laser"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 2
+    },
+    {
+      "name": "Corvus Defense 1mW Laser",
+      "slot": "laser",
+      "id": "lasers_corvus_defense_1mw_laser",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Lasers",
+        "Corvus Defense 1mW Laser"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 2
+    },
+    {
+      "name": "Cronen 5mW Laser Handgun",
+      "slot": "laser",
+      "id": "lasers_cronen_5mw_laser_handgun",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Lasers",
+        "Cronen 5mW Laser Handgun"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 1
+    },
+    {
+      "name": "Laser Cylinder",
+      "slot": "laser",
+      "id": "lasers_laser_cylinder",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Lasers",
+        "Laser Cylinder"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 2
+    },
+    {
+      "name": "Tac Laser",
+      "slot": "laser",
+      "id": "lasers_tac_laser",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Lasers",
+        "Tac Laser"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 2
+    },
+    {
+      "name": "10rnd .300 Win Mag",
+      "slot": "magazine",
+      "id": "magazines_10rnd_300_win_mag",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Magazines",
+        "10rnd .300 Win Mag"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 2
+    },
+    {
+      "name": "20rnd 5.56x45mm Normal Magazine",
+      "slot": "magazine",
+      "id": "magazines_20rnd_5_56x45mm_normal_magazine",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Magazines",
+        "20rnd 5.56x45mm Normal Magazine"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 2
+    },
+    {
+      "name": "20rnd Corvus Defense Drum Magazine",
+      "slot": "magazine",
+      "id": "magazines_20rnd_corvus_defense_drum_magazine",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Magazines",
+        "20rnd Corvus Defense Drum Magazine"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 2
+    },
+    {
+      "name": "21rnd 9mm Para Magazine (M19)",
+      "slot": "magazine",
+      "id": "magazines_21rnd_9mm_para_magazine_m19",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Magazines",
+        "21rnd 9mm Para Magazine (M19)"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 2
+    },
+    {
+      "name": "30rnd 5.56x45mm Holger Magazine",
+      "slot": "magazine",
+      "id": "magazines_30rnd_5_56x45mm_holger_magazine",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Magazines",
+        "30rnd 5.56x45mm Holger Magazine"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 2
+    },
+    {
+      "name": "30rnd 5.56x45mm NATO Magazine (Kilo)",
+      "slot": "magazine",
+      "id": "magazines_30rnd_5_56x45mm_nato_magazine_kilo",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Magazines",
+        "30rnd 5.56x45mm NATO Magazine (Kilo)"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 2
+    },
+    {
+      "name": "30rnd 9x19mm Magazine (ISO)",
+      "slot": "magazine",
+      "id": "magazines_30rnd_9x19mm_magazine_iso",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Magazines",
+        "30rnd 9x19mm Magazine (ISO)"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 2
+    },
+    {
+      "name": "32rnd .41 AE Magazine (Uzi)",
+      "slot": "magazine",
+      "id": "magazines_32rnd_41_ae_magazine_uzi",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Magazines",
+        "32rnd .41 AE Magazine (Uzi)"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 2
+    },
+    {
+      "name": "32rnd Corvus Defense Drum Magazine",
+      "slot": "magazine",
+      "id": "magazines_32rnd_corvus_defense_drum_magazine",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Magazines",
+        "32rnd Corvus Defense Drum Magazine"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 2
+    },
+    {
+      "name": "40rnd 7.62x39mm Magazine (AK-47)",
+      "slot": "magazine",
+      "id": "magazines_40rnd_7_62x39mm_magazine_ak_47",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Magazines",
+        "40rnd 7.62x39mm Magazine (AK-47)"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 2
+    },
+    {
+      "name": "50rnd 9x19mm Drum Magazine (ISO)",
+      "slot": "magazine",
+      "id": "magazines_50rnd_9x19mm_drum_magazine_iso",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Magazines",
+        "50rnd 9x19mm Drum Magazine (ISO)"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 2
+    },
+    {
+      "name": "6rnd .338 Lapua Mag",
+      "slot": "magazine",
+      "id": "magazines_6rnd_338_lapua_mag",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Magazines",
+        "6rnd .338 Lapua Mag"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 2
+    },
+    {
+      "name": "Forge Tac CQS",
+      "slot": "special",
+      "id": "model_forge_tac_cqs",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Model",
+        "Forge Tac CQS"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 2
+    },
+    {
+      "name": "Forge Tac Hunter",
+      "slot": "special",
+      "id": "model_forge_tac_hunter",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Model",
+        "Forge Tac Hunter"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 2
+    },
+    {
+      "name": "Forge Tac Ultralight",
+      "slot": "special",
+      "id": "model_forge_tac_ultralight",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Model",
+        "Forge Tac Ultralight"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 2
+    },
+    {
+      "name": "FSS Close Quarters Stock",
+      "slot": "special",
+      "id": "model_fss_close_quarters_stock",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Model",
+        "FSS Close Quarters Stock"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 2
+    },
+    {
+      "name": "Singuard Arms Invader",
+      "slot": "special",
+      "id": "model_singuard_arms_invader",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Model",
+        "Singuard Arms Invader"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 2
+    },
+    {
+      "name": "Aim Op Reflex Sight",
+      "slot": "optic",
+      "id": "optics_aim_op_reflex_sight",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Optics",
+        "Aim Op Reflex Sight"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 2
+    },
+    {
+      "name": "Aim Op Reflex Sight (Riser)",
+      "slot": "optic",
+      "id": "optics_aim_op_reflex_sight_riser",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Optics",
+        "Aim Op Reflex Sight (Riser)"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 3
+    },
+    {
+      "name": "APX5 Scope",
+      "slot": "optic",
+      "id": "optics_apx5_scope",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Optics",
+        "APX5 Scope"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 3
+    },
+    {
+      "name": "Combat Corp Sight",
+      "slot": "optic",
+      "id": "optics_combat_corp_sight",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Optics",
+        "Combat Corp Sight"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 2
+    },
+    {
+      "name": "Corvus Defense Integral Hybrid",
+      "slot": "optic",
+      "id": "optics_corvus_defense_integral_hybrid",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Optics",
+        "Corvus Defense Integral Hybrid"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 4
+    },
+    {
+      "name": "Corvus Defense PBX Holo 7",
+      "slot": "optic",
+      "id": "optics_corvus_defense_pbx_holo_7",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Optics",
+        "Corvus Defense PBX Holo 7"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 2
+    },
+    {
+      "name": "Cronen 2x2 Red Dot (RAM-7)",
+      "slot": "optic",
+      "id": "optics_cronen_2x2_red_dot_ram_7",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Optics",
+        "Cronen 2x2 Red Dot (RAM-7)"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 2
+    },
+    {
+      "name": "Cronen C480 4x30 (idk Doomguy Censored it)",
+      "slot": "optic",
+      "id": "optics_cronen_c480_4x30_idk_doomguy_censored_it",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Optics",
+        "Cronen C480 4x30 (idk Doomguy Censored it)"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 3
+    },
+    {
+      "name": "Cronen CR40x Scope",
+      "slot": "optic",
+      "id": "optics_cronen_cr40x_scope",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Optics",
+        "Cronen CR40x Scope"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 3
+    },
+    {
+      "name": "Cronen LP945",
+      "slot": "optic",
+      "id": "optics_cronen_lp945",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Optics",
+        "Cronen LP945"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 3
+    },
+    {
+      "name": "FSS Magnifier",
+      "slot": "optic",
+      "id": "optics_fss_magnifier",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Optics",
+        "FSS Magnifier"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 4
+    },
+    {
+      "name": "G.I Mini Reflex (Yikes, I Used The Same Rail Mount)",
+      "slot": "optic",
+      "id": "optics_g_i_mini_reflex",
+      "compatible": [
+        "m4a1",
+        "ax_50"
+      ],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Optics",
+        "G.I Mini Reflex (Yikes, I Used The Same Rail Mount)"
+      ],
+      "status": "Available",
+      "auditStatus": "Verified existing mount",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 4
+    },
+    {
+      "name": "Merc Thermal Optic",
+      "slot": "optic",
+      "id": "optics_merc_thermal_optic",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Optics",
+        "Merc Thermal Optic"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 3
+    },
+    {
+      "name": "Monocle Reflex Sight (That's Weird, It looked Like an OKP-7)",
+      "slot": "optic",
+      "id": "optics_monocle_reflex_sight_that_s_weird_it_looked_like_an_okp_7",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Optics",
+        "Monocle Reflex Sight (That's Weird, It looked Like an OKP-7)"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 2
+    },
+    {
+      "name": "Scout Combat Optic",
+      "slot": "optic",
+      "id": "optics_scout_combat_optic",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Optics",
+        "Scout Combat Optic"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 3
+    },
+    {
+      "name": "Solozero Mini Dot Sight",
+      "slot": "optic",
+      "id": "optics_solozero_mini_dot_sight",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Optics",
+        "Solozero Mini Dot Sight"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 3
+    },
+    {
+      "name": "Solozero NVG Enhanced",
+      "slot": "optic",
+      "id": "optics_solozero_nvg_enhanced",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Optics",
+        "Solozero NVG Enhanced"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 3
+    },
+    {
+      "name": "Solozero Variable Zoom Scope",
+      "slot": "optic",
+      "id": "optics_solozero_variable_zoom_scope",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Optics",
+        "Solozero Variable Zoom Scope"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 3
+    },
+    {
+      "name": "Viper Reflex Sight",
+      "slot": "optic",
+      "id": "optics_viper_reflex_sight",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Optics",
+        "Viper Reflex Sight"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 3
+    },
+    {
+      "name": "VLK 3.0x Scope",
+      "slot": "optic",
+      "id": "optics_vlk_3_0x_scope",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Optics",
+        "VLK 3.0x Scope"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 2
+    },
+    {
+      "name": "XRK Operator Reflex Sight",
+      "slot": "optic",
+      "id": "optics_xrk_operator_reflex_sight",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Optics",
+        "XRK Operator Reflex Sight"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 3
+    },
+    {
+      "name": "SP-R 26\"",
+      "slot": "special",
+      "id": "sp_r_208_barrels_sp_r_26",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "SP-R 208 Barrels",
+        "SP-R 26\""
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 2
+    },
+    {
+      "name": "XRK 208 Dragoon",
+      "slot": "special",
+      "id": "sp_r_208_barrels_xrk_208_dragoon",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "SP-R 208 Barrels",
+        "XRK 208 Dragoon"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 1
+    },
+    {
+      "name": "ZLR Asp",
+      "slot": "special",
+      "id": "sp_r_208_barrels_zlr_asp",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "SP-R 208 Barrels",
+        "ZLR Asp"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 2
+    },
+    {
+      "name": "ZLR Veratwist 9.6\"",
+      "slot": "special",
+      "id": "sp_r_208_barrels_zlr_veratwist_9_6",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "SP-R 208 Barrels",
+        "ZLR Veratwist 9.6\""
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 2
+    },
+    {
+      "name": "FSS Virtuoso Pro",
+      "slot": "special",
+      "id": "sp_r_208_chassis_fss_virtuoso_pro",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "SP-R 208 Chassis",
+        "FSS Virtuoso Pro"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 6
+    },
+    {
+      "name": "XRK SP-Lite 208 Blitz",
+      "slot": "special",
+      "id": "sp_r_208_chassis_xrk_sp_lite_208_blitz",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "SP-R 208 Chassis",
+        "XRK SP-Lite 208 Blitz"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 5
+    },
+    {
+      "name": "XRK SP-TAC 208 Ultimate",
+      "slot": "special",
+      "id": "sp_r_208_chassis_xrk_sp_tac_208_ultimate",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "SP-R 208 Chassis",
+        "XRK SP-TAC 208 Ultimate"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 6
+    },
+    {
+      "name": "ZLR SP-R Overseer",
+      "slot": "special",
+      "id": "sp_r_208_chassis_zlr_sp_r_overseer",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "SP-R 208 Chassis",
+        "ZLR SP-R Overseer"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 4
+    },
+    {
+      "name": "Colossus Suppressor",
+      "slot": "muzzle",
+      "id": "suppressors_colossus_suppressor",
+      "compatible": [
+        "ax_50"
+      ],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Suppressors",
+        "Monolithic Suppressor"
+      ],
+      "status": "Available",
+      "auditStatus": "Verified existing mount",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 1
+    },
+    {
+      "name": "Lightweight Suppressor",
+      "slot": "muzzle",
+      "id": "suppressors_lightweight_suppressor",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Suppressors",
+        "Lightweight Suppressor"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 1
+    },
+    {
+      "name": "Monolithic Pistol Suppressor",
+      "slot": "muzzle",
+      "id": "suppressors_monolithic_pistol_suppressor",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Suppressors",
+        "Monolithic Pistol Suppressor"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 1
+    },
+    {
+      "name": "Monolithic Suppressor",
+      "slot": "muzzle",
+      "id": "suppressors_monolithic_suppressor",
+      "compatible": [
+        "m4a1",
+        "ax_50"
+      ],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Suppressors",
+        "Monolithic Suppressor"
+      ],
+      "status": "Available",
+      "auditStatus": "Verified existing mount",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 1
+    },
+    {
+      "name": "Oil Filter Suppressor (Anyone Heard of Apoc Rising 2?)",
+      "slot": "muzzle",
+      "id": "suppressors_oil_filter_suppressor_anyone_heard_of_apoc_rising_2",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Suppressors",
+        "Oil Filter Suppressor (Anyone Heard of Apoc Rising 2?)"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 1
+    },
+    {
+      "name": "Pistol Lightweight Suppressor",
+      "slot": "muzzle",
+      "id": "suppressors_pistol_lightweight_suppressor",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Suppressors",
+        "Pistol Lightweight Suppressor"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 1
+    },
+    {
+      "name": "Tac East Suppressor",
+      "slot": "muzzle",
+      "id": "suppressors_tac_east_suppressor",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Suppressors",
+        "Tac East Suppressor"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 1
+    },
+    {
+      "name": "Tactical Suppressor",
+      "slot": "muzzle",
+      "id": "suppressors_tactical_suppressor",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Suppressors",
+        "Tactical Suppressor"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 1
+    },
+    {
+      "name": "12 Gauge Deputy",
+      "slot": "special",
+      "id": "underbarrel_launchers_12_gauge_deputy",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Underbarrel Launchers",
+        "12 Gauge Deputy"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 6
+    },
+    {
+      "name": "40mm Concussive (EGLM)",
+      "slot": "special",
+      "id": "underbarrel_launchers_40mm_concussive_eglm",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Underbarrel Launchers",
+        "40mm Concussive (EGLM)"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 4
+    },
+    {
+      "name": "M203 40mm",
+      "slot": "special",
+      "id": "underbarrel_launchers_m203_40mm",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Underbarrel Launchers",
+        "M203 40mm"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 4
+    },
+    {
+      "name": "M203 Mini",
+      "slot": "special",
+      "id": "underbarrel_launchers_m203_mini",
+      "compatible": [],
+      "physicalAssetPath": [
+        "ServerStorage",
+        "ImportedArsenalOriginals",
+        "CoD:MW Weapon/Attachment Props",
+        "ATTACHMENTS",
+        "Underbarrel Launchers",
+        "M203 Mini"
+      ],
+      "status": "PreviewOnly",
+      "auditStatus": "Pending",
+      "sourceGame": "Modern Warfare 2019",
+      "sourcePack": "mw2019",
+      "partCount": 4
+    }
+  ]
+}

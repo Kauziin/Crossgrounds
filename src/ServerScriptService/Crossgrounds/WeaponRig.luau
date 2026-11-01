@@ -1,5 +1,6 @@
 -- Replicated weapon mount; clients solve hand poses after the Animator.
 local Rig={}
+local Hold=require(game.ReplicatedStorage.Crossgrounds.WeaponHold)
 local records=setmetatable({},{__mode="k"}) local pending=setmetatable({},{__mode="k"})
 local started=false
 function Rig:Clear(tool)
@@ -15,31 +16,15 @@ function Rig:Attach(tool)
  local character=tool.Parent local h=character and character:FindFirstChildOfClass("Humanoid") local handle=tool:FindFirstChild("Handle")
  if not h or h.Health<=0 or not handle or not tool:GetAttribute("TwoHanded") then return end
  local support=handle:FindFirstChild("SupportGrip")
-if not support then
-    -- Fallback: use Muzzle as left‑hand target for weapons without a support grip
-    local fallback=handle:FindFirstChild("Muzzle")
-    if fallback then support=fallback end
-    if not support then return end
-end
--- Adjust support grip for oversized weapons to avoid clipping into torso
-local maxReach=1.73 -- approximate max arm reach for R15 (studs)
-local weaponLength=0
-if handle:IsA("BasePart") and handle.Size then
-    weaponLength=handle.Size.Z
-end
-local excess=weaponLength-maxReach
-if excess>0 then
-    -- Move the support grip backward (toward the grip) proportionally
-    local shift=CFrame.new(0,0,-excess*0.5)
-    support.CFrame=support.CFrame*shift
-end
+ -- A muzzle is a firing origin, not a hand target. Do not mutate attachments on equip.
+ if not support then return end
  local torso=character:FindFirstChild("UpperTorso") or character:FindFirstChild("Torso") if not torso then return end
  local r={owned={},connections={},disabled={}} records[tool]=r
  if h.RigType==Enum.HumanoidRigType.R15 then
   if handle:FindFirstChild("RightHandGrip") then
    for _,joint in character:GetDescendants() do if joint:IsA("JointInstance") and joint.Name=="RightGrip" and joint.Part1==handle then joint.Enabled=false table.insert(r.disabled,joint) end end
    local mount=own(r,Instance.new("Motor6D")) mount.Name="CrossgroundsWeaponMount" mount.Part0=torso mount.Part1=handle
-   local base=tool:GetAttribute("WeaponKind")=="Gun" and (tool:GetAttribute("WeaponId")=="ArenaPistol" and CFrame.new(0,.12,-.7) or CFrame.new(0,.05,-.35)) or CFrame.new(-.25,.1,-.25)*CFrame.Angles(0,math.pi/2,0)
+   local base=Hold.Mount(tool)
    local rest=tool:GetAttribute("RestGrip") or tool.Grip
    local function updateMount() mount.C0=base*rest:ToObjectSpace(tool.Grip) end
    updateMount() mount.Parent=torso

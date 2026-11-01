@@ -4,7 +4,7 @@ local Root=game.ReplicatedStorage.Crossgrounds local Catalog=require(Root.Weapon
 local Visuals=require(script.Parent.ImportedWeaponVisuals)
 local records={} local rates={} local store
 local function snapshot(p)
- local r=records[p] if r then p:SetAttribute("CTFArsenalState",Http:JSONEncode({version=1,presets=r.presets,visualPresets=r.visualPresets,active=r.active,pending=r.pending,saveState=r.saveState})) end
+ local r=records[p] if r then p:SetAttribute("CTFArsenalState",Http:JSONEncode({version=1,presets=r.presets,selectedIndex=r.selectedIndex,visualPresets=r.visualPresets,active=r.active,pending=r.pending,saveState=r.saveState})) end
 end
 local function save(p)
  local r=records[p] if not r or not r.loaded or not store then return end
@@ -40,7 +40,7 @@ function Service.Start()
   if records[p]~=r then return end
   if ok and (not data or type(data)=="table" and data.version==1) then
    if data then
-    for i=1,5 do local valid=Config.Loadout(type(data.presets)=="table" and data.presets[i]) if valid then r.presets[i]=valid end end
+    for i=1,math.min(Config.MaxLoadouts,math.max(5,type(data.presets)=='table' and #data.presets or 0)) do local valid=Config.Loadout(type(data.presets)=="table" and data.presets[i]) r.presets[i]=valid or Config.Default(i) end
     if type(data.visualPresets)=="table" then for key,v in data.visualPresets do if type(key)=="string" and #key<=48 and type(v)=="table" then local clean=Config.Validate(v.weaponId,v.attachments or {},false) if clean then r.visualPresets[key]={weaponId=v.weaponId,attachments=clean} end end end end
    end r.loaded=true r.saveState="Loaded"
   else r.saveState="LoadFailed" end snapshot(p)
@@ -54,7 +54,7 @@ function Service.Start()
   local r=records[p] if not r or p:GetAttribute("CrossgroundsMode")~="ctf" or p:GetAttribute("CrossgroundsTransition") then return false,"Indisponível nesta modalidade." end
   local now=os.clock() if now-(rates[p] or -10)<.12 then return false,"Aguarde um instante." end rates[p]=now
   if command=="save" then
-   if type(payload)~="table" or type(payload.index)~="number" or payload.index%1~=0 or payload.index<1 or payload.index>5 then return false,"Preset inválido." end
+   if type(payload)~="table" or type(payload.index)~="number" or payload.index%1~=0 or payload.index<1 or payload.index>#r.presets then return false,"Preset inválido." end
    local valid,err=Config.Loadout(payload.loadout) if not valid then return false,err end
    local kits=require(game.ReplicatedStorage.KitDefinitions) local profile=kits.Profiles[p:GetAttribute("SelectedKit")] or kits.Profiles.Regular
    valid.meleeWeaponId=profile.Weapons[1]
@@ -62,7 +62,7 @@ function Service.Start()
     local practice=p:GetAttribute("CTFPracticeRange")==true
     local character=p.Character local humanoid=character and character:FindFirstChildOfClass("Humanoid")
     if practice and (not character or not humanoid or humanoid.Health<=0 or character:GetAttribute("AtLobby")~=true) then return false,"O personagem do Practice Range não está pronto." end
-    r.presets[payload.index]=valid
+    r.presets[payload.index]=valid r.selectedIndex=payload.index
     if practice then r.active=valid r.pending=nil else r.pending=valid end
     p:SetAttribute("PendingCTFLoadout",nil) snapshot(p) queueSave(p)
     if practice then
@@ -71,6 +71,21 @@ function Service.Start()
      return true,"Loadout equipado imediatamente no Practice Range."
     end
     return true,"Aplicação no próximo nascimento."
+  elseif command=='manage' then
+   if type(payload)~='table' or type(payload.index)~='number' or payload.index%1~=0 or not r.presets[payload.index] or not r.loaded then return false,'Classe inválida.' end
+   local index=payload.index local preset=r.presets[index]
+   if payload.op=='rename' then
+    local candidate=Http:JSONDecode(Http:JSONEncode(preset)) candidate.name=payload.name local valid,why=Config.Loadout(candidate) if not valid then return false,why end
+    r.presets[index]=valid if r.selectedIndex==index and r.pending then r.pending.name=valid.name end
+   elseif payload.op=='duplicate' then
+    if #r.presets>=Config.MaxLoadouts then return false,'Limite de 12 classes atingido.' end
+    local candidate=Http:JSONDecode(Http:JSONEncode(preset)) candidate.name='Cópia '..(#r.presets+1) table.insert(r.presets,candidate)
+   elseif payload.op=='delete' then
+    if #r.presets<=1 then return false,'Mantenha pelo menos uma classe.' end
+    table.remove(r.presets,index)
+    if r.selectedIndex==index then r.selectedIndex=nil r.pending=nil elseif r.selectedIndex and r.selectedIndex>index then r.selectedIndex-=1 end
+   else return false,'Operação inválida.' end
+   snapshot(p) queueSave(p) return true,'Classe atualizada.'
   elseif command=="visual" then
    if type(payload)~="table" or type(payload.name)~="string" or #payload.name<1 or #payload.name>48 or not r.loaded then return false,"Nome inválido." end
    local count=0 for _ in r.visualPresets do count+=1 end if count>=20 and not r.visualPresets[payload.name] then return false,"Limite de 20 visuais." end

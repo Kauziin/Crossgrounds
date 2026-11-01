@@ -1,14 +1,15 @@
 local Catalog=require(script.Parent.WeaponCatalog)
 local Attachments=require(script.Parent.AttachmentCatalog)
-local Config={MaxAttachments=5}
+local Compatibility=require(script.Parent.AttachmentCompatibility)
+local Config={MaxLoadouts=12}
 function Config.Validate(id,value,playable)
  local weapon=Catalog.Get(id)
  if not weapon or playable and not weapon.combatId or typeof(value)~="table" then return nil,"Arma indisponível." end
- local clean={} local count=0
+ local clean={}
  for slot,attachmentId in value do
-  count+=1 if count>Config.MaxAttachments or typeof(slot)~="string" or typeof(attachmentId)~="string" then return nil,"Configuração inválida." end
+  if typeof(slot)~="string" or typeof(attachmentId)~="string" then return nil,"Configuração inválida." end
   local a=Attachments[attachmentId]
-  if not a or a.status~="Available" or a.slot~=slot or not table.find(a.compatible or {},id) or not table.find(weapon.slots,slot) then return nil,"Acessório incompatível." end
+  if not a or a.slot~=slot or not Compatibility.Check(weapon,a) then return nil,"Acessório incompatível." end
   clean[slot]=attachmentId
  end
  return clean

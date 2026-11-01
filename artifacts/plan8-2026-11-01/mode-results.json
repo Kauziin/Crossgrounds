@@ -1,0 +1,24 @@
+{
+  "hub": {
+    "rejected": true,
+    "mode": "hub",
+    "reason": "Indisponível nesta modalidade."
+  },
+  "arena": {
+    "equippedPreserved": true,
+    "characterPreserved": true,
+    "mode": "arena",
+    "rejected": true,
+    "reason": "Indisponível nesta modalidade."
+  },
+  "ctf": {
+    "message": "Aplicação no próximo nascimento.",
+    "saved": true,
+    "round": "Playing",
+    "pending": {
+      "optic": "optics_g_i_mini_reflex",
+      "underbarrel": "foregrips_commando_foregrip"
+    },
+    "characterAndToolsPreserved": true
+  }
+}

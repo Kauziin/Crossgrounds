@@ -27,16 +27,25 @@ local touchIntent=Vector2.zero local touchSampleAt=0
 local aiming,firing=false,false
 local SniperZoom=require(game.ReplicatedStorage.Crossgrounds.SniperZoom)
 local zoomLevel=1
+local InputIcons=require(script.Parent.InputIcons)
+local zoomGlyphs={} local zoomGlyphLabels={}
+local SightDefinitions=require(game.ReplicatedStorage.Crossgrounds.SightDefinitions)
+local AttachmentEffects=require(game.ReplicatedStorage.Crossgrounds.AttachmentEffects)
+local opticalSight=require(script.Parent.OpticalSight).new(player)
 local zoomGui=Instance.new("ScreenGui")
-zoomGui.Name="SniperZoomHUD" zoomGui.ResetOnSpawn=false zoomGui.DisplayOrder=15
+zoomGui.Name="SniperZoomHUD" zoomGui.ResetOnSpawn=false zoomGui.DisplayOrder=-8
 zoomGui.Parent=player:WaitForChild("PlayerGui")
 local zoomButton=Instance.new("TextButton")
-zoomButton.Name="Amplification" zoomButton.Size=UDim2.fromOffset(240,40)
-zoomButton.AnchorPoint=Vector2.new(.5,0) zoomButton.Position=UDim2.new(.5,0,.65,0)
-zoomButton.BackgroundColor3=Color3.fromRGB(16,27,41) zoomButton.BackgroundTransparency=.2
+zoomButton.Name="Amplification" zoomButton.Size=UDim2.fromOffset(110,30)
+zoomButton.AnchorPoint=Vector2.new(1,.5) zoomButton.Position=UDim2.new(.12,0,.5,0)
+zoomButton.BackgroundColor3=Color3.fromRGB(16,27,41) zoomButton.BackgroundTransparency=1
 zoomButton.TextColor3=Color3.fromRGB(235,242,255) zoomButton.Font=Enum.Font.GothamMedium
-zoomButton.TextSize=13 zoomButton.Visible=false zoomButton.Selectable=false zoomButton.Parent=zoomGui
+zoomButton.TextSize=12 zoomButton.Visible=false zoomButton.Selectable=false zoomButton.Parent=zoomGui
 Instance.new("UICorner",zoomButton).CornerRadius=UDim.new(0,8)
+for i,action in {"ScopeZoomIn","ScopeZoomOut"} do
+ local glyph,refresh=InputIcons:Glyph(zoomButton,action,function() return Router:Key(action,InputMode:Get()==Enum.PreferredInput.Gamepad and "Gamepad" or "Keyboard") end,18)
+ glyph.Position=UDim2.fromOffset(30+(i-1)*25,30) table.insert(zoomGlyphs,refresh) table.insert(zoomGlyphLabels,glyph)
+end
 local locked,firstPerson,shoulder=true,false,1
 local practiceFirstPerson=player:GetAttribute("CTFPracticeRange")==true and true or nil
 local CameraPolicy=require(game.ReplicatedStorage.Crossgrounds.CombatCameraPolicy)
@@ -64,6 +73,8 @@ local remoteShots=setmetatable({},{__mode="k"})
 local protectionRemote=game.ReplicatedStorage.Events:WaitForChild("BreakSpawnProtection")
 local hidden=setmetatable({},{__mode="k"})
 local spring=require(game.ReplicatedStorage.Crossgrounds.WeaponRecoil).new()
+local AX50=require(game.ReplicatedStorage.Crossgrounds.AX50Motion)
+local axCamera=AX50.new()
 local recoil,recoilPitch,roll=0,0,0
 local swingAt=-100
 local ActionMotion=require(game.ReplicatedStorage.Crossgrounds.WeaponActionMotion)
@@ -236,7 +247,7 @@ function Presentation:PredictShot(shotId,tool,target,request)
  self:Kick(tool:GetAttribute("WeaponId"))
  Effects.PlaySound(tool) if not firstPerson then Effects.Play(tool) end
  for pellet=1,config.pellets do
-  local direction=Shot.Direction(target-origin,data.Spread,tool:GetAttribute("ShotSeed"),shotId,pellet,config.pellets)
+  local direction=Shot.Direction(target-origin,AttachmentEffects.Spread(data,tool),tool:GetAttribute("ShotSeed"),shotId,pellet,config.pellets)
   local endpoint
   if blocked then endpoint=blocked.Position
   elseif config.kind=="projectile" then
@@ -263,7 +274,7 @@ end
 local function removeViewmodel()
  if renderer then renderer:Destroy() renderer=nil end viewmodel=nil
  sourceRecoil=Vector2.zero sourceFovKick=0
- spring:Reset() carry:Reset() recoil=0 recoilPitch=0 roll=0
+ spring:Reset() axCamera:Reset() carry:Reset() recoil=0 recoilPitch=0 roll=0
 end
 local function buildViewmodel(tool)
  removeViewmodel()
@@ -275,10 +286,11 @@ function Presentation:Kick(id)
   firedAt=os.clock()
   tool:SetAttribute("PresentationShotAt",workspace:GetServerTimeNow())
   if firstPerson and renderer then renderer:Flash() end
-  local profile=data.VisualRecoil or {Push=.08,Roll=.4}
+  local profile=id=="ax_50" and AX50.Recoil or AttachmentEffects.Recoil(data,tool)
+  if id=="ax_50" then axCamera:Kick(math.random()<.5 and -1 or 1,aiming) end
   local low = data.CameraRecoilMin
   local high = data.CameraRecoilMax
-	if typeof(low) == "Vector2" and typeof(high) == "Vector2" then
+	if id~="ax_50" and typeof(low) == "Vector2" and typeof(high) == "Vector2" then
 		local horizontal = low.X + math.random() * (high.X - low.X)
 		local vertical = low.Y + math.random() * (high.Y - low.Y)
 
@@ -384,18 +396,21 @@ bind("Shoulder",function() Presentation:ToggleShoulder() end)
 bind("Perspective",function() Presentation:TogglePerspective() end)
 local function canZoom()
  local _,_,t=current()
- return aiming and not Presentation:IsBlocked() and t~=nil and SniperZoom.IsSniper(t:GetAttribute("WeaponId"))
+ return aiming and not Presentation:IsBlocked() and t~=nil and SightDefinitions.Get(t:GetAttribute("WeaponId"),t:GetAttribute("OpticalAttachmentId"))~=nil
 end
 local function toggleZoom() if canZoom() then zoomLevel=zoomLevel==1 and 2 or 1 end end
-Router:Register("SniperZoom",function(state)
- if not canZoom() then return Enum.ContextActionResult.Pass end
- if state==Enum.UserInputState.Begin then toggleZoom() end
- return Enum.ContextActionResult.Sink
-end,{scope="combat"})
+for action,level in {ScopeZoomIn=2,ScopeZoomOut=1} do
+ Router:Register(action,function(state)
+  if not canZoom() then return Enum.ContextActionResult.Pass end
+  if state==Enum.UserInputState.Begin then zoomLevel=level end
+  return Enum.ContextActionResult.Sink
+ end,{scope="combat",enabled=canZoom,overridePriority=true})
+end
 zoomButton.Activated:Connect(toggleZoom)
 RunService:BindToRenderStep("CTFCombatPresentation",Enum.RenderPriority.Camera.Value+1,function(deltaTime)
  local character,humanoid,tool,data=current()
  local blocked=Presentation:IsBlocked()
+ opticalSight:Update(nil)
  zoomButton.Visible=false
  if not aiming or blocked or not character or tool~=currentTool then zoomLevel=1 end
  locked,firstPerson=CameraPolicy.Resolve(Scope:Get(),data and data.Kind,setting("ShiftLock"),setting("FirstPerson"))
@@ -408,6 +423,8 @@ RunService:BindToRenderStep("CTFCombatPresentation",Enum.RenderPriority.Camera.V
  end
  locked,firstPerson=CameraPolicy.Resolve(Scope:Get(),data.Kind,setting("ShiftLock"),setting("FirstPerson"))
  if practiceFirstPerson~=nil then firstPerson=practiceFirstPerson end
+ local sightProfile=(aiming or adsWeight>.001) and SightDefinitions.Get(tool:GetAttribute("WeaponId"),tool:GetAttribute("OpticalAttachmentId")) or nil
+ if sightProfile then firstPerson=true end
  if tool~=currentTool then
   clearLook()
   currentTool=tool equippedAt=os.clock() firedAt=-100 adsWeight=0 locomotion=Locomotion.new() removeViewmodel()
@@ -482,12 +499,15 @@ RunService:BindToRenderStep("CTFCombatPresentation",Enum.RenderPriority.Camera.V
  else protectionToken=nil end
  yaw+=sourceRecoil.X*dt pitch=math.clamp(pitch+sourceRecoil.Y*dt,-1.25,1.25)
  sourceRecoil=sourceRecoil:Lerp(Vector2.zero,math.min(dt*10,1))
- local rotation=CFrame.fromEulerAnglesYXZ(pitch,yaw,0)
+ local axOffset=axCamera:Update(dt)
+ local axWeight=tool:GetAttribute("WeaponId")=="ax_50" and MotionPreferences.WeaponWeight(player) or 0
+ local rotation=CFrame.fromEulerAnglesYXZ(pitch+axOffset.Y*axWeight,yaw+axOffset.X*axWeight,0)
 
  local localMove=rotation:VectorToObjectSpace(root.AssemblyLinearVelocity)
  local loco=locomotion:Update(dt,localMove,humanoid.FloorMaterial~=Enum.Material.Air,player:GetAttribute("SlideActive")==true)
  player:SetAttribute("CombatMovementState",loco.state)
  local adsSpeed=math.clamp(data.AdsSpeedMultiplier or 1,.1,2)
+ if tool:GetAttribute("WeaponId")=="ax_50" then adsSpeed*=.65 end
  adsWeight+=((aiming and 1 or 0)-adsWeight)*(1-math.exp(-dt*18*adsSpeed))
  local focus=root.Position+Vector3.new(0,1.6+loco.cameraY,0)
  local cameraPosition
@@ -516,14 +536,20 @@ RunService:BindToRenderStep("CTFCombatPresentation",Enum.RenderPriority.Camera.V
  local baseFov=setting("FieldOfView")
  local sprinting=player:GetAttribute("SprintActive")==true and humanoid.MoveDirection.Magnitude>.1
  local weaponId=tool:GetAttribute("WeaponId")
- local scoped=aiming and SniperZoom.IsSniper(weaponId)
+ local scoped=sightProfile~=nil
+ -- Optical overlay is updated after the physical weapon pose below.
  zoomButton.Visible=scoped
  if scoped then
   local device=InputMode:Get()==Enum.PreferredInput.Gamepad and "Gamepad" or "Keyboard"
-  zoomButton.Text=(zoomLevel==1 and "4× → ampliar para 8×" or "8× → voltar para 4×").."  ["..Router:Key("SniperZoom",device).."]"
+  zoomButton.Text=(zoomLevel==1 and "4×" or "8×")
+  local viewport=camera.ViewportSize
+  zoomButton.Position=UDim2.fromOffset(viewport.X*.5-math.min(viewport.X,viewport.Y)*.37-12,viewport.Y*.5)
+  local axKeyboard=weaponId=='ax_50' and device=='Keyboard'
+  for i,refresh in zoomGlyphs do refresh() zoomGlyphLabels[i].Visible=not axKeyboard end
+  if axKeyboard then zoomButton.Text=(zoomLevel==1 and '4×' or '8×')..'  [+ / −]' end
  end
  player:SetAttribute("SniperZoomLevel",scoped and zoomLevel or 0)
- local fov=aiming and SniperZoom.FOV(baseFov,weaponId,zoomLevel) or baseFov+(sprinting and 6 or 0)
+ local fov=aiming and (sightProfile and SightDefinitions.FOV(baseFov,sightProfile,zoomLevel) or SniperZoom.FOV(baseFov,weaponId,zoomLevel)) or baseFov+(sprinting and 6 or 0)
  sourceFovKick*=math.exp(-deltaTime*20) fov+=sourceFovKick
  local fovSpeed=setting("FOVTransitionSpeed")*((aiming or adsWeight>.001) and adsSpeed or 1)
  camera.FieldOfView+=(fov-camera.FieldOfView)*MotionPreferences.FOVAlpha(dt,fovSpeed,12)
@@ -534,15 +560,17 @@ RunService:BindToRenderStep("CTFCombatPresentation",Enum.RenderPriority.Camera.V
   if flat.Magnitude>.1 then humanoid.AutoRotate=false root.CFrame=CFrame.lookAt(root.Position,root.Position+flat) end
  else humanoid.AutoRotate=true end
  hideCharacter(character,firstPerson)
- local recoilProfile=data.VisualRecoil or {}
+ local recoilProfile=weaponId=="ax_50" and AX50.Recoil or AttachmentEffects.Recoil(data,tool)
  recoil,recoilPitch,roll=spring:Update(deltaTime,recoilProfile)
  if firstPerson and renderer then
 
   local arc=data.Kind~="Gun" and ActionMotion.Melee(os.clock()-swingAt,data) or 0
   local action=ActionMotion.Sample({equippedFor=os.clock()-equippedAt,ads=adsWeight,slide=loco.slide,land=loco.land,vertical=localMove.Y,firedAgo=os.clock()-firedAt})
   action.weapon=loco.weapon*action.weapon
-  renderer:Render(deltaTime,camera,character,{runPose=runPose,runWeight=runWeight,runPhase=runPhase,recoil=recoil,pitch=recoilPitch,roll=roll,arc=arc,action=action,ads=adsWeight})
+  renderer:Render(deltaTime,camera,character,{runPose=runPose,runWeight=runWeight,runPhase=runPhase,recoil=recoil,pitch=recoilPitch,roll=roll,arc=arc,action=action,ads=adsWeight,sight=sightProfile,firedAgo=os.clock()-firedAt,cooldown=data.Cooldown})
  elseif renderer then renderer:SetVisible(false) end
+ opticalSight:Update(sightProfile,camera.ViewportSize,Presentation:GetAimViewport(),adsWeight,firstPerson and renderer and renderer.opticalAperture or nil)
+
  player:SetAttribute("CombatCameraActive",true) player:SetAttribute("CameraLocked",locked) player:SetAttribute("FirstPerson",firstPerson) player:SetAttribute("CameraShoulder",shoulder) player:SetAttribute("CombatAiming",aiming) player:SetAttribute("UsingXboxCursor",false)
  player:SetAttribute("VisualWeaponRecoil",recoil) player:SetAttribute("VisualWeaponPitch",recoilPitch)
 

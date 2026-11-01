@@ -1,9 +1,11 @@
 local Policy=require(script.Parent:WaitForChild("ControlPolicy"))
 Policy.Contexts.Slide={"ctf","arena"}
 local Controls={}
-Controls.Order={"SniperZoom","AdminSpeedUp","AdminSpeedDown","AdminPreviousMap","AdminNextMap","AdminClean","AdminMode","Slide","Sprint","Perspective","SwitchWeapon","ShiftLock","ReloadInteract","Shoulder","Fire","Aim","Jump","Menu","KitMenu","VoteMenu","Leave"}
+Controls.Order={"ScopeZoomIn","ScopeZoomOut","SniperZoom","AdminSpeedUp","AdminSpeedDown","AdminPreviousMap","AdminNextMap","AdminClean","AdminMode","Slide","Sprint","Perspective","SwitchWeapon","ShiftLock","ReloadInteract","Shoulder","Fire","Aim","Jump","Menu","KitMenu","VoteMenu","Leave"}
 Controls.Actions={
- SniperZoom={Label="Alternar ampliação da sniper",Keyboard="Z",Gamepad="DPadLeft"},
+ ScopeZoomIn={Label="Ampliar mira",Keyboard="Equals",Gamepad="DPadUp"},
+ ScopeZoomOut={Label="Reduzir mira",Keyboard="Minus",Gamepad="DPadDown"},
+ SniperZoom={Label="Alternar ampliação da sniper",Keyboard="Z",Gamepad="ButtonL3"},
  MenuPrevious={Label="Menu · categoria anterior",Keyboard="LeftBracket",Gamepad="ButtonL1"},
  MenuNext={Label="Menu · próxima categoria",Keyboard="RightBracket",Gamepad="ButtonR1"},
  AdminSpeedUp={Label="Admin · Aumentar velocidade",Keyboard="Equals",Gamepad="ButtonR1",AdminOnly=true},

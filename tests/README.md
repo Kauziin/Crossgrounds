@@ -2,6 +2,8 @@
 
 Esta pasta fica fora de `src` e não deve ser sincronizada automaticamente com o Place de produção. Os testes foram retirados de ServerStorage, ServerScriptService e StarterPlayerScripts em 26/10/2026.
 
+`Unit/Cases/Plan8Arsenal_Test.luau` cobre compatibilidade, stats, ausência do teto global, pistolas, prévia incremental e preservação de contexto da lista. Use o runner abaixo com filtro `"Plan8Arsenal"`. Os cenários de modos/respawn e as capturas efetivamente realizados estão em [validação do plano 8](../artifacts/plan8-2026-11-01/VALIDACAO.md).
+
 ## Contratos de módulos
 
 `Unit/` contém `RunUnitTest.luau`, `Cases/` e um runner manual. Em uma cópia separada do Place com os módulos do jogo, importe `Unit` como Folder, `RunUnitTest` e os casos como ModuleScripts. O runner procura `Cases` relativamente à própria pasta:

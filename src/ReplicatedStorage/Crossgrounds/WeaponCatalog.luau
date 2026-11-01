@@ -1608,8 +1608,7 @@ Catalog.Weapons.combat_knife.category = "MELEE"
 Catalog.Weapons.combat_knife.sourceCategory = "SPECIAL"
 
 function Catalog.Get(id)
-    table.insert(Catalog.Weapons.aug.slots,"fireControl")
-return Catalog.Weapons[id]
+    return Catalog.Weapons[id]
 end
 
 function Catalog.List(slot)
@@ -1685,5 +1684,12 @@ end
 -- Escudo, lança-foguetes, minigun e faca MW ficam somente em prévia:
 -- o documento anterior contém protótipos, não definições integradas de combate.
 
-table.insert(Catalog.Weapons.aug.slots,"fireControl")
+-- These mounts are implemented by ImportedWeaponVisuals, not inferred from category.
+Catalog.Weapons.m4a1.platform="AR_M4"
+Catalog.Weapons.m4a1.mountPoints={optic="TopRail",muzzle="MuzzleThread",underbarrel="LowerRail"}
+Catalog.Weapons.ax_50.platform="AX50"
+Catalog.Weapons.ax_50.mountPoints={optic="TopRail",muzzle="MuzzleThread",underbarrel="LowerRail",barrel="AX50Barrel"}
+Catalog.Weapons.aug.platform="AUG"
+Catalog.Weapons.aug.mountPoints={fireControl="AUGFireControl"}
+if not table.find(Catalog.Weapons.aug.slots,"fireControl") then table.insert(Catalog.Weapons.aug.slots,"fireControl") end
 return Catalog

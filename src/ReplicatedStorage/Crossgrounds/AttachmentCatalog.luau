@@ -8,25 +8,40 @@ Catalog.suppressors_colossus_suppressor={id="suppressors_colossus_suppressor",na
 Catalog.aug_burst_conversion={id="aug_burst_conversion",name="Conversão de rajada (3 tiros)",slot="fireControl",status="Available",compatible={"aug"},functionalBurst=true,description="Conversão funcional: três tiros por acionamento. Sem modelo físico adicional."}
 -- Commando Foregrip
 Catalog.foregrips_commando_foregrip.statMultipliers = {
-    Spread = 0.90,
-    CameraRecoilMin = 0.85,
-    CameraRecoilMax = 0.85,
+    Spread = 0.60,
+    VisualRecoil = {Roll = 0.85},
 }
 
 Catalog.foregrips_commando_foregrip.visualOnly = false
 Catalog.foregrips_commando_foregrip.description =
-    "Reduz dispersão e recuo da câmera."
+    "Reduz dispersão em 40% e recuo lateral em 15%."
 
 -- Monolithic Suppressor
 Catalog.suppressors_monolithic_suppressor.statMultipliers = {
-    Range = 1.10,
-    FalloffStart = 1.10,
-    FalloffEnd = 1.10,
 }
 
 Catalog.suppressors_monolithic_suppressor.visualOnly = false
 Catalog.suppressors_monolithic_suppressor.description =
-    "Aumenta o alcance e as distâncias de queda de dano."
+    "Som abafado; sem alteração de alcance ou dano."
 
+-- Inventory metadata is separate from permission to equip. Unknown mounts stay closed.
+local correctedSlots={SP_R="stock",Barrels="barrel",Model="stock",["AMMO BOXES"]="ammunition",["Handguards/Laser Mount"]="mount",["Underbarrel Launchers"]="underbarrel"}
+for id,a in Catalog do
+ a.sourcePack="mw2019" a.sourceGame="Modern Warfare 2019" a.canonicalId=id
+ local path=a.physicalAssetPath
+ local group=path and path[5]
+ if a.slot=="special" then
+  if group=="SP-R 208 Chassis" then a.slot="stock" else a.slot=correctedSlots[group] or "auxiliary" end
+ end
+ a.assetId=a.assetId or id
+ a.compatibilityMode="SpecificWeapon" a.compatibleWeapons=a.compatible or {}
+ a.blockedWeapons={} a.blockedPlatforms={}
+ a.auditStatus=a.status=="Available" and "Verified" or "Pending"
+ a.pendingAudit=a.auditStatus~="Verified"
+ a.requiresMount=true
+ a.mountType=({optic="TopRail",muzzle="MuzzleThread",underbarrel="LowerRail",barrel="AX50Barrel",fireControl="AUGFireControl"})[a.slot]
+ if a.pendingAudit then a.mountType=nil end
+end
+Catalog.suppressors_colossus_suppressor.visualVariantOf="suppressors_monolithic_suppressor"
 return Catalog
 
