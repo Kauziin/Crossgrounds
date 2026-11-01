@@ -104,7 +104,19 @@ table.insert(connections,player:GetAttributeChangedSignal("CTFPracticeRange"):Co
  overview=require(script.Parent.CTFClassOverview).new(root,{
   Navigation=nav,Catalog=Catalog,Stats=Stats,Attachments=Attachments,PracticeRange=function() return player:GetAttribute("CTFPracticeRange")==true end,
   Inspect=function(n) inspect(n) end,
-    Edit=function(key) slot=key candidate=draft[key.."WeaponId"] attachments=copy(draft[key.."Attachments"] or {}) showModel(candidate,attachments) open("preset") end,
+		Select = function(key)
+			slot = key
+			candidate = draft[key.."WeaponId"]
+			open("weapons")
+		end,
+
+		Edit = function(key)
+			slot = key
+			candidate = draft[key.."WeaponId"]
+			attachments = copy(draft[key.."Attachments"] or {})
+			selectedSlot = nil
+			open("attachments")
+		end,
   Preview=function(id,configuration,callback,valid)
    local library=Root:FindFirstChild("LoadoutPreviews") local existing=library and library:FindFirstChild(id)
    if existing then callback(existing) return end
@@ -118,8 +130,27 @@ table.insert(connections,player:GetAttributeChangedSignal("CTFPracticeRange"):Co
   index=n draft=copy(state().presets and state().presets[n] or Config.Default(n))
   showModel(draft.primaryWeaponId,draft.primaryAttachments) overview:Inspect(n,draft) overview:RefreshState(state())
  end
- function self:Back() if page=="loadouts" then return false end if page=="attachments" or page=="weapons" then open("preset") else open("loadouts") end return true end
- function self:Cycle(step) index=(index-1+step)%5+1 draft=copy(state().presets and state().presets[index] or Config.Default(index)) open("preset") end
+	function self:Back()
+		if page == "loadouts" then
+			return false
+		end
+
+		open("loadouts")
+		return true
+	end
+
+	function self:Cycle(step)
+		index = (index - 1 + step) % 5 + 1
+		draft = copy(
+			state().presets and state().presets[index]
+				or Config.Default(index)
+		)
+		if page ~= "loadouts" then
+			open("loadouts")
+		else
+			inspect(index)
+		end
+	end
  render=function()
   clear() overview.Root.Visible=page=="loadouts" title.Text=page=="loadouts" and "CRIAR CLASSE" or "ARMAMENTOS / "..draft.name
   title.Font=Enum.Font.GothamBold title.TextSize=page=="loadouts" and 27 or 20
@@ -176,7 +207,38 @@ table.insert(connections,player:GetAttributeChangedSignal("CTFPracticeRange"):Co
     local preset=state().presets and state().presets[n] or Config.Default(n)
     local b=action(preset.name,function() request("save",{index=n,loadout=copy(state().presets and state().presets[n] or preset)}) end)
     overview:StyleRow(b,n,preset)
-    nav:SetActions(b,{custom=function() index=n draft=copy(preset) showModel(draft.primaryWeaponId,draft.primaryAttachments) open("preset") end})
+				nav:SetActions(b, {
+					custom = function()
+						index = n
+						draft = copy(
+							state().presets and state().presets[n] or preset
+						)
+
+						local field = Instance.new("TextBox")
+						field.Name = "RenameInline"
+						field.Position = UDim2.fromOffset(6, 20)
+						field.Size = UDim2.new(1, -12, 0, 36)
+						field.BackgroundColor3 = Color3.fromRGB(20, 42, 52)
+						field.TextColor3 = Color3.new(1, 1, 1)
+						field.Font = Enum.Font.GothamMedium
+						field.TextSize = 15
+						field.Text = draft.name
+						field.ClearTextOnFocus = false
+						field.Parent = b
+
+						field:CaptureFocus()
+
+						field.FocusLost:Once(function()
+							local name = field.Text:match("^%s*(.-)%s*$")
+							field:Destroy()
+
+							if name ~= "" and name ~= draft.name then
+								draft.name = name
+								applyDraft("Loadout renomeado.")
+							end
+						end)
+					end,
+				})
    end
    action("Corpo a corpo · catálogo de prévias",function() open("melee") end)
    action("Acessórios e itens auxiliares · prévias",function() open("auxiliary") end)
@@ -190,29 +252,8 @@ table.insert(connections,player:GetAttributeChangedSignal("CTFPracticeRange"):Co
   elseif page=="variants" then
    local sorted={} for _,v in Catalog.Variants do table.insert(sorted,v) end table.sort(sorted,function(a,b)return a.name<b.name end)
    for _,v in sorted do action(v.name.." · somente prévia",function() showModel(v.id,{}) end) end
-  elseif page=="preset" then
-  local name=Instance.new("TextBox") name.Name="PresetName" name.LayoutOrder=#buttons+1 name.Size=UDim2.new(1,-8,0,40) name.BackgroundColor3=Color3.fromRGB(24,36,48) name.TextColor3=Color3.new(1,1,1) name.Text=draft.name name.ClearTextOnFocus=false name.Parent=list table.insert(buttons,name) name.FocusLost:Connect(function() draft.name=name.Text applyDraft("Loadout renomeado.") end)
-   action("Renomear loadout",function() name:CaptureFocus() end)
-  for _,key in {"primary","secondary"} do
-   local w=Catalog.Get(draft[key.."WeaponId"])
-   action((key=="primary" and "Primária: " or "Secundária: ")..w.name,function() slot=key open("weapons") end)
-   for _,attachmentSlot in w.slots do
-    local attachmentId=(draft[key.."Attachments"] or {})[attachmentSlot]
-    local attachment=attachmentId and Attachments[attachmentId]
-    action((key=="primary" and "Primária · " or "Secundária · ")..(slotNames[attachmentSlot] or attachmentSlot)..": "..(attachment and attachment.name or "Nenhum"),function()
-    slot=key candidate=w.id attachments=copy(draft[key.."Attachments"] or {}) selectedSlot=attachmentSlot open("attachments")
-    end)
-   end
-  end
-  action("Restaurar padrão",function() draft=Config.Default(index) showModel(draft.primaryWeaponId,{}) applyDraft("Loadout padrão equipado.") end)
-  elseif page=="weapons" then
-  for _,w in Catalog.List(slot) do action(w.name..(w.combatId and "" or " · somente prévia"),function()
-   if not w.combatId then notice.Text="Esta arma está disponível apenas para prévia." return end
-   draft[slot.."WeaponId"]=w.id draft[slot.."Attachments"]={} candidate=w.id attachments={}
-   showModel(candidate,{}) applyDraft(w.name.." equipado.")
-  end) end
- end
- reflow=function()
+  end end
+	reflow=function()
   local factor=1 local ancestor=parent
   while ancestor do local scale=ancestor:FindFirstChildOfClass("UIScale") if scale then factor*=scale.Scale end ancestor=ancestor.Parent end
   local small=parent.AbsoluteSize.X/factor<620 local height=math.max(170,parent.AbsoluteSize.Y/factor)
@@ -231,7 +272,7 @@ table.insert(connections,player:GetAttributeChangedSignal("CTFPracticeRange"):Co
   end
   preview.BackgroundTransparency=.15 preview.ZIndex=1 rotate.ZIndex=1 rotate.Visible=true rotate.Text="Girar prévia · analógico direito / arrastar"
   local previewHeight=small and 150 or math.clamp(height-82,90,280)
-  local statHeight=(page=="weapon" or page=="attachments") and 180 or 0 details.Visible=statHeight>0
+  local statHeight=(page=="attachments") and 180 or 0 details.Visible=statHeight>0
   local listY=small and 82+previewHeight+42 or 82 local listHeight=small and 180 or math.max(90,height-82)
   root.Size=UDim2.new(1,-8,0,math.max(listY+listHeight,82+previewHeight+42)+statHeight+8)
   list.Position=UDim2.fromOffset(0,listY) list.Size=small and UDim2.new(1,0,0,listHeight) or UDim2.new(.42,-8,0,listHeight)

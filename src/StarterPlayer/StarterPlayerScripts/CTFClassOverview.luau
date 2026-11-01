@@ -79,6 +79,31 @@ function View.new(root,options)
  end
  local edit=button(primary,'EditPrimary','X  Editar',function() options.Edit('primary') end) edit.Position=UDim2.new(1,-98,0,7) edit.Size=UDim2.fromOffset(86,28)
  local editSecondary=button(secondary,'EditSecondary','X  Editar',function() options.Edit('secondary') end) editSecondary.Position=UDim2.new(1,-98,0,7) editSecondary.Size=UDim2.fromOffset(86,28)
+	local choosePrimary = button(
+		primary,
+		"ChoosePrimary",
+		"",
+		function()
+			options.Select("primary")
+		end
+	)
+
+	choosePrimary.Position = UDim2.fromOffset(12, 33)
+	choosePrimary.Size = UDim2.new(1, -126, 0, 38)
+	choosePrimary.BackgroundTransparency = 1
+
+	local chooseSecondary = button(
+		secondary,
+		"ChooseSecondary",
+		"",
+		function()
+			options.Select("secondary")
+		end
+	)
+
+	chooseSecondary.Position = UDim2.fromOffset(12, 33)
+	chooseSecondary.Size = UDim2.new(.45, 0, 0, 38)
+	chooseSecondary.BackgroundTransparency = 1
  local footer=text(home,'Controls','A  Escolher     X  Editar     B  Voltar  ·  Seleção válida no próximo nascimento.',11,0,0,1,28) footer.TextColor3=muted
  local function viewport(parent,name)
   local f=Instance.new('ViewportFrame') f.Name=name f.BackgroundTransparency=1 f.Ambient=Color3.fromRGB(175,192,203) f.LightColor=Color3.fromRGB(255,242,219) f.LightDirection=Vector3.new(-1,-2,-3) f.Parent=parent
