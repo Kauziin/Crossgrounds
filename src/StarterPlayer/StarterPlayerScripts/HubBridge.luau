@@ -11,9 +11,9 @@ local function apply(data)
 end
 event.OnClientEvent:Connect(apply)
 function Bridge:Get() return current end
-function Bridge:Send(action,gameId,ticket)
+function Bridge:Send(action,gameId,ticket,variant)
  if self.Pending then return end
- local data={action=action} if gameId then data.gameId=gameId end if ticket then data.ticket=ticket end
+ local data={action=action} if gameId then data.gameId=gameId end if ticket then data.ticket=ticket end if variant then data.variant=variant end
  self.Pending=true self.LocalError=nil generation+=1 local token=generation
  command:FireServer(data) signal:Fire()
  task.delay(6,function() if generation==token and self.Pending then self.Pending=false self.LocalError="O servidor não confirmou a solicitação. Consulte o estado e tente novamente." signal:Fire() end end)

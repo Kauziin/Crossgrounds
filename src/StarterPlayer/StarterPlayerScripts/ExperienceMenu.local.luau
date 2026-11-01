@@ -403,10 +403,12 @@ local function scopeLabels()
  mainButtons.Options.LayoutOrder=Scope:IsHub() and 5 or 4
  mainButtons.Surrender.LayoutOrder=6
  mainButtons.Exit.LayoutOrder=7
- mainButtons.Loadout.Text=Scope:IsHub() and "Jogar" or "Loadout"
+ mainButtons.Loadout.Text=Scope:IsHub() and "Jogar" or player:GetAttribute("CTFPracticeRange")==true and "Armeiro" or "Loadout"
  if Scope:IsGetOut() then mainButtons.Loadout.Text="Papéis do Get Out" end
 end
 Scope.Changed:Connect(function() scopeLabels() show(false) end) scopeLabels()
+player:GetAttributeChangedSignal("CTFPracticeRange"):Connect(scopeLabels)
+player:GetAttributeChangedSignal("CTFPracticeRange"):Connect(scopeLabels)
 workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(function() resize(false) end)
 player:GetAttributeChangedSignal("SettingMenuScale"):Connect(function() resize(false) end)
 shade:GetPropertyChangedSignal("AbsoluteSize"):Connect(function() resize(false) end)

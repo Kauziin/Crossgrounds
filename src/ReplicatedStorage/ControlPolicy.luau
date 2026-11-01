@@ -43,8 +43,8 @@ function Policy.Available(action,s)
  if action=="GetOutCrawl" and s.victim~="Active" and s.victim~="Crawling" then return false,"victim" end
  if action=="GetOutDrop" and not s.dragging then return false,"no-victim" end
  if context=="ctf" or context=="arena" then
-  if action~="Menu" and action~="KitMenu" and action~="VoteMenu" and action~="Leave" and action~="AdminMode" then
-   if not s.alive or s.spectating or context=="ctf" and not s.inMatch or context=="arena" and not s.arenaPlaying then return false,"inactive" end
+    if action~="Menu" and action~="KitMenu" and action~="VoteMenu" and action~="Leave" and action~="AdminMode" then
+     if not s.alive or s.spectating or context=="ctf" and not s.inMatch and not s.practiceRange or context=="arena" and not s.arenaPlaying then return false,"inactive" end
   end
  end
  return true

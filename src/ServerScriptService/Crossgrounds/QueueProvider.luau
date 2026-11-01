@@ -6,11 +6,11 @@ function Queue:Get(player)
  local item=self.entries[player]
  return item and table.clone(item) or {state="idle",message="Escolha uma modalidade."}
 end
-function Queue:Join(player,gameId)
+function Queue:Join(player,gameId,variant)
  local current=self:Get(player)
  if current.state~="idle" and current.state~="failed" then return false,"Já existe uma solicitação em andamento." end
  self.serial+=1
- local item={state="joining",gameId=gameId,ticket=self.serial,message="Verificando a entrada no protótipo..."}
+ local item={state="joining",gameId=gameId,variant=variant,ticket=self.serial,message="Verificando a entrada no protótipo..."}
  self.entries[player]=item return true,table.clone(item)
 end
 function Queue:Ready(player,ticket,route)

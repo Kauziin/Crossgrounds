@@ -3,6 +3,7 @@ local Service={}
 local Players=game:GetService("Players")
 local Run=game:GetService("RunService")
 local Rules=require(game.ReplicatedStorage.Crossgrounds.CombatMovement)
+local WeaponStats=require(game.ReplicatedStorage.Crossgrounds.WeaponStats)
 local active={} local last={} local requests={} local started=false
 local poseRequests={}
 local function playing(p)
@@ -19,7 +20,9 @@ function Service:Stop(p,reason)
  s.velocity:Destroy() s.attachment:Destroy()
  if s.root.Parent then pcall(function() s.root:SetNetworkOwnershipAuto() end) end
  if p.Character==s.character and s.humanoid.Parent and s.humanoid.Health>0 and playing(p) then
-  s.humanoid.WalkSpeed=p:GetAttribute("SprintActive") and (p:GetAttribute("KitSprintSpeed") or 25) or (p:GetAttribute("KitWalkSpeed") or 18)
+  local data=s.tool and WeaponStats.ResolveTool(s.tool)
+  local multiplier=data and data.MovementSpeedMultiplier or 1
+  s.humanoid.WalkSpeed=(p:GetAttribute("SprintActive") and (p:GetAttribute("KitSprintSpeed") or 25) or (p:GetAttribute("KitWalkSpeed") or 18))*multiplier
  end
  p:SetAttribute("SlideActive",false) p:SetAttribute("SlideExitReason",reason or "complete")
  if s.character.Parent then s.character:SetAttribute("SlideActive",false) end

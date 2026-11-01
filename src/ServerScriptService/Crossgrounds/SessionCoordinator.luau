@@ -57,7 +57,7 @@ function Coordinator:Command(player,command)
   if self.context:GetMode(player)~="hub" then self:Error(player,"Volte ao Crossgrounds antes de escolher outra modalidade.") return end
   local definition=Catalog:Get(command.gameId)
   if not definition or definition.status=="planned" then self:Error(player,"Modalidade em desenvolvimento; não existe fila para ela.") return end
-  local ok,item=self.queue:Join(player,command.gameId)
+    local ok,item=self.queue:Join(player,command.gameId,command.variant)
   if not ok then self:Error(player,item) return end
   self:Publish(player)
   task.defer(function()
@@ -86,7 +86,8 @@ function Coordinator:Command(player,command)
    if not route then self.queue:Fail(player,message,item.ticket) self:Publish(player) return end
    player:SetAttribute("CrossgroundsTransition",true)
    if route.kind=="local" then
-    local entered,err=self:CallAdapter(self.adapters[item.gameId],"Enter",player)
+    local method=item.variant=="practice" and "EnterPractice" or "Enter"
+    local entered,err=self:CallAdapter(self.adapters[item.gameId],method,player)
     if not player.Parent then return end
     player:SetAttribute("CrossgroundsTransition",false)
     if entered then self.errors[player]=nil self.queue:Clear(player)

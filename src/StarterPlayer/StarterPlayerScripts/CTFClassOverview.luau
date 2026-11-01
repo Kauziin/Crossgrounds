@@ -21,15 +21,40 @@ function View.new(root,options)
  local home=Instance.new('Frame') home.Name='CreateAClass' home.BackgroundTransparency=1 home.Size=UDim2.fromScale(1,1) home:SetAttribute('CascadeDecoration',true) home.Parent=root self.Root=home
  local primary=box(home,'PrimarySlot') header(primary,'ARMA PRINCIPAL')
  local primaryName=text(primary,'WeaponName','',21,14,35,1,30) primaryName.Font=Enum.Font.GothamBold
- local attachmentRow=Instance.new('Frame',primary) attachmentRow.Name='AttachmentSlots' attachmentRow.BackgroundTransparency=1 attachmentRow.Position=UDim2.new(0,10,1,-55) attachmentRow.Size=UDim2.new(1,-20,0,45)
- local attachmentLabels={}
- for i,key in {'Mira','Cano','Acoplamento','Carregador','Coronha'} do
-  local tile=box(attachmentRow,'Slot'..i) tile.Position=UDim2.new((i-1)/5,2,0,0) tile.Size=UDim2.new(1/5,-4,1,0)
-  attachmentLabels[i]=text(tile,'Value',key..'\nPadrão',10,7,0,1,45)
+ local attachmentRow=Instance.new('Frame',primary) attachmentRow.Name='AttachmentSlots' attachmentRow.BackgroundTransparency=1 attachmentRow.ClipsDescendants=true attachmentRow.Position=UDim2.new(0,10,1,-55) attachmentRow.Size=UDim2.new(1,-20,0,45)
+ local attachmentLayout=Instance.new('UIListLayout',attachmentRow) attachmentLayout.FillDirection=Enum.FillDirection.Horizontal attachmentLayout.HorizontalAlignment=Enum.HorizontalAlignment.Center attachmentLayout.VerticalAlignment=Enum.VerticalAlignment.Center attachmentLayout.Padding=UDim.new(0,6)
+ local slotOrder={'optic','muzzle','barrel','underbarrel','magazine','stock','laser','fireControl'}
+ local displayedPreset,displayedWeapon
+ local function renderAttachments(preset,weapon)
+  for _,child in attachmentRow:GetChildren() do if child~=attachmentLayout then child:Destroy() end end
+  local equipped={}
+  for _,slot in slotOrder do
+   local id=(preset.primaryAttachments or {})[slot]
+   local attachment=id and options.Attachments[id]
+   if attachment then table.insert(equipped,attachment.name) end
+  end
+  if #equipped==0 then
+   local count=weapon and #weapon.slots or 6
+   for i=1,count do
+    local dot=Instance.new('Frame') dot.Name='EmptyAccessory'..i dot.Size=UDim2.fromOffset(8,8) dot.BackgroundColor3=cyan dot.BackgroundTransparency=.45 dot.BorderSizePixel=0 dot:SetAttribute('CascadeDecoration',true) dot.Parent=attachmentRow
+    Instance.new('UICorner',dot).CornerRadius=UDim.new(1,0)
+    local outline=Instance.new('UIStroke',dot) outline.Color=cyan outline.Transparency=.45
+   end
+   return
+  end
+  local width=attachmentRow.AbsoluteSize.X>0 and attachmentRow.AbsoluteSize.X or 640
+  local gap=6 local chipWidth=math.max(36,(width-12-gap*(#equipped-1))/#equipped)
+  for i,name in equipped do
+   local naturalWidth=math.clamp(#name*5.4+20,76,156)
+   local chip=Instance.new('Frame') chip.Name='EquippedAttachment'..i chip.Size=UDim2.fromOffset(math.min(chipWidth,naturalWidth),32) chip.BackgroundColor3=Color3.fromRGB(17,42,49) chip.BackgroundTransparency=.05 chip.BorderSizePixel=0 chip:SetAttribute('CascadeDecoration',true) chip.Parent=attachmentRow
+   Instance.new('UICorner',chip).CornerRadius=UDim.new(0,9)
+   local outline=Instance.new('UIStroke',chip) outline.Color=cyan outline.Transparency=.55
+   local nameLabel=Instance.new('TextLabel') nameLabel.Name='Name' nameLabel.BackgroundTransparency=1 nameLabel.Position=UDim2.fromOffset(7,0) nameLabel.Size=UDim2.new(1,-14,1,0) nameLabel.Font=Enum.Font.GothamMedium nameLabel.TextSize=10 nameLabel.TextColor3=Color3.fromRGB(225,243,247) nameLabel.TextTruncate=Enum.TextTruncate.AtEnd nameLabel.Text= name nameLabel.Parent=chip
+  end
  end
  local secondary=box(home,'SecondarySlot') header(secondary,'ARMA SECUNDÁRIA')
   local secondaryName=text(secondary,'WeaponName','',17,14,35,.55,44)
- local secondaryInfo=text(secondary,'SlotInfo','Mira · Cano · Carregador\nPadrão',11,14,76,.55,32) secondaryInfo.TextColor3=muted
+ local secondaryInfo=text(secondary,'SlotInfo','Sem acessórios',11,14,76,.55,32) secondaryInfo.TextColor3=muted
  local melee=box(home,'MeleeSlot') header(melee,'CORPO A CORPO') local meleeName=text(melee,'WeaponName','Executor',15,12,36,.62,35)
  local ability1=box(home,'Ability1') header(ability1,'HABILIDADE 1') text(ability1,'Future','+\nEm breve',14,12,34,1,48).TextColor3=muted
  local ability2=box(home,'Ability2') header(ability2,'HABILIDADE 2') text(ability2,'Future','+\nEm breve',14,12,34,1,48).TextColor3=muted
@@ -77,12 +102,15 @@ function View.new(root,options)
   local categories={['ASSAULT RIFLES']='FUZIL DE ASSALTO',PISTOLS='PISTOLA',SMGS='SUBMETRALHADORA',SHOTGUNS='ESCOPETA',SNIPERS='FUZIL DE PRECISÃO'}
   category.Text=w and (categories[w.category] or w.category) or 'ARMAMENTO'
   secondaryName.Text=s and s.name or preset.secondaryWeaponId meleeName.Text='Executor'
-  description.Text='Equipamento da classe '..n..'. Acessórios visuais preservam os atributos base da arma.'
+  description.Text='Equipamento da classe '..n..'. Acessórios equipados aparecem na própria classe.'
+    status.Text=options.PracticeRange and options.PracticeRange() and 'A · Escolher   X · Editar\nLoadout aplicado imediatamente no Practice Range.' or 'A · Escolher   X · Editar\nAplicado no próximo nascimento.'
   local stats=options.Stats.Get(preset.primaryWeaponId).baseStats
   local values={stats.damage,stats.rpm and math.floor(stats.rpm+.5),stats.spreadDegrees and stats.spreadDegrees..'°',nil,nil,stats.range}
   for i,t in statLabels do t.Text=tostring(values[i] or '—') end
-  local keys={'optic','muzzle','underbarrel','magazine','stock'} local names={'Mira','Boca / Cano','Acoplamento','Carregador','Coronha'}
-  for i,t in attachmentLabels do local id=(preset.primaryAttachments or {})[keys[i]] local a=id and options.Attachments[id] local supported=w and table.find(w.slots,keys[i]) t.Text=names[i]..'\n'..(a and a.name or supported and 'Padrão' or 'Em breve') end
+  displayedPreset=preset displayedWeapon=w renderAttachments(preset,w)
+  local secondaryAttachments={}
+  for _,slot in slotOrder do local id=(preset.secondaryAttachments or {})[slot] local attachment=id and options.Attachments[id] if attachment then table.insert(secondaryAttachments,attachment.name) end end
+  secondaryInfo.Text=#secondaryAttachments>0 and table.concat(secondaryAttachments,' · ') or 'Sem acessórios'
   for _,rec in records do rec.World:ClearAllChildren() rec.Model=nil end
   for i,rec in records do
    local id=i==1 and preset.secondaryWeaponId or preset.meleeWeaponId
@@ -92,6 +120,7 @@ function View.new(root,options)
    end,function() return alive and token==revision and home.Visible end)
   end
  end
+ hook(attachmentRow:GetPropertyChangedSignal('AbsoluteSize'),function() if displayedPreset then renderAttachments(displayedPreset,displayedWeapon) end end)
  function self:StyleRow(b,n,preset)
   b.Text='' b.Size=UDim2.new(1,-8,0,76) b.BackgroundColor3=Color3.fromRGB(13,28,35) b.AutoButtonColor=false b:SetAttribute('CascadeDecoration',true)
   Instance.new('UICorner',b).CornerRadius=UDim.new(0,12) local edge=Instance.new('UIStroke',b) edge.Color=cyan edge.Thickness=1 edge.Transparency=.8

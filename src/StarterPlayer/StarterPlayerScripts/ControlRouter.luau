@@ -31,6 +31,7 @@ function Router:Snapshot()
  for _,provider in customContexts do if provider() then modal=true end end
  local h=p.Character and p.Character:FindFirstChildOfClass("Humanoid")
  return {mode=Scope:Get(),sprinting=p:GetAttribute("SprintActive")==true,modal=modal==true,settingsMenu=p:GetAttribute("ExperienceMenuOpen")==true,
+    practiceRange=p:GetAttribute("CTFPracticeRange")==true,
   suspended=not focused or capture~=nil or p:GetAttribute("ClientLoading")==true or p:GetAttribute("CrossgroundsTransition")==true or Gui.MenuIsOpen or UIS:GetFocusedTextBox()~=nil,
   admin=p:GetAttribute("AdminFreecam")==true,authorized=p:GetAttribute("CrossgroundsAdmin")==true,
   inMatch=p:GetAttribute("InMatch")==true,arenaPlaying=p:GetAttribute("ArenaPlaying")==true,
@@ -54,7 +55,7 @@ function Router:IsBlocked()
  return s.suspended or s.modal or s.admin or s.spectating or not s.alive
   or not (Scope:IsCombat() or Scope:IsGetOut())
   or Scope:IsArena() and not s.arenaPlaying
-  or Scope:IsCTF() and not s.inMatch
+  or Scope:IsCTF() and not s.inMatch and not s.practiceRange
   or Scope:IsGetOut() and Policy.Context(s)=="waiting"
 end
 function Router:IsAvailable(action,snapshot)

@@ -1,7 +1,7 @@
 -- Shared, event-driven shell for weapon and accessory selection. No card ViewportFrames.
 local View={}
 local accent=Color3.fromRGB(36,224,232)
-local names={['ASSAULT RIFLES']='Fuzis de Assalto',['LIGHT MACHINE GUNS']='Metralhadoras',['MARKSMAN RIFLES']='Atirador',['SNIPER RIFLES']='Precisão',LEGACY='Clássicas',SPECIAL='Especiais',SMGS='Submetralhadoras',PISTOLS='Pistolas',SHOTGUNS='Escopetas',SNIPER_RIFLES='Atirador',MELEE='Corpo a corpo',optic='Mira',muzzle='Boca / Cano',underbarrel='Acoplamento',magazine='Carregador',stock='Coronha',laser='Laser',fireControl='Disparo'}
+local names={['ASSAULT RIFLES']='Fuzis de Assalto',['LIGHT MACHINE GUNS']='Metralhadoras',['MARKSMAN RIFLES']='Atirador',['SNIPER RIFLES']='Precisão',LEGACY='Clássicas',SPECIAL='Especiais',SMGS='Submetralhadoras',PISTOLS='Pistolas',SHOTGUNS='Escopetas',SNIPER_RIFLES='Atirador',MELEE='Corpo a corpo',optic='Mira',muzzle='Boca',barrel='Cano',underbarrel='Acoplamento',magazine='Carregador',stock='Coronha',laser='Laser',fireControl='Disparo'}
 local function panel(parent,name)
  local f=Instance.new('Frame') f.Name=name f:SetAttribute('CascadeDecoration',true) f.BackgroundColor3=Color3.fromRGB(9,22,29) f.BackgroundTransparency=.08 f.BorderSizePixel=0 f.Parent=parent
  Instance.new('UICorner',f).CornerRadius=UDim.new(0,12) local edge=Instance.new('UIStroke',f) edge.Color=Color3.fromRGB(78,115,130) edge.Transparency=.5 return f

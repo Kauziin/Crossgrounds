@@ -59,7 +59,18 @@ function Service.Start()
    local kits=require(game.ReplicatedStorage.KitDefinitions) local profile=kits.Profiles[p:GetAttribute("SelectedKit")] or kits.Profiles.Regular
    valid.meleeWeaponId=profile.Weapons[1]
    if not r.loaded then return false,"As preferências não foram carregadas; seleção preservada." end
-   r.presets[payload.index]=valid r.pending=valid p:SetAttribute("PendingCTFLoadout",nil) snapshot(p) queueSave(p) return true,"Aplicação no próximo nascimento."
+    local practice=p:GetAttribute("CTFPracticeRange")==true
+    local character=p.Character local humanoid=character and character:FindFirstChildOfClass("Humanoid")
+    if practice and (not character or not humanoid or humanoid.Health<=0 or character:GetAttribute("AtLobby")~=true) then return false,"O personagem do Practice Range não está pronto." end
+    r.presets[payload.index]=valid
+    if practice then r.active=valid r.pending=nil else r.pending=valid end
+    p:SetAttribute("PendingCTFLoadout",nil) snapshot(p) queueSave(p)
+    if practice then
+     require(game.ServerScriptService.MainGameScript.GameManager.KitService):ApplyToCharacter(p,character)
+    require(game.ServerScriptService.MainGameScript.GameManager.MovementService):ApplyToCharacter(p)
+     return true,"Loadout equipado imediatamente no Practice Range."
+    end
+    return true,"Aplicação no próximo nascimento."
   elseif command=="visual" then
    if type(payload)~="table" or type(payload.name)~="string" or #payload.name<1 or #payload.name>48 or not r.loaded then return false,"Nome inválido." end
    local count=0 for _ in r.visualPresets do count+=1 end if count>=20 and not r.visualPresets[payload.name] then return false,"Limite de 20 visuais." end

@@ -38,6 +38,7 @@ zoomButton.TextColor3=Color3.fromRGB(235,242,255) zoomButton.Font=Enum.Font.Goth
 zoomButton.TextSize=13 zoomButton.Visible=false zoomButton.Selectable=false zoomButton.Parent=zoomGui
 Instance.new("UICorner",zoomButton).CornerRadius=UDim.new(0,8)
 local locked,firstPerson,shoulder=true,false,1
+local practiceFirstPerson=player:GetAttribute("CTFPracticeRange")==true and true or nil
 local CameraPolicy=require(game.ReplicatedStorage.Crossgrounds.CombatCameraPolicy)
 local Intent=require(game.ReplicatedStorage.Crossgrounds.AimAssistIntent)
 local windowFocused=true
@@ -115,7 +116,8 @@ end
 function Presentation:TogglePerspective()
  if self:IsBlocked() or not current() then return end
  if Scope:IsArena() then return end
- firstPerson=not firstPerson persist("FirstPerson",firstPerson)
+ firstPerson=not firstPerson
+ if practiceFirstPerson~=nil then practiceFirstPerson=firstPerson else persist("FirstPerson",firstPerson) end
 end
 function Presentation:SetAiming(value) aiming=value and not self:IsBlocked() or false if not aiming then zoomLevel=1 end end
 function Presentation:SetFiring(value) firing=value and not self:IsBlocked() or false player:SetAttribute("CombatFiring",firing) end
@@ -299,6 +301,7 @@ local function acquire()
  if not initialized then locked=setting("ShiftLock") firstPerson=setting("FirstPerson") shoulder=setting("Shoulder") initialized=true end
  local _,_,_,data=current()
  locked,firstPerson=CameraPolicy.Resolve(Scope:Get(),data and data.Kind,setting("ShiftLock"),setting("FirstPerson"))
+ if practiceFirstPerson~=nil then firstPerson=practiceFirstPerson end
  freePoint=camera.ViewportSize*.5
  owned=true camera.CameraType=Enum.CameraType.Scriptable cursorMode()
 end
@@ -314,6 +317,10 @@ local function release()
  cursorMode()
  player:SetAttribute("CombatCameraActive",false) player:SetAttribute("CombatAiming",false) player:SetAttribute("VisualWeaponRecoil",0) player:SetAttribute("VisualWeaponPitch",0) player:SetAttribute("FirstPerson",false)
 end
+player:GetAttributeChangedSignal("CTFPracticeRange"):Connect(function()
+ practiceFirstPerson=player:GetAttribute("CTFPracticeRange")==true and true or nil
+ if owned then release() end
+end)
 local function turn(dx,dy)
  local ads=aiming and setting("AimSensitivity") or 1
  local delta=Vector2.new(dx,dy)
@@ -400,6 +407,7 @@ RunService:BindToRenderStep("CTFCombatPresentation",Enum.RenderPriority.Camera.V
   return
  end
  locked,firstPerson=CameraPolicy.Resolve(Scope:Get(),data.Kind,setting("ShiftLock"),setting("FirstPerson"))
+ if practiceFirstPerson~=nil then firstPerson=practiceFirstPerson end
  if tool~=currentTool then
   clearLook()
   currentTool=tool equippedAt=os.clock() firedAt=-100 adsWeight=0 locomotion=Locomotion.new() removeViewmodel()
@@ -479,7 +487,8 @@ RunService:BindToRenderStep("CTFCombatPresentation",Enum.RenderPriority.Camera.V
  local localMove=rotation:VectorToObjectSpace(root.AssemblyLinearVelocity)
  local loco=locomotion:Update(dt,localMove,humanoid.FloorMaterial~=Enum.Material.Air,player:GetAttribute("SlideActive")==true)
  player:SetAttribute("CombatMovementState",loco.state)
- adsWeight+=((aiming and 1 or 0)-adsWeight)*(1-math.exp(-dt*18))
+ local adsSpeed=math.clamp(data.AdsSpeedMultiplier or 1,.1,2)
+ adsWeight+=((aiming and 1 or 0)-adsWeight)*(1-math.exp(-dt*18*adsSpeed))
  local focus=root.Position+Vector3.new(0,1.6+loco.cameraY,0)
  local cameraPosition
  if firstPerson then
@@ -516,7 +525,8 @@ RunService:BindToRenderStep("CTFCombatPresentation",Enum.RenderPriority.Camera.V
  player:SetAttribute("SniperZoomLevel",scoped and zoomLevel or 0)
  local fov=aiming and SniperZoom.FOV(baseFov,weaponId,zoomLevel) or baseFov+(sprinting and 6 or 0)
  sourceFovKick*=math.exp(-deltaTime*20) fov+=sourceFovKick
- camera.FieldOfView+=(fov-camera.FieldOfView)*MotionPreferences.FOVAlpha(dt,setting("FOVTransitionSpeed"),12)
+ local fovSpeed=setting("FOVTransitionSpeed")*((aiming or adsWeight>.001) and adsSpeed or 1)
+ camera.FieldOfView+=(fov-camera.FieldOfView)*MotionPreferences.FOVAlpha(dt,fovSpeed,12)
  local point=Presentation:GetAimViewport() player:SetAttribute("AimScreenPosition",point)
  local target=Presentation:GetAimWorld(math.max(850,data.Range+50))
  if locked or firstPerson or aiming or firing then

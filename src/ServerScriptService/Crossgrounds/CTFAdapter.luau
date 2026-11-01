@@ -1,5 +1,6 @@
 local Adapter={}
 Adapter.__index=Adapter
+local PracticeRange=require(script.Parent.PracticeRangeService)
 function Adapter.new(moduleRoot,context)
  return setmetatable({id="ctf",version="0.1.0",state="prototype",context=context,manager=require(moduleRoot),players=require(moduleRoot.PlayerManager),flags=require(moduleRoot.FlagService),bots=require(moduleRoot.BotManager),voting=require(moduleRoot.MapVotingService),damage=require(moduleRoot.DamageService),started=false},Adapter)
 end
@@ -8,6 +9,7 @@ function Adapter:IsAvailable()
 end
 function Adapter:Start()
  if self.started then return end self.started=true
+ PracticeRange:Start()
  self.manager:Initialize()
  workspace:SetAttribute("CTFRoundLoopCount",(workspace:GetAttribute("CTFRoundLoopCount") or 0)+1)
  self.thread=task.spawn(function()
@@ -33,6 +35,7 @@ local function waitReady(player,context,mode)
 end
 function Adapter:Enter(player)
  if not self:IsAvailable() then return false,"Protótipo CTF indisponível." end
+ PracticeRange:Leave(player) player:SetAttribute("CTFPracticeRange",false)
  self.context:SetMode(player,"ctf") self.players:Spawn(player)
  local ready,message=waitReady(player,self.context,"ctf")
  if not ready then return false,message end
@@ -40,7 +43,20 @@ function Adapter:Enter(player)
  if not joined then return false,reason end
  return waitReady(player,self.context,"ctf")
 end
+function Adapter:EnterPractice(player)
+ if not self:IsAvailable() then return false,"Protótipo CTF indisponível." end
+ if not PracticeRange:Available() then return false,"Boot Camp indisponível para treino." end
+ player:SetAttribute("CTFPracticeRange",true) player:SetAttribute("InMatch",false) player:SetAttribute("InArena",false)
+ player.Neutral=true player.Team=nil
+ local joined,joinError=PracticeRange:Join(player) if not joined then player:SetAttribute("CTFPracticeRange",false) return false,joinError end
+ self.context:SetMode(player,"ctf") self.players:Spawn(player)
+ local ready,message=waitReady(player,self.context,"ctf")
+ if not ready then PracticeRange:Leave(player) player:SetAttribute("CTFPracticeRange",false) return false,message end
+ PracticeRange:PlaceCharacter(player,player.Character)
+ return true,"Practice Range aberto no Boot Camp. O bot de treino não atira."
+end
 function Adapter:Leave(player)
+ PracticeRange:Leave(player)
  local character=player.Character
  if character then self.flags:DropCarrier(character) self.damage:Unwatch(character) end
  self.voting:RemovePlayer(player)
@@ -54,6 +70,6 @@ function Adapter:Snapshot(player)
  local phase=player:GetAttribute("InArena") and "playing" or player:GetAttribute("InMatch") and "ready" or "preparation"
  if round=="Results" and player:GetAttribute("InMatch") then phase="results" end
  if not player:GetAttribute("ModeCharacterReady") then phase="preparing" end
- return {id=self.id,version=self.version,state=phase,round=round,inMatch=player:GetAttribute("InMatch")==true,inArena=player:GetAttribute("InArena")==true,map=workspace:GetAttribute("CurrentMapId") or "riverside"}
+ return {id=self.id,version=self.version,state=phase,round=round,inMatch=player:GetAttribute("InMatch")==true,inArena=player:GetAttribute("InArena")==true,practiceRange=player:GetAttribute("CTFPracticeRange")==true,map=player:GetAttribute("CTFPracticeRange") and "Boot Camp" or workspace:GetAttribute("CurrentMapId") or "riverside"}
 end
 return Adapter

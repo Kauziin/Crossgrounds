@@ -15,6 +15,9 @@ local numericFields = {
 	Range = true,
 	FalloffStart = true,
 	FalloffEnd = true,
+	ProjectileSpeed = true,
+	AdsSpeedMultiplier = true,
+	MovementSpeedMultiplier = true,
 	Cooldown = true,
 	Magazine = true,
 	Reserve = true,
@@ -53,6 +56,8 @@ function Stats.Resolve(weaponId, configuration)
 	end
 
 	local data = table.clone(base)
+	data.AdsSpeedMultiplier = 1
+	data.MovementSpeedMultiplier = 1
 
 	for _, attachmentId in clean do
 		local attachment = Attachments[attachmentId]
@@ -60,7 +65,20 @@ function Stats.Resolve(weaponId, configuration)
 		for field, factor in attachment.statMultipliers or {} do
 			local value = data[field]
 
-			if finite(factor) and factor > 0 then
+			if field == "VisualRecoil"
+				and typeof(factor) == "table"
+				and typeof(value) == "table" then
+				local recoil = table.clone(value)
+				for recoilField, recoilFactor in factor do
+					if finite(recoilFactor)
+						and recoilFactor > 0
+						and finite(recoil[recoilField]) then
+						recoil[recoilField] *= recoilFactor
+					end
+				end
+				data.VisualRecoil = recoil
+
+			elseif finite(factor) and factor > 0 then
 				if numericFields[field] and finite(value) then
 					data[field] = value * factor
 

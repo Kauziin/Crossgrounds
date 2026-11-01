@@ -406,7 +406,7 @@ local Catalog = {
             family = "ax_50",
             sourcePack = "mw2019",
             status = "PreviewOnly",
-            slots = {},
+            slots = {"optic", "muzzle", "underbarrel", "barrel"},
             publicationBlocked = true,
             assetId = "ax_50",
         },

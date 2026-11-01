@@ -9,6 +9,7 @@ local requested=events:FindFirstChild("SetSprint") or Instance.new("RemoteEvent"
 local states = {}
 local MAX_STAMINA = 100
 local DRAIN_PER_SECOND = require(game.ReplicatedStorage.Crossgrounds.SprintDefinitions).DrainPerSecond
+local WeaponStats = require(game.ReplicatedStorage.Crossgrounds.WeaponStats)
 local REGEN_PER_SECOND = 15
 local REGEN_DELAY = 1
 
@@ -25,8 +26,11 @@ local function applySpeed(player, state)
  local character = player.Character
  local humanoid = character and character:FindFirstChildOfClass("Humanoid")
  if humanoid and humanoid.Health > 0 then
-  humanoid.WalkSpeed = state.sprinting and (player:GetAttribute("KitSprintSpeed") or 25)
-   or (player:GetAttribute("KitWalkSpeed") or 18)
+  local tool = character:FindFirstChildOfClass("Tool")
+  local data = tool and WeaponStats.ResolveTool(tool)
+  local multiplier = data and data.MovementSpeedMultiplier or 1
+  humanoid.WalkSpeed = (state.sprinting and (player:GetAttribute("KitSprintSpeed") or 25)
+   or (player:GetAttribute("KitWalkSpeed") or 18)) * multiplier
  end
  player:SetAttribute("SprintActive", state.sprinting)
 end
@@ -77,6 +81,7 @@ RunService.Heartbeat:Connect(function(dt)
     elseif os.clock() - state.lastDrain >= REGEN_DELAY then
      state.stamina = math.min(MAX_STAMINA, state.stamina + REGEN_PER_SECOND * step)
     end
+    if player:GetAttribute("SlideActive") ~= true then applySpeed(player, state) end
     player:SetAttribute("Stamina", math.floor(state.stamina + .5))
    end
   end

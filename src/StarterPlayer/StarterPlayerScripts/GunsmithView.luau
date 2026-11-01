@@ -1,4 +1,5 @@
 local View={}
+local slotNames={optic="Mira",muzzle="Boca",barrel="Cano",underbarrel="Acoplamento",magazine="Carregador",stock="Coronha",laser="Laser",fireControl="Disparo"}
 local Root=game.ReplicatedStorage.Crossgrounds local Catalog=require(Root.WeaponCatalog) local Attachments=require(Root.AttachmentCatalog)
 local Config=require(Root.WeaponVisualConfiguration) local Stats=require(Root.WeaponStats)
 local Http=game:GetService("HttpService") local UIS=game:GetService("UserInputService")
@@ -16,6 +17,11 @@ function View.new(parent,options)
  end
  local title=label("Title",root,20) title.Size=UDim2.new(1,0,0,32)
  local notice=label("Notice",root,12) notice.Position=UDim2.fromOffset(0,34) notice.Size=UDim2.new(1,0,0,42) notice.Text="Acessórios são visuais, exceto conversões de modo de disparo. Valores atuais são provisórios; seleções entram no próximo nascimento."
+local function updateNotice()
+ notice.Text=player:GetAttribute("CTFPracticeRange")==true and "No Practice Range, presets e kits são equipados imediatamente." or "Acessórios são visuais, exceto conversões de modo de disparo. Valores atuais são provisórios; seleções entram no próximo nascimento."
+end
+updateNotice()
+table.insert(connections,player:GetAttributeChangedSignal("CTFPracticeRange"):Connect(updateNotice))
  local list=Instance.new("ScrollingFrame") list.Name="CascadeOptions" list.BackgroundTransparency=1 list.BorderSizePixel=0 list.ScrollBarThickness=4 list.AutomaticCanvasSize=Enum.AutomaticSize.Y list.CanvasSize=UDim2.new() list.Parent=root
  local layout=Instance.new("UIListLayout") layout.SortOrder=Enum.SortOrder.LayoutOrder layout.Padding=UDim.new(0,6) layout.Parent=list
  local preview=Instance.new("ViewportFrame") preview.Name="WeaponPreview" preview.BackgroundColor3=Color3.fromRGB(15,23,31) preview.BackgroundTransparency=.15 preview.Ambient=Color3.fromRGB(175,185,200) preview.LightColor=Color3.fromRGB(255,245,228) preview.LightDirection=Vector3.new(-1,-2,-2) preview.Active=true preview.Parent=root
@@ -89,10 +95,16 @@ function View.new(parent,options)
  end
  local function clear() if selectionView then selectionView:Destroy() selectionView=nil end for _,b in buttons do b:Destroy() end buttons={} list.CanvasPosition=Vector2.zero end
  local function open(nextPage) page=nextPage render() if reflow then reflow() end local target=selectionView and selectionView:DefaultFocus() or buttons[1] if target then nav:Focus(target) end end
+ local function applyDraft(successText)
+  request("save",{index=index,loadout=copy(draft)},function(message)
+   notice.Text=successText or message or "Loadout atualizado."
+    open("loadouts")
+  end)
+ end
  overview=require(script.Parent.CTFClassOverview).new(root,{
-  Navigation=nav,Catalog=Catalog,Stats=Stats,Attachments=Attachments,
+  Navigation=nav,Catalog=Catalog,Stats=Stats,Attachments=Attachments,PracticeRange=function() return player:GetAttribute("CTFPracticeRange")==true end,
   Inspect=function(n) inspect(n) end,
-  Edit=function(key) slot=key candidate=draft[key.."WeaponId"] attachments=copy(draft[key.."Attachments"] or {}) showModel(candidate,attachments) open("weapon") end,
+    Edit=function(key) slot=key candidate=draft[key.."WeaponId"] attachments=copy(draft[key.."Attachments"] or {}) showModel(candidate,attachments) open("preset") end,
   Preview=function(id,configuration,callback,valid)
    local library=Root:FindFirstChild("LoadoutPreviews") local existing=library and library:FindFirstChild(id)
    if existing then callback(existing) return end
@@ -106,14 +118,14 @@ function View.new(parent,options)
   index=n draft=copy(state().presets and state().presets[n] or Config.Default(n))
   showModel(draft.primaryWeaponId,draft.primaryAttachments) overview:Inspect(n,draft) overview:RefreshState(state())
  end
- function self:Back() if page=="loadouts" then return false end if page=="attachments" then open("weapon") elseif page=="weapon" or page=="weapons" then open("preset") else open("loadouts") end return true end
+ function self:Back() if page=="loadouts" then return false end if page=="attachments" or page=="weapons" then open("preset") else open("loadouts") end return true end
  function self:Cycle(step) index=(index-1+step)%5+1 draft=copy(state().presets and state().presets[index] or Config.Default(index)) open("preset") end
  render=function()
   clear() overview.Root.Visible=page=="loadouts" title.Text=page=="loadouts" and "CRIAR CLASSE" or "ARMAMENTOS / "..draft.name
   title.Font=Enum.Font.GothamBold title.TextSize=page=="loadouts" and 27 or 20
   notice.Position=UDim2.fromOffset(0,34) notice.Size=UDim2.new(1,0,0,page=="loadouts" and 24 or 42)
   list.Visible=true
-  if page=='weapons' or page=='weapon' or page=='attachments' then
+  if page=='weapons' or page=='attachments' then
    local accessories=page~='weapons' list.Visible=false
    local w=Catalog.Get(candidate) selectedSlot=selectedSlot or w.slots[1] or 'optic'
    local categories={} local seen={}
@@ -122,30 +134,38 @@ function View.new(parent,options)
    local category=accessories and selectedSlot or (Catalog.Get(draft[slot..'WeaponId']).category)
    local tools={}
    if accessories then
-    table.insert(tools,{'Restaurar visual','Configuração padrão',function() attachments={} showModel(candidate,attachments) open('weapon') end})
+    table.insert(tools,{'Restaurar acessórios','Configuração padrão',function() attachments={} draft[slot.."Attachments"]={} showModel(candidate,attachments) applyDraft("Acessórios removidos.") end})
     table.insert(tools,{'Salvar visual','Preset visual existente',function() request('visual',{name=draft.name..'/'..slot,weaponId=candidate,attachments=attachments}) end})
-    for name,visual in state().visualPresets or {} do if visual.weaponId==candidate then table.insert(tools,{'Carregar '..name,'Preset visual salvo',function() attachments=copy(visual.attachments) showModel(candidate,attachments) open('weapon') end}) end end
+    for name,visual in state().visualPresets or {} do if visual.weaponId==candidate then table.insert(tools,{'Carregar '..name,'Preset visual salvo',function() attachments=copy(visual.attachments) draft[slot.."Attachments"]=copy(attachments) showModel(candidate,attachments) applyDraft("Visual carregado.") end}) end end
    end
    title.Text=accessories and 'ACESSÓRIOS' or 'ESCOLHA DE ARMAS'
    selectionView=require(script.Parent.ArsenalSelectionView).new(root,{
     Navigation=nav,Accessories=accessories,Categories=categories,Category=category,WeaponName=w.name,Tools=tools,
     Entries=function(key)
      local entries={}
-     if not accessories then for _,entry in Catalog.List(slot) do if entry.category==key then table.insert(entries,{id=entry.id,name=entry.name,status=entry.combatId and 'Disponível' or 'Somente prévia',description=entry.category..'\n'..(entry.combatId and 'A seleciona para a classe em edição. X abre acessórios. Aplicação no próximo nascimento após salvar a classe.' or 'Modelo de catálogo; indisponível para equipar.')}) end end
+    if not accessories then for _,entry in Catalog.List(slot) do if entry.category==key then table.insert(entries,{id=entry.id,name=entry.name,status=entry.combatId and 'Clique para equipar' or 'Somente prévia',description=entry.category..'\n'..(entry.combatId and (player:GetAttribute("CTFPracticeRange")==true and 'Clique para equipar imediatamente no Practice Range.' or 'Clique para equipar no próximo nascimento.') or 'Modelo de catálogo; indisponível para equipar.')}) end end
      else
       selectedSlot=key table.insert(entries,{id='none',name='Sem acessório',status=not attachments[key] and 'Equipado na edição' or 'Disponível',description='Usar a configuração padrão deste slot.'})
-      for _,a in Attachments do if a.slot==key then local compatible=a.status=='Available' and table.find(a.compatible or {},candidate) table.insert(entries,{id=a.id,name=a.name,status=attachments[key]==a.id and 'Equipado na edição' or compatible and 'Disponível' or 'Incompatível / somente prévia',description=compatible and (key=='fireControl' and 'Conversão funcional do modo de disparo.' or 'Acessório visual compatível. Não adiciona bônus aos atributos da arma.') or 'Montagem não verificada para esta arma.',available=compatible}) end end
+        for _,a in Attachments do if a.slot==key then local compatible=a.status=='Available' and table.find(a.compatible or {},candidate) table.insert(entries,{id=a.id,name=a.name,status=attachments[key]==a.id and 'Equipado na edição' or compatible and 'Disponível' or 'Incompatível / somente prévia',description=compatible and (key=='fireControl' and 'Conversão funcional do modo de disparo.' or a.visualOnly==false and (a.description or 'Acessório com bônus funcionais.') or 'Acessório visual compatível. Não adiciona bônus aos atributos da arma.') or 'Montagem não verificada para esta arma.',available=compatible}) end end
      end
      table.sort(entries,function(a,b) if a.id=='none' then return b.id~='none' elseif b.id=='none' then return false end return a.name<b.name end) return entries
     end,
     Inspect=function(entry) if not accessories then showModel(entry.id,{}) end end,
     Select=function(entry)
-     if not accessories then local chosen=Catalog.Get(entry.id) if not chosen.combatId then notice.Text='Esta arma está disponível apenas para prévia.' return end draft[slot..'WeaponId']=entry.id draft[slot..'Attachments']={} showModel(entry.id,{}) open('preset')
-     elseif entry.id=='none' or entry.available then attachments[selectedSlot]=entry.id~='none' and entry.id or nil showModel(candidate,attachments) open('weapon') else notice.Text='Montagem incompatível ou não verificada.' end
+      if not accessories then
+       local chosen=Catalog.Get(entry.id)
+       if not chosen.combatId then notice.Text='Esta arma está disponível apenas para prévia.' return end
+       draft[slot..'WeaponId']=entry.id draft[slot..'Attachments']={} candidate=entry.id attachments={}
+       showModel(entry.id,{}) applyDraft(chosen.name..' equipado.')
+      elseif entry.id=='none' or entry.available then
+       attachments[selectedSlot]=entry.id~='none' and entry.id or nil
+       draft[slot..'Attachments']=copy(attachments)
+       showModel(candidate,attachments) applyDraft(entry.id=='none' and 'Acessório removido.' or entry.name..' equipado.')
+      else notice.Text='Montagem incompatível ou não verificada.' end
     end,
-    Custom=function(entry) if not accessories then candidate=entry.id attachments=copy(draft[slot..'WeaponId']==candidate and draft[slot..'Attachments'] or {}) selectedSlot=nil showModel(candidate,attachments) open('weapon') end end,
+    Custom=function(entry) if not accessories then local chosen=Catalog.Get(entry.id) if not chosen or not chosen.combatId then notice.Text='Esta arma está disponível apenas para prévia.' return end draft[slot..'WeaponId']=entry.id draft[slot..'Attachments']={} candidate=entry.id attachments={} showModel(entry.id,{}) applyDraft(chosen.name..' equipado.') end end,
     ChangeWeapon=accessories and function() open('weapons') end or nil,
-    Apply=accessories and function() if Catalog.Get(candidate).combatId then draft[slot..'WeaponId']=candidate draft[slot..'Attachments']=copy(attachments) open('preset') else notice.Text='Arma somente para prévia.' end end or nil,
+    Apply=nil,
    })
    if accessories then showModel(candidate,attachments) end
    return
@@ -171,29 +191,26 @@ function View.new(parent,options)
    local sorted={} for _,v in Catalog.Variants do table.insert(sorted,v) end table.sort(sorted,function(a,b)return a.name<b.name end)
    for _,v in sorted do action(v.name.." · somente prévia",function() showModel(v.id,{}) end) end
   elseif page=="preset" then
-   local name=Instance.new("TextBox") name.Name="PresetName" name.LayoutOrder=#buttons+1 name.Size=UDim2.new(1,-8,0,40) name.BackgroundColor3=Color3.fromRGB(24,36,48) name.TextColor3=Color3.new(1,1,1) name.Text=draft.name name.ClearTextOnFocus=false name.Parent=list table.insert(buttons,name) name.FocusLost:Connect(function() draft.name=name.Text end)
+  local name=Instance.new("TextBox") name.Name="PresetName" name.LayoutOrder=#buttons+1 name.Size=UDim2.new(1,-8,0,40) name.BackgroundColor3=Color3.fromRGB(24,36,48) name.TextColor3=Color3.new(1,1,1) name.Text=draft.name name.ClearTextOnFocus=false name.Parent=list table.insert(buttons,name) name.FocusLost:Connect(function() draft.name=name.Text applyDraft("Loadout renomeado.") end)
    action("Renomear loadout",function() name:CaptureFocus() end)
-   for _,key in {"primary","secondary"} do local w=Catalog.Get(draft[key.."WeaponId"]) action((key=="primary" and "Primária: " or "Secundária: ")..w.name,function() slot=key open("weapons") end) end
-   action("Aplicar no próximo nascimento",function() request("save",{index=index,loadout=draft}) end)
-   action("Cancelar alterações",function() draft=copy(state().presets and state().presets[index] or Config.Default(index)) showModel(draft.primaryWeaponId,draft.primaryAttachments) open("preset") end)
-   action("Restaurar padrão",function() draft=Config.Default(index) showModel(draft.primaryWeaponId,{}) open("preset") end)
-  elseif page=="weapons" then
-   for _,w in Catalog.List(slot) do action(w.name..(w.combatId and "" or " · somente prévia"),function() candidate=w.id attachments=copy(draft[slot.."WeaponId"]==w.id and draft[slot.."Attachments"] or {}) showModel(candidate,attachments) open("weapon") end) end
-  elseif page=="weapon" then
-   local w=Catalog.Get(candidate)
-   if w.combatId then action("Escolher "..w.name,function() draft[slot.."WeaponId"]=candidate draft[slot.."Attachments"]=copy(attachments) open("preset") end) end
-   for _,key in w.slots do action("Personalizar: "..key..(attachments[key] and " · equipado" or ""),function() selectedSlot=key open("attachments") end) end
-   action("Restaurar visual padrão",function() attachments={} showModel(candidate,attachments) end)
-   action("Salvar preset visual",function() request("visual",{name=draft.name.."/"..slot,weaponId=candidate,attachments=attachments}) end)
-   for name,v in state().visualPresets or {} do if v.weaponId==candidate then action("Carregar visual: "..name,function() attachments=copy(v.attachments) showModel(candidate,attachments) end) end end
-   for id,v in Catalog.Variants do if v.family==candidate then action("Variante: "..v.name.." · prévia",function() showModel(id,{}) end) end end
-  elseif page=="attachments" then
-   action("Sem acessório",function() attachments[selectedSlot]=nil showModel(candidate,attachments) open("weapon") end)
-   local sorted={} for _,a in Attachments do if a.slot==selectedSlot then table.insert(sorted,a) end end table.sort(sorted,function(a,b)return a.name<b.name end)
-   for _,a in sorted do local available=a.status=="Available" and table.find(a.compatible or {},candidate) local status=attachments[selectedSlot]==a.id and "Equipado" or available and "Disponível" or a.status=="PreviewOnly" and "Montagem não verificada" or "Incompatível"
-    action(a.name.." · "..status,function() if available then attachments[selectedSlot]=a.id showModel(candidate,attachments) open("weapon") else notice.Text="Este acessório ainda não possui montagem verificada para esta arma." end end)
+  for _,key in {"primary","secondary"} do
+   local w=Catalog.Get(draft[key.."WeaponId"])
+   action((key=="primary" and "Primária: " or "Secundária: ")..w.name,function() slot=key open("weapons") end)
+   for _,attachmentSlot in w.slots do
+    local attachmentId=(draft[key.."Attachments"] or {})[attachmentSlot]
+    local attachment=attachmentId and Attachments[attachmentId]
+    action((key=="primary" and "Primária · " or "Secundária · ")..(slotNames[attachmentSlot] or attachmentSlot)..": "..(attachment and attachment.name or "Nenhum"),function()
+    slot=key candidate=w.id attachments=copy(draft[key.."Attachments"] or {}) selectedSlot=attachmentSlot open("attachments")
+    end)
    end
   end
+  action("Restaurar padrão",function() draft=Config.Default(index) showModel(draft.primaryWeaponId,{}) applyDraft("Loadout padrão equipado.") end)
+  elseif page=="weapons" then
+  for _,w in Catalog.List(slot) do action(w.name..(w.combatId and "" or " · somente prévia"),function()
+   if not w.combatId then notice.Text="Esta arma está disponível apenas para prévia." return end
+   draft[slot.."WeaponId"]=w.id draft[slot.."Attachments"]={} candidate=w.id attachments={}
+   showModel(candidate,{}) applyDraft(w.name.." equipado.")
+  end) end
  end
  reflow=function()
   local factor=1 local ancestor=parent

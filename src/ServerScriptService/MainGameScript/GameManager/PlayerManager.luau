@@ -12,6 +12,7 @@ local Movement=require(script.Parent.MovementService)
 local Spawn=require(script.Parent.SpawnService)
 local Flags=require(script.Parent.FlagService)
 local Kits=require(game.ReplicatedStorage.KitDefinitions)
+local PracticeRange=require(game.ServerScriptService.Crossgrounds.PracticeRangeService)
 local running=false local loading={} local lastRequest={} local lastPreview={}
 local function configure(player,character)
  if player.Character~=character or not character.Parent then return end
@@ -29,6 +30,8 @@ local function configure(player,character)
  Kit:ApplyToCharacter(player,character)
  Movement:ApplyToCharacter(player)
  if inArena and player.Team then Spawn:Place(character,player.Team) else Spawn:Lobby(character) end
+ if PracticeRange:IsActive(player) then PracticeRange:PlaceCharacter(player,character)
+ elseif inArena and player.Team then Spawn:Place(character,player.Team) else Spawn:Lobby(character) end
  player:SetAttribute("RespawnAt",0)
  Context:MarkReady(player)
 end

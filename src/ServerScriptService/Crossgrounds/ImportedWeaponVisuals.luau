@@ -44,6 +44,10 @@ function Visuals.Build(id,configuration)
  attach(handle,"Muzzle",CFrame.new(0,id=="m1911" and .46 or .8,id=="m1911" and -1.4 or -4.12))
  if id=="m4a1" then
   attach(handle,"optic",CFrame.new(0,1.12,-.9)) attach(handle,"muzzle",CFrame.new(0,.8,-4.12)) attach(handle,"underbarrel",CFrame.new(0,.62,-2.4))
+ elseif id=="ax_50" then
+   local muzzleZ=configuration and configuration.barrel=="barrels_ax_50_extended" and -17.19 or -7.29
+   local shotMuzzle=handle:FindFirstChild("Muzzle") if shotMuzzle then shotMuzzle.CFrame=CFrame.new(0,.79,muzzleZ) end
+   attach(handle,"optic",CFrame.new(0,1.45,-1.6)) attach(handle,"muzzle",CFrame.new(0,.79,muzzleZ)) attach(handle,"barrel",CFrame.new(0,.79,-7.29)) attach(handle,"underbarrel",CFrame.new(0,.4,-3.1))
  end
  if weapon then
   local clean,err=Config.Validate(id,configuration or {},false) if not clean then model:Destroy() return nil,err end
@@ -53,10 +57,12 @@ function Visuals.Build(id,configuration)
    if not src or not mount then model:Destroy() return nil,"Ponto de montagem ausente." end
    local bound=src:IsA("Model") and select(1,src:GetBoundingBox()) or src.CFrame
    local accessory=geometry(src,bound.Position,CFrame.Angles(0,-math.pi/2,0))
+    local visualScale=Attachments[attachmentId].visualScale or 1
+    if visualScale~=1 then accessory:ScaleTo(visualScale) end
    local ac,sz=accessory:GetBoundingBox()
    local anchor=slot=="optic" and ac.Position-Vector3.new(0,sz.Y*.5,0) or slot=="underbarrel" and ac.Position+Vector3.new(0,sz.Y*.5,0) or ac.Position+Vector3.new(0,0,sz.Z*.5)
    for _,p in accessory:GetChildren() do if p:IsA("BasePart") then p.CFrame=mount.WorldCFrame*CFrame.new(-anchor)*p.CFrame p.Name="Accessory_"..attachmentId.."_"..p.Name p:SetAttribute("VisualAttachmentId",attachmentId) p.Parent=model end end accessory:Destroy()
-   if slot=="optic" then for _,p in model:GetChildren() do if p.Name=="Rear Sight" or p.Name=="Front Sight" then p.Transparency=1 end end end
+   if slot=="optic" then for _,p in model:GetChildren() do if p.Name=="Rear Sight" or p.Name=="Front Sight" or id=="ax_50" and p.Name:find("Scope",1,true) then p.Transparency=1 end end end
    end
   end
  end

@@ -3,6 +3,7 @@ local Players=game:GetService("Players") local Run=game:GetService("RunService")
 local Def=require(game.ReplicatedStorage.Crossgrounds.ArenaDefinitions)
 local Sprint=require(game.ReplicatedStorage.Crossgrounds.SprintDefinitions)
 local Kits=require(game.ReplicatedStorage.KitDefinitions)
+local WeaponStats=require(game.ReplicatedStorage.Crossgrounds.WeaponStats)
 local Ballot=require(script.Parent.MapBallot)
 local MapLoadGate=require(script.Parent.MapLoadGate)
 local SceneLoad=require(script.Parent.SceneLoadService)
@@ -64,6 +65,8 @@ function Adapter:Configure(player,character)
  character:SetAttribute("ArenaProtectedUntil",workspace:GetServerTimeNow()+(playing and Def.ProtectionDuration or 1e8))
  local shield=Instance.new("ForceField") shield.Name="ArenaShield" shield.Visible=false shield.Parent=character
  self.combat:Equip(player)
+ local equipped=character:FindFirstChildOfClass("Tool") local weaponData=equipped and WeaponStats.ResolveTool(equipped)
+ h.WalkSpeed=profile.WalkSpeed*(weaponData and weaponData.MovementSpeedMultiplier or 1)
  player:SetAttribute("ArenaRespawnAt",0) self.context:MarkReady(player)
  if self.deathConnections[player] then self.deathConnections[player]:Disconnect() end
  self.deathConnections[player]=h.Died:Once(function()
@@ -196,7 +199,8 @@ function Adapter:Start(playerManager)
   local h=player.Character and player.Character:FindFirstChildOfClass("Humanoid") if not h or h.Health<=0 then return end
   if on==nil then on=not player:GetAttribute("SprintActive") end
   local active=on==true and member.stamina>=20
-  player:SetAttribute("SprintActive",active) h.WalkSpeed=active and Kits.Profiles.Regular.SprintSpeed or Kits.Profiles.Regular.WalkSpeed
+    local tool=player.Character:FindFirstChildOfClass("Tool") local data=tool and WeaponStats.ResolveTool(tool)
+    player:SetAttribute("SprintActive",active) h.WalkSpeed=(active and Kits.Profiles.Regular.SprintSpeed or Kits.Profiles.Regular.WalkSpeed)*(data and data.MovementSpeedMultiplier or 1)
  end
  table.insert(self.connections,toggle.OnServerEvent:Connect(function(p) sprint(p) end))
  table.insert(self.connections,requested.OnServerEvent:Connect(function(p,on) if typeof(on)=="boolean" then sprint(p,on) end end))
@@ -208,8 +212,13 @@ function Adapter:Start(playerManager)
    if h and h.Health>0 then
     if self:IsPlaying(player) and player:GetAttribute("SprintActive") and h.MoveDirection.Magnitude>.05 then
      member.stamina=math.max(0,member.stamina-step*Sprint.DrainPerSecond) member.lastDrain=os.clock()
-     if member.stamina<=0 then player:SetAttribute("SprintActive",false) h.WalkSpeed=Kits.Profiles.Regular.WalkSpeed end
+    if member.stamina<=0 then player:SetAttribute("SprintActive",false) h.WalkSpeed=Kits.Profiles.Regular.WalkSpeed end
     elseif os.clock()-member.lastDrain>=1 then member.stamina=math.min(100,member.stamina+step*15) end
+    if self:IsPlaying(player) and player:GetAttribute("SlideActive")~=true then
+    local tool=player.Character:FindFirstChildOfClass("Tool") local data=tool and WeaponStats.ResolveTool(tool)
+    local baseSpeed=player:GetAttribute("SprintActive") and Kits.Profiles.Regular.SprintSpeed or Kits.Profiles.Regular.WalkSpeed
+    h.WalkSpeed=baseSpeed*(data and data.MovementSpeedMultiplier or 1)
+    end
     player:SetAttribute("Stamina",math.floor(member.stamina+.5))
     if self:IsPlaying(player) and player.Character:GetPivot().Position.Y<(self.maps.killPlaneY or 30) then h.Health=0 end
    end

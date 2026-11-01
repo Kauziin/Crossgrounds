@@ -215,6 +215,12 @@ local primary=browser:Button("ModeDetails","Primary","Jogar",function()
  if q.state=="ready" then Bridge:Send("enter",nil,q.ticket)
  elseif (q.state=="idle" or q.state=="failed") and item.canEnter then quickEntry=selected Bridge:Send("join",selected) end
 end)
+local practiceRange=browser:Button("ModeDetails","PracticeRange","Practice Range",function()
+ local data=Bridge:Get() local item=definition() if not data or not item or not item.canEnter or Bridge.Pending then return end
+ local q=data.queue or {state="idle"}
+ if q.state=="ready" and q.gameId=="ctf" and q.variant=="practice" then Bridge:Send("enter",nil,q.ticket)
+ elseif q.state=="idle" or q.state=="failed" then quickEntry="ctf" Bridge:Send("join","ctf",nil,"practice") end
+end)
 local cancel=browser:Button("ModeDetails","CancelEntry","Cancelar entrada",function()
  local data=Bridge:Get() if data and (data.queue.state=="ready" or data.queue.state=="joining") then quickEntry=nil Bridge:Send("cancel",nil,data.queue.ticket) end
 end)
@@ -253,8 +259,11 @@ refresh=function()
  if q.state=="ready" and q.route=="local" and quickEntry==q.gameId and not Bridge.Pending then quickEntry=nil task.defer(function() Bridge:Send("enter",nil,q.ticket) end) end
  local item=definition()
  modeGrid:Update(data.catalog)
- description.Text=item and (item.name.."\n\n"..item.description.."\n\n"..(item.canEnter and "Escolha Jogar para entrar. Você pode permanecer no lobby pelo menu." or item.reason or "Em desenvolvimento.")) or "Carregando o catálogo..."
- primary.Text=Bridge.Pending and "Aguarde..." or q.state=="ready" and "Confirmar entrada" or item and item.canEnter and "Jogar "..item.name or "Em desenvolvimento"
+ practiceRange.Visible=selected=="ctf"
+ description.Text=item and (item.name.."\n\n"..item.description.."\n\n"..(selected=="ctf" and "Practice Range abre o Boot Camp sem entrar na rodada CTF." or "Escolha Jogar para entrar. Você pode permanecer no lobby pelo menu.")) or "Carregando o catálogo..."
+ primary.Text=Bridge.Pending and "Aguarde..." or q.state=="ready" and (q.variant=="practice" and "Confirmar Practice Range" or "Confirmar entrada") or item and item.canEnter and "Jogar "..item.name or "Em desenvolvimento"
+ practiceRange.Text=Bridge.Pending and "Aguarde..." or "Practice Range · Boot Camp"
+ practiceRange.Active=selected=="ctf" and item~=nil and item.canEnter==true and not Bridge.Pending
  cancel.Visible=q.state=="joining" or q.state=="ready"
  status.Text=Bridge.LocalError or data.error or (q.state~="idle" and q.message) or ""
 end
