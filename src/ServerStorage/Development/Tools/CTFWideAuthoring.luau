@@ -60,7 +60,7 @@ function Author.Build()
  assert(not Storage.CTFMaps:FindFirstChild(ID),"Versão ampliada já existe; preserve suas edições.")
  local sources=Storage.Development.Assets.CTFExpansionSources
  local kit=sources["Modular Building Kit - Modern City"].PrefabBuildings
- local model=Instance.new("Model") model.Name=ID model:SetAttribute("Enabled",false)
+ local model=Instance.new("Model") model.Name=ID model:SetAttribute("Enabled",true)
  model:SetAttribute("DisplayName","Travessia Ampliada") model:SetAttribute("Description","Trincheiras, fábrica e distrito urbano · três rotas espaçadas")
  model:SetAttribute("LayoutVersion",2) model:SetAttribute("TerrainUnchanged",true)
  local geometry=folder(model,"Geometry") local world=folder(geometry,"CTFWideWorld")
@@ -163,7 +163,7 @@ function Author.Build()
   end
  end
  publish(model,Storage.CTFMaps)
- return {id=ID,descendants=#model:GetDescendants(),flagsDistance=720,laneSpacing=180,size="940 x 560",enabled=false}
+ return {id=ID,descendants=#model:GetDescendants(),flagsDistance=720,laneSpacing=180,size="940 x 560",enabled=true}
 end
 function Author.Activate()
  assert(not game.RunService:IsRunning(),"Use com Play parado.")

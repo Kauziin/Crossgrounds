@@ -14,7 +14,25 @@ function Rig:Attach(tool)
  if records[tool] then return end
  local character=tool.Parent local h=character and character:FindFirstChildOfClass("Humanoid") local handle=tool:FindFirstChild("Handle")
  if not h or h.Health<=0 or not handle or not tool:GetAttribute("TwoHanded") then return end
- local support=handle:FindFirstChild("SupportGrip") if not support then return end
+ local support=handle:FindFirstChild("SupportGrip")
+if not support then
+    -- Fallback: use Muzzle as left‑hand target for weapons without a support grip
+    local fallback=handle:FindFirstChild("Muzzle")
+    if fallback then support=fallback end
+    if not support then return end
+end
+-- Adjust support grip for oversized weapons to avoid clipping into torso
+local maxReach=1.73 -- approximate max arm reach for R15 (studs)
+local weaponLength=0
+if handle:IsA("BasePart") and handle.Size then
+    weaponLength=handle.Size.Z
+end
+local excess=weaponLength-maxReach
+if excess>0 then
+    -- Move the support grip backward (toward the grip) proportionally
+    local shift=CFrame.new(0,0,-excess*0.5)
+    support.CFrame=support.CFrame*shift
+end
  local torso=character:FindFirstChild("UpperTorso") or character:FindFirstChild("Torso") if not torso then return end
  local r={owned={},connections={},disabled={}} records[tool]=r
  if h.RigType==Enum.HumanoidRigType.R15 then

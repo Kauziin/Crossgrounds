@@ -92,7 +92,14 @@ Run.PreSimulation:Connect(function(dt)
     mount.Transform=pose desired=torso.CFrame*mount.C0*pose*mount.C1:Inverse()
    end
    if r.right and r.grip and r.grip.Parent then Pose.Solve(r.right,r.grip,desired and desired*r.grip.CFrame) end
-   if r.left and r.support and r.support.Parent then Pose.Solve(r.left,r.support,desired and desired*CFrame.new(reload and reload.hand*Preferences.WeaponWeight(viewer) or Vector3.zero)*r.support.CFrame) end
+   local leftAttachment = r.support
+if not leftAttachment or not leftAttachment.Parent then
+    -- fallback to muzzle if no support grip
+    leftAttachment = tool and tool:FindFirstChild("Muzzle")
+end
+if r.left and leftAttachment and leftAttachment.Parent then
+    Pose.Solve(r.left, leftAttachment, desired and desired*CFrame.new(reload and reload.hand*Preferences.WeaponWeight(viewer) or Vector3.zero)*leftAttachment.CFrame)
+end
   end
  end
 end)

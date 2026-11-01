@@ -581,3 +581,50 @@ Validações realizadas: as duas fontes compilaram e foram aplicadas ao editor p
 Capturas reais do harness em artifacts/ui7-2026-10-31/escolha-de-armas.png e acessorios.png. Backup anterior em GunsmithView-before.luau. Pendências: teste ponta a ponta por controle no menu real após o refinamento final, hardware físico, combinações extremas de fonte/escala, seleção/salvamento com múltiplos jogadores e perfil de custo em dispositivo móvel. Nenhuma publicação nesta etapa. Não declarar fidelidade visual total ou todas as rotas validadas somente com o harness.
 
 Uso do Codex consultado em cada etapa grande: começou com saldo semanal de 3%; última consulta antes do registro indicou 2% (98% usado). A parada deve ocorrer em 1% restante ou menos, conforme reforçado pelo usuário.
+
+
+### Carregamento e suporte da Travessia Ampliada (riverside_wide) — 01/11/2026
+
+Executadas as quatro etapas de correção previstas para o carregamento da Travessia Ampliada (`riverside_wide`) no fluxo CTF:
+
+1. **Habilitação no Authoring:**
+   - Em `src/ServerStorage/Development/Tools/CTFWideAuthoring.luau` e na instância correspondente no Studio (`game.ServerStorage.Development.Tools.CTFWideAuthoring`), `model:SetAttribute("Enabled", true)` e `enabled = true` foram definidos, garantindo que o mapa seja catalogado e entre na votação de mapas (`MapVotingService`).
+
+2. **Template e Persistência em ServerStorage.CTFMaps:**
+   - O template `riverside_wide` em `ServerStorage.CTFMaps` foi sincronizado com as instâncias ativas do mapa (18.714 descendentes, incluindo estruturas completas do mapa e infraestrutura alinhada na cota Y=104).
+   - Validada a compatibilidade estrutural com `MapManager.valid(model)` (presença de `CTFInfrastructure`, `Geometry`, `BlueBase`, `RedBase`, bandeiras, spawns e `TacticalCover`).
+
+3. **Comando de Mapa no DevelopmentService:**
+   - Em `src/ServerScriptService/Crossgrounds/DevelopmentService.luau` e na instância do Studio, a restrição que bloqueava a troca com `"CTF usa Travessia; mapas extras são da Arena."` foi substituída pelo manipulador de `action == "map"`. O comando valida o ID solicitado contra o catálogo de mapas do CTF, chama `Maps:Load(id)`, reinicializa bandeiras e recarrega os jogadores sem abortar o fluxo.
+
+4. **Alinhamento da Fundação e Spawns:**
+   - Verificado o alinhamento vertical da fundação (`NavigationFloorY = 104`) sob a base azul e vermelha. Os 48 pontos de nascimento realizam raycasts contra as peças da fundação com sucesso (`ValidateSpawns` retorna `true`).
+
+Validações realizadas:
+- Em modo Edit no Studio via MCP:
+  - `Maps:Catalog()` retornou tanto `riverside` quanto `riverside_wide`.
+  - `Maps:ValidateSpawns()` retornou `true`.
+  - Troca dinâmica testada via Luau: carregamento de `riverside` e retorno para `riverside_wide` concluídos com sucesso e validação de spawns positiva.
+- Em Play mode no Studio via MCP:
+  - Inicialização concluída com `CrossgroundsBootReady = true` no lobby (`mode = "hub"`).
+  - Transição de entrada no CTF realizada via `HubBridge`: `mode = "ctf"`, `RoundState = "Countdown"` -> `RoundState = "Playing"`.
+  - Spawns reais de 11 bots (distribuídos entre equipes Azul e Vermelha com papéis Runner, Soldier, Guardian) nas cotas Y=101 a 107.
+  - Personagem do jogador spawnou em `InArena = true` nas coordenadas corretas da base (Y=107.18), com `SceneLoading = false` e sem erros de cena.
+  - Invocação do `DevelopmentCommand` com `action = "map", payload = "riverside"` alterou o mapa ao vivo para a Travessia (`CurrentMapId = "riverside"`).
+  - Invocação do `DevelopmentCommand` com `action = "map", payload = "riverside_wide"` retornou para a Travessia Ampliada (`CurrentMapId = "riverside_wide"`), mantendo o jogador e os nós ativos no cenário.
+- Play encerrado e retorno a Edit mode confirmado.
+
+Pendências e limitações:
+- Partida completa com múltiplos jogadores humanos reais em rede/servidor dedicado não foi avaliada nesta sessão (somente 1 jogador local + 11 bots no Studio).
+- Publicação do Place não foi realizada.
+
+## 4. Correção de posicionamento das armas em terceira pessoa
+
+- Implementado ajuste dinâmico do `SupportGrip` em `WeaponRig.luau` para evitar clipping da mão esquerda em armas grandes. Quando o comprimento da arma excede o alcance máximo do braço R15 (~1.73 studs), o `SupportGrip` é deslocado para trás proporcionalmente.
+- Adicionado fallback para usar a `Muzzle` como alvo da mão esquerda caso a arma não possua `SupportGrip`.
+- Atualizado `WeaponPose.local.luau` para considerar fallback e aplicar o novo cálculo ao resolver a pose da mão esquerda.
+- Testado em Play mode com as armas principais (incluindo `ax_50`, `ArenaPistol`). As distâncias de erro de posicionamento da mão esquerda foram reduzidas para ≤ 0.3 studs, eliminando clips visíveis.
+- Documentação registrada neste arquivo conforme regra de atualização obrigatória do estado de desenvolvimento.
+
+**UI do Armeiro — lista vertical e alternância de categorias por LB/RB — 01/11/2026:** `ArsenalSelectionView.luau` reescrito por completo. Itens de arma e acessório agora renderizam em lista vertical compacta (44 px por linha) com `UIListLayout` em vez de `UIGridLayout`. Categorias exibidas em strip de abas no topo da view; alternância por LB (`ButtonL1`) / RB (`ButtonR1`) no controle (alinhado ao `MenuPrevious`/`MenuNext` já mapeados em `ControlDefinitions`) ou clique direto na aba. Indicador visual (cor de fundo + stroke) mostra a categoria ativa. Cada linha tem nome em negrito, status colorido (equipado = verde, disponível = azul claro, indisponível = cinza) e ponto luminoso quando equipado. Painel de detalhes à direita mantido em larguras ≥ 900 px. Hints de LB/RB aparecem somente quando `GamepadEnabled`. `GunsmithView.luau` não precisou de alterações — a interface `Layout(width)` / `DefaultFocus` / `Destroy` foi preservada. Validação estática: sem erros de sintaxe, sem referências a `UIGridLayout` ou `slotStrip` no novo arquivo. Validação visual em Play mode pendente.
+

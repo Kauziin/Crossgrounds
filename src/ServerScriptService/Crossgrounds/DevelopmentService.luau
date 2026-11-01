@@ -50,7 +50,26 @@ function Dev:Start(coordinator,ctfRoot)
    elseif action=="resume" then time:SetPaused(false)
    elseif action=="time" and typeof(payload)=="number" and payload==payload and math.abs(payload)<math.huge then time:SetRemaining(math.clamp(payload,1,3600))
    elseif action=="vote" or action=="restart" then workspace:SetAttribute("DevelopmentEndCTF",true)
-   else return false,"CTF usa Travessia; mapas extras são da Arena." end
+   elseif action=="map" and typeof(payload)=="string" then
+    local maps=require(ctfRoot.MapManager)
+    local valid=false
+    for _,entry in maps:Catalog() do if entry.id==payload then valid=true break end end
+    if not valid then return false,"Mapa não cadastrado." end
+    if busy then return false,"Carregamento em andamento." end
+    busy=true
+    local ok,err=pcall(function()
+     local changed,loadErr=maps:Load(payload)
+     if changed then
+      require(ctfRoot.FlagService):Initialize()
+      require(ctfRoot.PlayerManager):LoadPlayers()
+     elseif loadErr then
+      error(loadErr)
+     end
+    end)
+    busy=false
+    if not ok then warn(err) return false,"Falha ao carregar o mapa." end
+    return true,"Mapa alterado para "..payload.."."
+   else return false,"Comando CTF inválido." end
    return true,"CTF atualizado."
   end
   return false,"Entre em uma modalidade para usar estas ferramentas."

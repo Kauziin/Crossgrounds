@@ -1,4 +1,12 @@
 local Scope=require(script.Parent:WaitForChild("ModeScope"))
+local fireAccumulator = 0
+local lastFireTime = 0
+local function getFireDelay(data, cfg)
+    if cfg then
+        return cfg.interval
+    end
+    return data.Cooldown
+end
 if not Scope:HasCombatRuntime() then return end
 local Players=game:GetService("Players")
 local UIS=game:GetService("UserInputService")
