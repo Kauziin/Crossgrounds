@@ -61,6 +61,8 @@ local ar15Magazines={
  {id="magazines_ar15_pmag_40",name="AR15 PMAG · 40 munições",capacity=40,weight=.68,movement=.97,ads=.96,yaw=0},
  {id="magazines_ar15_surefire_60",name="AR15 Surefire STANAG · 60 munições",capacity=60,weight=.92,movement=.93,ads=.90,yaw=180},
 }
+-- Calibração individual dos carregadores AR-15.
+
 for _,v in ar15Magazines do
  Catalog[v.id]={id=v.id,name=v.name,slot="magazine",status="Available",auditStatus="Verified",pendingAudit=false,
  compatible={"m4a1"},compatibleWeapons={"m4a1"},compatibilityMode="SpecificWeapon",mountType="M4MagazineWell",requiresMount=true,
@@ -70,5 +72,12 @@ for _,v in ar15Magazines do
  statMultipliers={MovementSpeedMultiplier=v.movement,AdsSpeedMultiplier=v.ads},
  description=string.format("%d munições · movimento -%d%% · velocidade de ADS -%d%%. Peso estimado para balanceamento: %.2f kg.",v.capacity,math.floor((1-v.movement)*100+.5),math.floor((1-v.ads)*100+.5),v.weight)}
 end
+Catalog.magazines_ar15_pmag_10.mountAdjustment =
+    CFrame.identity
+Catalog.magazines_ar15_pmag_40.mountAdjustment =
+    CFrame.new(0, 0, -0.155)
+Catalog.magazines_ar15_surefire_60.mountAdjustment =
+    CFrame.new(0, 0, -0.175)
+    * CFrame.Angles(0, math.rad(0), 0)
 return Catalog
 

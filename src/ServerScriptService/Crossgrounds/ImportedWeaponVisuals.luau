@@ -123,8 +123,6 @@ function Visuals.Build(id,configuration)
    local accessory=cachedGeometry(attachmentId,src,slot=="barrel" and origin or bound.Position)
     local visualScale=Attachments[attachmentId].visualScale or 1
     if visualScale~=1 then accessory:ScaleTo(visualScale) end
-    local yaw=Attachments[attachmentId].mountYawDegrees
-    if yaw then accessory:PivotTo(CFrame.Angles(0,math.rad(yaw),0)*accessory:GetPivot()) end
    local ac,sz=accessory:GetBoundingBox()
    local anchor=slot=="optic" and ac.Position-Vector3.new(0,sz.Y*.5,0) or slot=="underbarrel" and ac.Position+Vector3.new(0,sz.Y*.5,0) or ac.Position+Vector3.new(0,0,sz.Z*.5)
    if slot=="magazine" then
@@ -146,8 +144,31 @@ function Visuals.Build(id,configuration)
      handle.muzzle.CFrame=CFrame.new(muzzle.Position.X,muzzle.Position.Y,minZ) handle.Muzzle.CFrame=handle.muzzle.CFrame
     end
    end
+				-- Ajustes individuais de montagem.
+				local spec = Attachments[attachmentId]
+
+				-- Preferência para ajustes específicos de cada arma.
+				local perWeapon = spec.mountAdjustments
+				local adjustment =
+					(perWeapon and perWeapon[id])
+					or spec.mountAdjustment
+
+				-- Compatibilidade com o sistema antigo.
+				if typeof(adjustment) ~= "CFrame" then
+					adjustment = CFrame.Angles(
+						0,
+						math.rad(spec.mountYawDegrees or 0),
+						0
+					)
+				end
    for _,p in accessory:GetChildren() do if p:IsA("BasePart") then
-    if slot~="barrel" then p.CFrame=mount.WorldCFrame*CFrame.new(-anchor)*p.CFrame end
+						if slot ~= "barrel" then
+							p.CFrame =
+								mount.WorldCFrame
+								* adjustment
+								* CFrame.new(-anchor)
+								* p.CFrame
+						end
     if slot=="magazine" then p:SetAttribute("ReloadGroup","Magazine") end p.Name="Accessory_"..attachmentId.."_"..p.Name p:SetAttribute("VisualAttachmentId",attachmentId) p:SetAttribute("VisualAttachmentSlot",slot) p.Parent=model end end accessory:Destroy()
    if slot=="optic" then for _,p in model:GetChildren() do if p:IsA('BasePart') and not p:GetAttribute('VisualAttachmentId') and id=="ax_50" and (p.Name:find("Scope",1,true) or p.Name=="Lens" or p.Name=="Stand") then p.Transparency=1 end end end
    end

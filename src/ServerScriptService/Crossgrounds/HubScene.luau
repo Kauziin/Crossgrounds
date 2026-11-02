@@ -21,10 +21,17 @@ local function sign(parent, name, caption, cf, size)
 end
 function Scene:Ensure()
  local existing = workspace:FindFirstChild("CrossgroundsPrototype")
- if existing and existing:GetAttribute("CrossgroundsOwned")==true then
-  local extraFloor=existing:FindFirstChild("AFKPlatform")
-  if extraFloor and extraFloor:IsA("BasePart") then extraFloor:Destroy() end
- end
+	if existing and existing:GetAttribute("CrossgroundsOwned") == true then
+		local extraFloor = existing:FindFirstChild("AFKPlatform")
+		if extraFloor then
+			extraFloor:Destroy()
+		end
+
+		local oldPortal = existing:FindFirstChild("AFKPortal")
+		if oldPortal then
+			oldPortal:Destroy()
+		end
+	end
  if existing and existing:FindFirstChild("LobbyWorld") and existing:FindFirstChild("Spawn") then return existing end
  if existing then assert(existing:GetAttribute("CrossgroundsOwned"),"Hub externo preservado; migração automática indisponível.") end
  local development = ServerStorage:FindFirstChild("Development")
@@ -50,16 +57,6 @@ function Scene:Ensure()
   local zone = part(folder, "AFKZone", Vector3.new(22, 9, 22), CFrame.new(center + Vector3.new(0,4,0)), Color3.fromRGB(87,188,186), 1)
   zone.CanCollide = false zone.CanTouch = false zone.CanQuery = false
   sign(folder, "AFKSign", "ÁREA AFK\nDescanse aqui · sem recompensas por inatividade", CFrame.lookAt(center + Vector3.new(0,5,-10), center), Vector3.new(15,4,.3))
-  local gate = part(folder, "AFKPortal", Vector3.new(5,.4,5), sourceSpawn.CFrame * CFrame.new(0,1,-9), Color3.fromRGB(48,158,160))
-  gate.CanCollide = false
-  local prompt = Instance.new("ProximityPrompt")
-  prompt.ActionText = "Ir para área AFK" prompt.ObjectText = "Crossgrounds"
-  prompt.HoldDuration = .4 prompt.MaxActivationDistance = 10 prompt.Parent = gate
-  prompt.Triggered:Connect(function(player)
-   if player:GetAttribute("CrossgroundsMode") == "hub" and player.Character then
-    player.Character:PivotTo(CFrame.new(center + Vector3.new(0,4,0)))
-   end
-  end)
   local exit = part(folder, "AFKReturn", Vector3.new(5,.4,5), CFrame.new(center + Vector3.new(0,.5,8)), Color3.fromRGB(67,115,166))
   exit.CanCollide = false
   local back = Instance.new("ProximityPrompt")
