@@ -17,12 +17,13 @@ function Client.Refresh()
  end)
 end
 function Client.Allows(mode,id,weapon)
+ if mode=="ctf"and player:GetAttribute("CTFPracticeRange")==true then return Catalog.Get(mode,id)~=nil,"Somente prévia / indisponível."end
  if player:GetAttribute("CareerReady")==nil then return true end
  if not state then Client.Refresh() return false,"Carregando desbloqueios..." end
  local item=Catalog.Get(mode,id) if not item then return false,"Somente prévia / indisponível." end
  if state.permanent[mode] and state.permanent[mode][id] then return true end
  if item.weaponLevel then
-  local canonical=Catalog.Canonical(weapon)
+  local canonical=Catalog.Canonical(weapon or item.weaponId)
   return canonical~=nil and P.WeaponLevel(state.weapons[canonical] or 0)>=item.weaponLevel,"Requer arma nível "..item.weaponLevel
  end
  return state.accountUnlocked==true or P.Level(state.cycleXP,state.phase)>=item.level,"Requer conta nível "..item.level
@@ -30,5 +31,6 @@ end
 player:GetAttributeChangedSignal("CareerReady"):Connect(Client.Refresh)
 player:GetAttributeChangedSignal("CareerIdentity"):Connect(Client.Refresh)
 player:GetAttributeChangedSignal("CareerCycleXP"):Connect(Client.Refresh)
+player:GetAttributeChangedSignal("CTFPracticeRange"):Connect(function()changed:Fire()end)
 Client.Refresh()
 return Client

@@ -91,7 +91,7 @@ function Damage:Practice(player,model,amount,weapon,headshot)
  local data=Kits.Weapons[weapon]
  if record.health<=0 then
   record.ready=now+3 record.health=200 model:SetAttribute("PracticeReadyAt",record.ready)
-  local xp=Progress.Kill(player,"training",false)
+  local xp=Progress.Kill(player,"training",false,weapon)
   feedback:FireClient(player,{kind="Kill",victim="Alvo de treino",weapon=data and data.Name or weapon,xp=xp,training=true,headshot=headshot})
   task.delay(3,function() if model.Parent and practice[model]==record then model:SetAttribute("PracticeHealth",200) model:SetAttribute("PracticeReadyAt",0) end end)
  else feedback:FireClient(player,{kind="Hit",damage=math.floor(amount+.5),headshot=headshot}) end

@@ -139,6 +139,10 @@ function Adapter:StartMap(id)
  self:Publish()
 end
 function Adapter:Enter(player)
+ local capacity=require(game.ReplicatedStorage.Crossgrounds.GameCatalog):Get("arena").capacity.maxCombatants
+ local occupied=0 for _ in self.members do occupied+=1 end
+ for p in self.admissionReservations or {} do if not self.members[p] and p~=player then occupied+=1 end end
+ if occupied>=capacity then return false,"Não há vagas na Arena." end
  if not self:IsAvailable() then return false,"Os mapas de teste da Arena não estão instalados." end
  if self.members[player] then return false,"Você já está na Arena." end
  self.members[player]={stamina=100,lastDrain=0,life=0}
@@ -154,6 +158,18 @@ function Adapter:Enter(player)
  local deadline=os.clock()+12
  repeat if not player.Parent or self.context:GetMode(player)~="arena" then return false,"Entrada interrompida." end if player:GetAttribute("ModeCharacterReady") then return true end task.wait(.05) until os.clock()>deadline
  return false,"Personagem indisponível. Tente novamente."
+end
+function Adapter:ReserveAdmission(players,_,token)
+ self.admissionReservations=self.admissionReservations or {}
+ local occupied=0 for _ in self.members do occupied+=1 end
+ for p in self.admissionReservations do if not self.members[p] then occupied+=1 end end
+ local capacity=require(game.ReplicatedStorage.Crossgrounds.GameCatalog):Get("arena").capacity.maxCombatants
+ if occupied+#players>capacity then return false,"Não há vagas na Arena para todo o grupo." end
+ for _,p in players do if self.members[p] or self.admissionReservations[p] then return false,"Um integrante já possui entrada na Arena." end end
+ for _,p in players do self.admissionReservations[p]=token end return true
+end
+function Adapter:ReleaseAdmission(token)
+ for p,value in self.admissionReservations or {} do if value==token then self.admissionReservations[p]=nil end end
 end
 function Adapter:Forget(player)
  local member=self.members[player]
@@ -182,7 +198,7 @@ function Adapter:Start(playerManager)
    character:WaitForChild("Humanoid",10) character:WaitForChild("HumanoidRootPart",10)
    task.defer(function() while self.loading[player] and player.Parent do task.wait() end if player.Parent then self:Configure(player,character) end end)
   end)
-  if self.config.PlaceRole=="arena" then task.spawn(function()
+  if self.config.PlaceRole=="arena"and not player:GetAttribute("PartyArrivalExpected")then task.spawn(function()
    local ok,reason=self:Enter(player)
    if not ok then workspace:SetAttribute("ArenaStartupError",tostring(reason)) warn("Arena startup: "..tostring(reason)) end
   end) end

@@ -100,6 +100,12 @@ function Visuals.Build(id,configuration)
   for _,p in model:GetChildren() do if p:IsA("BasePart") and p:GetAttribute("ReloadGroup")=="Magazine" and p.Name=="Bullets" and (not top or p.Position.Y>top.Y) then top=p.Position end end
   if top then attach(handle,"magazine",CFrame.new(top)) end
  elseif id=="ax_50" then
+   local bullet=model:FindFirstChild("Bullet",true)
+   if bullet then
+    attach(handle,"magazine",CFrame.new(bullet.Position))
+   end
+   local stock=model:FindFirstChild("Stock")
+   if stock then attach(handle,"stock",CFrame.new(stock.Position-Vector3.new(0,0,stock.Size.X*.5))) end
    local muzzleZ=-7.29
    local nativeMuzzle=model:FindFirstChild("Muzzle")
    if nativeMuzzle and nativeMuzzle:IsA("BasePart") then
@@ -135,6 +141,16 @@ function Visuals.Build(id,configuration)
      anchor=alignment.Position
     end
     for _,native in model:GetChildren() do if native:IsA("BasePart") and not native:GetAttribute("VisualAttachmentId") and native:GetAttribute("ReloadGroup")=="Magazine" then native.Transparency=1 end end
+   elseif slot=="stock" then
+    -- The source long axis is X, rotated into -Z by normalized geometry.
+    local front=math.huge
+    for _,p in accessory:GetChildren() do if p:IsA("BasePart") then
+     for _,x in {-1,1} do for _,y in {-1,1} do for _,z in {-1,1} do
+      front=math.min(front,p.CFrame:PointToWorldSpace(p.Size*Vector3.new(x,y,z)*.5).Z)
+     end end end
+    end end
+    anchor=Vector3.new(ac.Position.X,ac.Position.Y,front)
+    local native=model:FindFirstChild("Stock") if native then native.Transparency=1 end
    elseif slot=="barrel" then
     for _,native in model:GetChildren() do if native:IsA("BasePart") and not native:GetAttribute("VisualAttachmentId") and (native.Name=="Barrel" or native.Name=="Muzzle" or attachmentId=="barrels_ax_50_heavy" and native.Name=="Rails") then native.Transparency=1 end end
     local muzzle=accessory:FindFirstChild("Muzzle")

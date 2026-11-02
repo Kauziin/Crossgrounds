@@ -1688,7 +1688,10 @@ end
 Catalog.Weapons.m4a1.platform="AR_M4"
 Catalog.Weapons.m4a1.mountPoints={optic="TopRail",muzzle="MuzzleThread",underbarrel="LowerRail"}
 Catalog.Weapons.ax_50.platform="AX50"
-Catalog.Weapons.ax_50.mountPoints={optic="TopRail",muzzle="MuzzleThread",underbarrel="LowerRail",barrel="AX50Barrel"}
+for _,slot in {"magazine","stock"} do
+ if not table.find(Catalog.Weapons.ax_50.slots,slot) then table.insert(Catalog.Weapons.ax_50.slots,slot) end
+end
+Catalog.Weapons.ax_50.mountPoints={optic="TopRail",muzzle="MuzzleThread",underbarrel="LowerRail",barrel="AX50Barrel",magazine="AX50MagazineWell",stock="AX50Stock"}
 Catalog.Weapons.aug.platform="AUG"
 Catalog.Weapons.aug.mountPoints={fireControl="AUGFireControl"}
 if not table.find(Catalog.Weapons.aug.slots,"fireControl") then table.insert(Catalog.Weapons.aug.slots,"fireControl") end

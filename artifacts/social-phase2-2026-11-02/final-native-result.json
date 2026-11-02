@@ -1,0 +1,26 @@
+[
+  {
+    "status": "fulfilled",
+    "value": {
+      "content": [
+        {
+          "type": "text",
+          "text": "[{\"name\":\"final bootstrap\",\"passed\":true},{\"name\":\"teleport and migration gates remain disabled\",\"passed\":true},{\"name\":\"mastery customization setup\",\"passed\":true},{\"name\":\"mastery public identity\",\"passed\":true},{\"name\":\"native clan creation final\",\"passed\":true},{\"name\":\"last member leaves and archive preserves history\",\"passed\":true}]"
+        }
+      ],
+      "isError": false
+    }
+  },
+  {
+    "status": "fulfilled",
+    "value": {
+      "content": [
+        {
+          "type": "text",
+          "text": "[{\"name\":\"Career final modal\",\"passed\":true},{\"name\":\"Social final modal\",\"passed\":true},{\"name\":\"Clan final modal\",\"passed\":true},{\"name\":\"mastery style rendered\",\"passed\":true}]"
+        }
+      ],
+      "isError": false
+    }
+  }
+]

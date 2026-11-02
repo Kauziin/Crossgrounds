@@ -6,6 +6,7 @@ return {
  EnableLocalGetOutPrototype=true,
  GetOutPrototypeMapId="pursuit_lab", -- isolated v0.5 P0 map; Facility remains preserved
  TeleportEnabled=false,
+ GroupTransferEnabled=false, -- enable only after private published multi-server validation
  ApprovedUniverseId=nil,
  HubPlaceId=nil,
  ArenaPlaceId=84561729907420,

@@ -32,6 +32,7 @@ function Combat:Equip(player)
  for _,id in Kits.ArenaWeapons do
   local t=self.factory:Create(id,player:GetAttribute("ArenaPistolVisual")) local data=Kits.Weapons[t:GetAttribute("WeaponId")] t:SetAttribute("ArenaWeapon",true)
   if data.Kind=="Gun" then t:SetAttribute("Ammo",data.Magazine) t:SetAttribute("ReserveAmmo",data.Reserve) t:SetAttribute("Reloading",false) gun=t end
+  require(script.Parent.WeaponFinishService).Apply(t,player)
   t.Parent=player.Backpack
  end
  local h=player.Character and player.Character:FindFirstChildOfClass("Humanoid")

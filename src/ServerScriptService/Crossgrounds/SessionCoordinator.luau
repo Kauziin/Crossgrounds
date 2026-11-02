@@ -5,7 +5,18 @@ local Catalog=require(game.ReplicatedStorage.Crossgrounds.GameCatalog)
 local Protocol=require(game.ReplicatedStorage.Crossgrounds.SessionProtocol)
 local Queue=require(script.Parent.QueueProvider)
 function Coordinator.new(context,travel,preferences,remotes)
- return setmetatable({context=context,travel=travel,preferences=preferences,remotes=remotes,queue=Queue.new(),adapters={},errors={},connections={},playerConnections={},rates={},snapshotRates={},revisions={}},Coordinator)
+ local self=setmetatable({context=context,travel=travel,preferences=preferences,remotes=remotes,queue=Queue.new(),adapters={},errors={},connections={},playerConnections={},rates={},snapshotRates={},revisions={}},Coordinator)
+ local party=require(script.Parent.PartyService) party.Start()
+ party.SetEligibility(function(player,mode)
+  if player:GetAttribute("CrossgroundsMode")~=mode or player:GetAttribute("IsAFK")==true or player:GetAttribute("CrossgroundsTransition") or player:GetAttribute("CTFPracticeRange")==true then return false end
+  local adapter=self.adapters[mode] if not adapter then return false end
+  if mode=="ctf" then return player:GetAttribute("InMatch")==true and workspace:GetAttribute("RoundState")=="Playing","ctf:"..tostring(workspace:GetAttribute("CTFMatchSequence") or 0) end
+  if mode=="arena" then return adapter.members[player]~=nil and adapter.phase=="playing","arena:"..adapter.generation end
+  return false
+ end)
+ self.partyAdmission=require(script.Parent.PartyAdmission).new(self,party)
+ self.partyTravel=require(script.Parent.PartyTravelService).new(self)
+ return self
 end
 function Coordinator:Register(adapter)
  assert(Catalog:Get(adapter.id) and not self.adapters[adapter.id],"Adaptador duplicado ou não registrado.")
@@ -43,6 +54,7 @@ function Coordinator:CallAdapter(adapter,method,player)
  return result,message
 end
 function Coordinator:Command(player,command)
+ if player:GetAttribute("PartyArrivalPending")then self:Error(player,"Aguarde a confirmação da chegada do grupo.")return end
  local now=os.clock()
  local budget=self.rates[player]
  if not budget or now-budget.at>=1 then budget={at=now,count=0} self.rates[player]=budget end
@@ -53,6 +65,7 @@ function Coordinator:Command(player,command)
  if (action=="join"or action=="enter")and (workspace:GetAttribute("CrossgroundsBootReady")~=true or player:GetAttribute("ModeCharacterReady")~=true or player:GetAttribute("CrossgroundsTransition"))then
   self:Error(player,"Aguarde o carregamento do lobby e do personagem.")return
  end
+ if self.partyAdmission:Handle(player,command) then return end
  if action=="join" then
   if self.context:GetMode(player)~="hub" then self:Error(player,"Volte ao Crossgrounds antes de escolher outra modalidade.") return end
   local definition=Catalog:Get(command.gameId)
@@ -153,6 +166,7 @@ function Coordinator:Start()
   local now=os.clock() if now-(self.snapshotRates[player] or -10)<.25 then return nil end self.snapshotRates[player]=now return self:Snapshot(player)
  end
  for _,p in Players:GetPlayers() do added(p) end
+ self.partyTravel:Start()
  workspace:SetAttribute("CrossgroundsCoordinatorStartCount",(workspace:GetAttribute("CrossgroundsCoordinatorStartCount") or 0)+1)
 end
 return Coordinator

@@ -7,6 +7,7 @@ local Cosmetics=require(game.ReplicatedStorage.Crossgrounds.IdentityCatalog)
 local Repository=require(script.Parent.CareerRepository)
 local records={} local rates={}
 local changed=Instance.new("BindableEvent") Service.Changed=changed.Event
+local committed=Instance.new("BindableEvent")Service.Committed=committed.Event
 function Service.Enabled() return Run:IsStudio() or game.ServerStorage:GetAttribute("CareerCutoverApproved")==true end
 local function memory()
  local data={} local store={}
@@ -34,13 +35,24 @@ local function publish(player,r)
  changed:Fire(player)
 end
 local function applyAwards(r)
- for _,a in r.queue do P.Award(r.profile,a.amounts,a.mode,a.weapon,a.weaponXP) end
+ for _,a in r.queue do
+  if a.mutate then local nextProfile=P.Copy(r.profile)local ok,accepted=pcall(a.mutate,nextProfile)if ok and accepted then r.profile=nextProfile elseif not ok then warn("Career staged mutation: "..tostring(accepted))end
+  else P.Award(r.profile,a.amounts,a.mode,a.weapon,a.weaponXP)end
+ end
  Cosmetics.Grant(r.profile)
  table.clear(r.queue)
+end
+function Service.Stage(player,fn)
+ local r=records[player]if not r or not r.profile or r.error then return false end
+ if r.saving or r.pending then table.insert(r.queue,{mutate=fn})return true end
+ local candidate=P.Copy(r.profile)local ok,accepted=pcall(fn,candidate)
+ if not ok or not accepted then return false end
+ r.profile=candidate publish(player,r)return true
 end
 function Service.Open(player)
  if not Service.Enabled() then return nil,"Migração publicada ainda não ativada." end
  local r=records[player]
+ if r and r.error=="Perfil ativo em outro servidor."and not r.profile then records[player]=nil r=nil end
  if r then return r.profile,r.error end
  r={queue={},saving=false,pending=false} records[player]=r
  local p,err=repository():Open(player.UserId)
@@ -82,7 +94,9 @@ function Service.Flush(player)
  local ok,result=repository():Commit(player.UserId,r.profile)
  r.saving=false r.pending=not ok
  if ok then r.profile=P.Copy(result) r.dirty=#r.queue>0 applyAwards(r) end
- publish(player,r) return ok,result
+ publish(player,r)
+ if ok then committed:Fire(player,P.Copy(result))end
+ return ok,result
 end
 function Service.Mutate(player,fn)
  local r=records[player]
@@ -96,6 +110,22 @@ function Service.Mutate(player,fn)
 end
 function Service.Public(player)
  local p=Service.Get(player) return p and P.Public(p,player.UserId,player.DisplayName)
+end
+function Service.ReadPublic(id,name)
+ local online=Players:GetPlayerByUserId(id) local p=online and Service.Get(online)
+ if not p then
+  if not Service.Enabled() or Run:IsStudio() then return nil end
+  local r=repository() local ok,envelope=pcall(function()return r.store:GetAsync("u"..id)end)
+  if not ok or not envelope or type(envelope.profile)~="table" then return nil end
+  p=P.Migrate(envelope.profile)
+ end
+ if not p then return nil end
+ local public=P.Public(p,id,online and online.DisplayName or name or "Jogador")
+ if not p.social or p.social.publicStats~=false then
+  public.stats={}
+  for _,key in {"XP","Kills","Deaths","Captures","Wins","PlaySeconds","BotKills","TrainingKills"}do public.stats[key]=P.Number(p.stats[key])end
+ end
+ return public
 end
 function Service.Close(player)
  local r=records[player]
@@ -122,6 +152,18 @@ function Service.Start()
    return target~=nil,target and Service.Public(target) or "Jogador indisponível."
   end
   if player:GetAttribute("CrossgroundsMode")~="hub" or player:GetAttribute("CrossgroundsTransition") or player:GetAttribute("InMatch") or player:GetAttribute("InArena") then return false,"Volte ao lobby para alterar sua carreira." end
+  if action=="finish"and type(payload)=="table"then
+   local weapon=payload.weapon local mode=payload.mode
+   local kits=require(game.ReplicatedStorage.KitDefinitions)local finishes=require(game.ReplicatedStorage.Crossgrounds.WeaponFinishCatalog)
+   if not table.find({"arena","ctf"},mode)or type(weapon)~="string"or not kits.Weapons[weapon]or kits.Weapons[weapon].Kind~="Gun"or not finishes.Items[payload.id]then return false,"Acabamento ou arma inválido."end
+   if not require(game.ReplicatedStorage.Crossgrounds.UnlockCatalog).FinishWeapon(mode,weapon)then return false,"Arma indisponível nessa modalidade."end
+   return Service.Mutate(player,function(nextProfile)
+    if not finishes.Allows(nextProfile,weapon,payload.id,mode,P.WeaponLevel(nextProfile.weapons[weapon]))then return false,"Requer arma nível "..finishes.Items[payload.id].level end
+    nextProfile.weaponFinishes=nextProfile.weaponFinishes or{}nextProfile.weaponFinishes[weapon]=payload.id return true
+   end)
+  end
+  if action=="frameLayers"then return Service.Mutate(player,function(profile)return require(game.ReplicatedStorage.Crossgrounds.ProfileFramePolicy).Set(profile,payload)end)end
+  if action=="rankStyle"then return Service.Mutate(player,function(profile)return P.SetRankStyle(profile,payload)end)end
   if action=="prestige" then
    if payload~=p.transitions then return false,"Prévia expirada. Atualize o perfil." end
    return Service.Mutate(player,P.Transition)

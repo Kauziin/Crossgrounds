@@ -79,5 +79,27 @@ Catalog.magazines_ar15_pmag_40.mountAdjustment =
 Catalog.magazines_ar15_surefire_60.mountAdjustment =
     CFrame.new(0, 0, -0.175)
     * CFrame.Angles(0, math.rad(0), 0)
+-- AX-50: dedicated magazine well and adapted stability stock.
+for _,v in {
+ {id="magazines_7rnd_50_bmg_magazine",capacity=7,movement=.97,ads=.95,reload=1.05},
+ {id="magazines_9rnd_50_bmg_magazine",capacity=9,movement=.94,ads=.90,reload=1.10},
+} do
+ local a={id=v.id,name=tostring(v.capacity).."rnd .50 BMG Magazine",slot="magazine",
+  sourcePack="mw2019",sourceGame="Modern Warfare 2019",canonicalId=v.id,assetId=v.id,
+  compatibilityMode="SpecificWeapon",requiresMount=true,publicationBlocked=true,
+  physicalAssetPath={"ServerStorage","ImportedArsenalOriginals","CoD:MW Weapon/Attachment Props","ATTACHMENTS","Magazines",tostring(v.capacity).."rnd .50 BMG Magazine"}}
+ Catalog[v.id]=a
+ a.status="Available" a.auditStatus="Verified" a.pendingAudit=false a.visualOnly=false
+ a.compatible={"ax_50"} a.compatibleWeapons={"ax_50"} a.mountType="AX50MagazineWell"
+ a.alignmentPart="Bullet" a.statOverrides={Magazine=v.capacity}
+ a.statMultipliers={MovementSpeedMultiplier=v.movement,AdsSpeedMultiplier=v.ads,ReloadTime=v.reload}
+ a.description=string.format("%d munições · movimento -%d%% · velocidade de ADS -%d%% · tempo de recarga +%d%%.",v.capacity,math.round((1-v.movement)*100),math.round((1-v.ads)*100),math.round((v.reload-1)*100))
+end
+local hunter=Catalog.model_forge_tac_hunter
+hunter.name="Forge Tac Hunter · adaptada AX-50"
+hunter.status="Available" hunter.auditStatus="Verified" hunter.pendingAudit=false hunter.visualOnly=false
+hunter.compatible={"ax_50"} hunter.compatibleWeapons={"ax_50"} hunter.mountType="AX50Stock"
+hunter.statMultipliers={AdsMotionMultiplier=.40,AdsSpeedMultiplier=.90,MovementSpeedMultiplier=.98}
+hunter.description="Adaptação de estabilidade: 60% menos balanço em ADS; velocidade de ADS -10% e movimento -2%. Não reduz recuo de disparo."
 return Catalog
 

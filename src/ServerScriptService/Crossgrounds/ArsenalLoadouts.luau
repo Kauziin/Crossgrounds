@@ -3,11 +3,12 @@ local Players=game:GetService("Players") local Run=game:GetService("RunService")
 local Root=game.ReplicatedStorage.Crossgrounds local Catalog=require(Root.WeaponCatalog) local Config=require(Root.WeaponVisualConfiguration)
 local Visuals=require(script.Parent.ImportedWeaponVisuals)
 local records={} local rates={} local store
+local normalRecords,practiceRecords={},{}
 local function snapshot(p)
  local r=records[p] if r then p:SetAttribute("CTFArsenalState",Http:JSONEncode({version=1,presets=r.presets,selectedIndex=r.selectedIndex,visualPresets=r.visualPresets,active=r.active,pending=r.pending,saveState=r.saveState})) end
 end
 local function save(p)
- local r=records[p] if not r or not r.loaded or not store then return end
+ local r=normalRecords[p]or records[p] if not r or r.practice or not r.loaded or not store then return end
  local data={version=1,presets=r.presets,visualPresets=r.visualPresets}
  local ok=pcall(function() store:UpdateAsync("u"..p.UserId,function(old) if type(old)=="table" and (old.version or 0)>1 then error("Newer schema") end return data end) end)
  if records[p]==r then r.saveState=ok and "Saved" or "RetryPending" snapshot(p) end
@@ -34,10 +35,20 @@ function Service.Start()
  if not Run:IsStudio() then store=game:GetService("DataStoreService"):GetDataStore("Crossgrounds_VisualArsenal_v1") end
  local function added(p)
   local r={presets={},visualPresets={},saveState=Run:IsStudio() and "StudioSessionOnly" or "Loading",loaded=Run:IsStudio()}
-  for i=1,5 do r.presets[i]=Config.Default(i) end records[p]=r snapshot(p)
+  for i=1,5 do r.presets[i]=Config.Default(i) end records[p]=r normalRecords[p]=r snapshot(p)
+  p:GetAttributeChangedSignal("CTFPracticeRange"):Connect(function()
+   if p:GetAttribute("CTFPracticeRange")==true then
+    if not practiceRecords[p]then
+     local practice={presets={},visualPresets={},loaded=true,practice=true,saveState="PracticeSessionOnly"}
+     for i=1,5 do practice.presets[i]=Config.Default(i)end practiceRecords[p]=practice
+    end
+    records[p]=practiceRecords[p]
+   else records[p]=normalRecords[p]end
+   snapshot(p)
+  end)
   if not store then return end
   local ok,data=pcall(function() return store:GetAsync("u"..p.UserId) end)
-  if records[p]~=r then return end
+  if normalRecords[p]~=r then return end
   if ok and (not data or type(data)=="table" and data.version==1) then
    if data then
     for i=1,math.min(Config.MaxLoadouts,math.max(5,type(data.presets)=='table' and #data.presets or 0)) do local valid=Config.Loadout(type(data.presets)=="table" and data.presets[i]) r.presets[i]=valid or Config.Default(i) end
@@ -46,7 +57,7 @@ function Service.Start()
   else r.saveState="LoadFailed" end snapshot(p)
  end
  Players.PlayerAdded:Connect(added) for _,p in Players:GetPlayers() do task.spawn(added,p) end
- Players.PlayerRemoving:Connect(function(p) save(p) records[p]=nil rates[p]=nil end)
+ Players.PlayerRemoving:Connect(function(p) if normalRecords[p]then records[p]=normalRecords[p]end save(p) records[p]=nil normalRecords[p]=nil practiceRecords[p]=nil rates[p]=nil end)
  game:BindToClose(function() for p in records do task.spawn(save,p) end if store then task.wait(2) end end)
  local remotes=Root.Remotes
  local update=Instance.new("RemoteFunction") update.Name="ArsenalCommand" update.Parent=remotes

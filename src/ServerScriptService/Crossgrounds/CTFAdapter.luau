@@ -43,6 +43,13 @@ function Adapter:Enter(player)
  if not joined then return false,reason end
  return waitReady(player,self.context,"ctf")
 end
+function Adapter:ReserveAdmission(players,sameTeam,token)
+ if not self:IsAvailable() then return false,"Conflict indisponível." end
+ return require(script.Parent.Parent.MainGameScript.GameManager.TeamManager):ReservePlayers(players,sameTeam,token)
+end
+function Adapter:ReleaseAdmission(token)
+ require(script.Parent.Parent.MainGameScript.GameManager.TeamManager):ReleaseReservation(token)
+end
 function Adapter:EnterPractice(player)
  if not self:IsAvailable() then return false,"Protótipo CTF indisponível." end
  if not PracticeRange:Available() then return false,"Boot Camp indisponível para treino." end

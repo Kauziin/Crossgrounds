@@ -24,9 +24,11 @@ local function openProgress() player:SetAttribute("ProgressionMenuOpen",true) en
 local function openSettings() Nav:OpenMenu("Settings") end
 local function openMusic() Nav:OpenMenu("Playlist") end
 local function openCareer() Nav:OpenMenu("Career") end
+local function openSocial() Nav:OpenMenu("Social") end
 browser:Button("RootPane","Modes","Jogar  ›",playModes)
 browser:Button("RootPane","Progress","Progressão",openProgress)
 browser:Button("RootPane","Career","Carreira e perfil",openCareer)
+browser:Button("RootPane","Social","Social e grupo",openSocial)
 browser:Button("RootPane","Settings","Configurações",openSettings)
 browser:Button("RootPane","Music","Música / Playlist",openMusic)
 
@@ -79,22 +81,9 @@ local function iconCircle(parent,x,y,w,h,solid)
  shape.BackgroundColor3=Color3.fromRGB(210,225,232) shape.BackgroundTransparency=solid and 0 or 1 homeCorner(shape,20)
  if not solid then local stroke=homeStroke(shape,1.6,0) stroke.Color=shape.BackgroundColor3 end
 end
+local LibraryIcons=require(game.ReplicatedStorage.Crossgrounds.InterfaceIcons)
 local function drawIcon(parent,kind)
- if kind=="Play" then
-  for i=0,12 do iconLine(parent,6+i,3+i*.65,6+i,21-i*.65) end
- elseif kind=="StayLobby" then
-  iconCircle(parent,8,2,8,8,false) iconCircle(parent,4,14,16,9,false)
-  iconLine(parent,20,5,23,10) iconLine(parent,23,14,24,21)
- elseif kind=="Progress" then
-  for i=0,2 do local bar=homeObject("Frame","Bar",parent) bar.BackgroundColor3=Color3.fromRGB(210,225,232) bar.BackgroundTransparency=0 bar.Position=UDim2.fromOffset(4+i*6,17-i*5) bar.Size=UDim2.fromOffset(3,7+i*5) end
-  iconLine(parent,4,10,17,2) iconLine(parent,14,2,18,2) iconLine(parent,18,2,18,6)
- elseif kind=="Settings" then
-  iconCircle(parent,5,5,14,14,false) iconCircle(parent,10,10,4,4,false)
-  for i=0,7 do local a=i*math.pi/4 iconLine(parent,12+math.cos(a)*8,12+math.sin(a)*8,12+math.cos(a)*11,12+math.sin(a)*11) end
- else
-  iconLine(parent,9,18,9,4) iconLine(parent,9,4,22,1) iconLine(parent,22,1,22,16) iconLine(parent,9,8,22,5)
-  iconCircle(parent,3,17,7,5,true) iconCircle(parent,16,15,7,5,true)
- end
+ local image=LibraryIcons.Image(parent,kind,26,Color3.fromRGB(210,225,232))if image then image.Size=UDim2.fromScale(1,1)end
 end
 local function restoreFocusPaint()
  for object,properties in focusPaint do if object.Parent then for key,value in properties do object[key]=value end end end focusPaint={}
@@ -125,7 +114,7 @@ local function selectHome(button)
  end
  paintHomeFocus()
 end
-for index,entry in {{"Play","Jogar",playModes},{"StayLobby","Permanecer no lobby",stay},{"Progress","Progressão",openProgress},{"Career","Carreira e perfil",openCareer},{"Settings","Configurações",openSettings},{"Music","Música / Playlist",openMusic}} do
+for index,entry in {{"Play","Jogar",playModes},{"StayLobby","Permanecer no lobby",stay},{"Progress","Progressão",openProgress},{"Career","Carreira e perfil",openCareer},{"Social","Social e grupo",openSocial},{"Settings","Configurações",openSettings},{"Music","Música / Playlist",openMusic}} do
  local button=homeObject("TextButton",entry[1],homeList) button.Text="" button.AutoButtonColor=false button.LayoutOrder=index
  button.BackgroundColor3=Color3.fromRGB(2,16,23) button.Size=UDim2.new(1,-2,0,60) button:SetAttribute("AccessibleLabel",entry[2]) homeCorner(button,11)
  local edge=homeStroke(button,1.6,1) local glow=homeStroke(button,7,1)
@@ -254,10 +243,10 @@ local reopen=Instance.new("TextButton") reopen.Name="OpenModes" reopen.Text="Jog
 Nav:Connect(reopen,function() catalogOpen=true browser:Push({"RootPane","Modes"}) refresh() end)
 refresh=function()
  local data=Bridge:Get() local mode=Scope:Get() local q=data and data.queue or {state="idle"}
- local open=mode=="hub" and catalogOpen and not player:GetAttribute("CareerMenuOpen") and not player:GetAttribute("ExperienceMenuOpen") and not player:GetAttribute("ProgressionMenuOpen") and not player:GetAttribute("LobbyMusicMenuOpen") and not player:GetAttribute("HUDLayoutEditing")
+ local open=mode=="hub" and catalogOpen and not player:GetAttribute("ClanMenuOpen") and not player:GetAttribute("SocialMenuOpen") and not player:GetAttribute("CareerMenuOpen") and not player:GetAttribute("ExperienceMenuOpen") and not player:GetAttribute("ProgressionMenuOpen") and not player:GetAttribute("LobbyMusicMenuOpen") and not player:GetAttribute("HUDLayoutEditing")
  if browser.Backdrop.Visible~=open then browser:SetOpen(open) end
  player:SetAttribute("LobbyBrowserOpen",open)
- reopen.Visible=mode=="hub" and not open and not player:GetAttribute("CareerMenuOpen") and not player:GetAttribute("ExperienceMenuOpen") and not player:GetAttribute("ProgressionMenuOpen") and not player:GetAttribute("LobbyMusicMenuOpen") and not player:GetAttribute("HUDLayoutEditing")
+ reopen.Visible=mode=="hub" and not open and not player:GetAttribute("ClanMenuOpen") and not player:GetAttribute("SocialMenuOpen") and not player:GetAttribute("CareerMenuOpen") and not player:GetAttribute("ExperienceMenuOpen") and not player:GetAttribute("ProgressionMenuOpen") and not player:GetAttribute("LobbyMusicMenuOpen") and not player:GetAttribute("HUDLayoutEditing")
  local attention=mode~="hub" and (q.state=="failed" or q.state=="entering" or q.state=="travelling" or data and data.error or Bridge.LocalError)
  overlay.Visible=attention and true or false message.Text=Bridge.LocalError or data and data.error or q.message or ""
  acknowledge.Visible=q.state~="entering" and q.state~="travelling"
@@ -284,6 +273,8 @@ end)
 Bridge.Changed:Connect(refresh)
 player:GetAttributeChangedSignal("ExperienceMenuOpen"):Connect(refresh)
 player:GetAttributeChangedSignal("CareerMenuOpen"):Connect(refresh)
+player:GetAttributeChangedSignal("SocialMenuOpen"):Connect(refresh)
+player:GetAttributeChangedSignal("ClanMenuOpen"):Connect(refresh)
 player:GetAttributeChangedSignal("ProgressionMenuOpen"):Connect(refresh)
 player:GetAttributeChangedSignal("LobbyMusicMenuOpen"):Connect(refresh)
 player:GetAttributeChangedSignal("HUDLayoutEditing"):Connect(refresh)

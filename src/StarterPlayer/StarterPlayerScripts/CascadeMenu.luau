@@ -1,5 +1,6 @@
 local Theme=require(script.Parent:WaitForChild("MenuTheme"))
 local Nav=require(script.Parent:WaitForChild("MenuNavigation"))
+local Icons=require(game.ReplicatedStorage.Crossgrounds.InterfaceIcons)
 local Tween=game:GetService("TweenService")
 local player=game.Players.LocalPlayer
 local Cascade={} Cascade.__index=Cascade
@@ -30,6 +31,7 @@ function Cascade:Button(id,name,text,callback,height)
  local list=self.Panes[id].List
  local b=Instance.new("TextButton") b.Name=name b.Text="  "..text b.TextXAlignment=Enum.TextXAlignment.Left b.TextWrapped=true b.TextSize=15 b.Size=UDim2.new(1,-4,0,height or 46) b.Parent=list Theme.Button(b)
  local pad=Instance.new("UIPadding") pad.PaddingLeft=UDim.new(0,10) pad.PaddingRight=UDim.new(0,10) pad.Parent=b
+ if Icons.Roles[name]then pad.PaddingLeft=UDim.new(0,42)local image=Icons.Image(b,name,22,Theme.Colors.Text)if image then image.Position=UDim2.new(0,-30,.5,-11)end end
  Nav:Connect(b,callback) return b
 end
 function Cascade:Info(id,name,text,height)

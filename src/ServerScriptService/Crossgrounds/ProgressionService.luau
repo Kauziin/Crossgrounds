@@ -1,5 +1,7 @@
 local Service = {}
 local Career=require(script.Parent.CareerService)
+local Party=require(script.Parent.PartyService)
+local awarded=Instance.new("BindableEvent") Service.Awarded=awarded.Event
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local Balance = require(script.Parent.ProgressionBalance)
@@ -39,10 +41,19 @@ local function publish(player, record)
  player:SetAttribute("ProgressLevel", career and require(game.ReplicatedStorage.Crossgrounds.CareerPolicy).Level(career.cycleXP,career.phase) or level(record.base.XP + record.pending.XP))
  player:SetAttribute("ProgressionReady", record.loaded)
 end
-local function award(player, amounts, mode, weapon)
+local function award(player, amounts, mode, weapon, training)
  local record = state[player]
  if not record then return end
- if Career.Enabled() and record.loaded then Career.Award(player,amounts,mode,weapon,amounts.XP) end
+ local baseAmounts=table.clone(amounts)
+ local profile=Career.Get(player)local membership=profile and profile.clan
+ local clanContext=membership and membership.state=="active"and{clanId=membership.id,epoch=membership.epoch}or nil
+ local eligible=mode and Party.Session(player,mode)
+ local weaponXP
+ if amounts.XP and amounts.XP>0 then
+  amounts=table.clone(amounts)
+  amounts.XP,weaponXP=Party.RewardXP(player,amounts.XP,mode,weapon,training)
+ end
+ if Career.Enabled() and record.loaded then Career.Award(player,amounts,mode,weapon,weaponXP) end
  for key, value in pairs(amounts) do
   if record.pending[key] and type(value) == "number" and value > 0 then
    record.pending[key] += math.floor(value)
@@ -51,6 +62,8 @@ local function award(player, amounts, mode, weapon)
   end
  end
  publish(player, record)
+ if record.loaded then awarded:Fire(player,mode,baseAmounts,weapon,amounts.XP or 0,training==true,eligible==true,clanContext) end
+ return amounts.XP or 0
 end
 local function tick(player)
  local record=state[player] if not record then return end
@@ -61,8 +74,8 @@ local function tick(player)
 end
 function Service.Kill(player,kind,headshot,weapon)
  local amounts=Policy.Reward(kind,headshot)
- award(player,amounts,(kind=="arena" or kind=="training") and "arena" or (kind=="ctf" or kind=="bot") and "ctf" or nil,weapon)
- return amounts.XP
+ local mode=kind=="training" and (player:GetAttribute("CrossgroundsMode")=="ctf" and "ctf" or "arena") or kind=="arena" and "arena" or "ctf"
+ return award(player,amounts,mode,weapon,kind=="training")
 end
 function Service.ArenaDeath(player) award(player,{Deaths=1},"arena") end
 function Service.ArenaKill(player,headshot) return Service.Kill(player,"arena",headshot) end
@@ -143,6 +156,8 @@ local function added(player)
  task.spawn(function()
   if Career.Enabled() then
    local data,err=Career.Open(player)
+   local deadline=os.clock()+30
+   while not data and err=="Perfil ativo em outro servidor."and player.Parent and os.clock()<deadline do task.wait(1)data,err=Career.Open(player)end
    if not data then player:SetAttribute("ProgressionLoadError",true) return end
    record.base=clean(data.stats) record.visitSaved=true
    Career.Award(player,record.pending)

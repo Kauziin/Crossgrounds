@@ -1,0 +1,38 @@
+{
+  "unit": {
+    "content": [
+      {
+        "type": "text",
+        "text": "[{\"name\":\"all interface roles have distinct library art\",\"passed\":true},{\"name\":\"arbitrary RGB colors are accepted for owned layers\",\"passed\":true},{\"name\":\"locked designs cannot be layered\",\"passed\":true},{\"name\":\"malformed RGB and oversized or sparse layouts are rejected\",\"passed\":true},{\"name\":\"composition is copied and survives resets and migration\",\"passed\":true},{\"name\":\"legacy frame remains compatible; single selection resets layers\",\"passed\":true},{\"name\":\"invalid stored layers do not replace a profile\",\"passed\":true}]"
+      }
+    ],
+    "isError": false
+  },
+  "editor": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"Result\":\"[{\\\"name\\\":\\\"two layers saved with arbitrary RGB and order\\\",\\\"passed\\\":true},{\\\"name\\\":\\\"calling card renders layers\\\",\\\"passed\\\":true},{\\\"name\\\":\\\"server rejects unowned frame\\\",\\\"passed\\\":true},{\\\"name\\\":\\\"library atlas loaded\\\",\\\"passed\\\":true}]\"}"
+      }
+    ],
+    "isError": false
+  },
+  "navigation": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"Result\":\"{\\\"previewLayers\\\":3,\\\"savedThree\\\":true,\\\"navigation\\\":true}\"}"
+      }
+    ],
+    "isError": false
+  },
+  "appearance": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"Result\":\"{\\\"settingsOpen\\\":true,\\\"save\\\":true,\\\"propagated\\\":true,\\\"avatar\\\":true}\"}"
+      }
+    ],
+    "isError": false
+  }
+}

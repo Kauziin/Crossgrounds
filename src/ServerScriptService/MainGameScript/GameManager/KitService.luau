@@ -121,6 +121,7 @@ function KitService:ApplyToCharacter(player,character)
   end
   local data = Stats.ResolveTool(tool) or definitions.Weapons[id]
   if data.Kind=="Gun" then tool:SetAttribute("Ammo",data.Magazine) tool:SetAttribute("ReserveAmmo",data.Reserve) tool:SetAttribute("Reloading",false) if not gun then gun=tool end end
+  require(game.ServerScriptService.Crossgrounds.WeaponFinishService).Apply(tool,player)
   tool.Parent=player.Backpack
  end
  Damage:Watch(character)

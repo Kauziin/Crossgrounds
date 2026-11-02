@@ -19,7 +19,7 @@ function Bootstrap:Start(ctfRoot)
  end
  workspace:SetAttribute("CrossgroundsBootPhase","Preparando o lobby")
  local scene
- if config.PlaceRole=="combinedPrototype" or config.PlaceRole=="hub" then scene=require(script.Parent.HubScene):Ensure() end
+ if config.PlaceRole=="combinedPrototype" or config.PlaceRole=="hub" or config.GroupTransferEnabled then scene=require(script.Parent.HubScene):Ensure() end
  if scene then
   local count=0 for _,obj in scene:GetDescendants()do if obj:IsA("BasePart")then count+=1 end end
   workspace:SetAttribute("HubSceneParts",count)
@@ -52,6 +52,9 @@ function Bootstrap:Start(ctfRoot)
  require(script.Parent.EquipmentService):Start()
  require(script.Parent.StandingsService):Start()
  require(script.Parent.ProgressionService):Start()
+ local directory=require(script.Parent.SocialDirectory)
+ directory.SetSession(require(script.Parent.PartyService).Session)directory.Start()
+ require(script.Parent.ClanService).Start()
  require(script.Parent.DevelopmentService):Start(coordinator,ctfRoot)
  require(script.Parent.AdminService):Start(coordinator)
  self.Coordinator=coordinator

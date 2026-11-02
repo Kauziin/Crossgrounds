@@ -109,7 +109,7 @@ function Renderer:Render(dt,camera,character,params)
   local aligned=AXOptics.Alignment(self.optic,projection)
   local settle=transition.alignment*(1-reload.active)
   local kick=CFrame.new(0,0,(params.recoil or 0)*.12*weight)*CFrame.Angles(math.rad((params.pitch or 0)*.13*weight),0,math.rad((params.roll or 0)*.2*weight))
-  local breath=math.sin(os.clock()*1.4)*.0015*weight
+  local breath=math.sin(os.clock()*1.4)*.0015*weight*math.clamp(params.adsMotionMultiplier or 1,0,2)
   local tilt=math.rad(-4)*transition.alignment
   aligned=aligned*CFrame.new(self.optic.center)*CFrame.Angles(tilt,0,0)*CFrame.new(-self.optic.center)
   aligned=aligned*CFrame.new(breath,breath*.55,0)*softened(bolt.weapon)*kick

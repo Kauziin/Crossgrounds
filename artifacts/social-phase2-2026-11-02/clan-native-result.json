@@ -1,0 +1,26 @@
+[
+  {
+    "status": "fulfilled",
+    "value": {
+      "content": [
+        {
+          "type": "text",
+          "text": "{\"ClanRewardRuntimeCheck\":\"[{\\\"passed\\\":true,\\\"name\\\":\\\"clan ready\\\"},{\\\"passed\\\":true,\\\"name\\\":\\\"training excluded\\\"},{\\\"passed\\\":true,\\\"name\\\":\\\"active reward cumulative contribution\\\"},{\\\"passed\\\":true,\\\"name\\\":\\\"confirmed personal outbox\\\"},{\\\"passed\\\":true,\\\"name\\\":\\\"worker applies contribution once\\\"},{\\\"passed\\\":true,\\\"name\\\":\\\"public projection hides membership stream\\\"}]\",\"ClanRewardUnlockCheck\":\"{\\\"earned\\\":20000,\\\"level3PermanentRewards\\\":true}\"}"
+        }
+      ],
+      "isError": false
+    }
+  },
+  {
+    "status": "fulfilled",
+    "value": {
+      "content": [
+        {
+          "type": "text",
+          "text": "[{\"passed\":true,\"name\":\"Career modal\"},{\"passed\":true,\"name\":\"Social modal\"},{\"passed\":true,\"name\":\"Clan modal\"},{\"passed\":true,\"name\":\"social opens clan through navigation\"},{\"passed\":true,\"name\":\"UI native create and overview\"},{\"passed\":true,\"name\":\"equal metrics and copyable id\"}]"
+        }
+      ],
+      "isError": false
+    }
+  }
+]

@@ -188,6 +188,6 @@ local function show()
  if on then view:Resize() selectPage("Profile") profileList.CanvasPosition=Vector2.zero task.delay(.05,function() if gui.Enabled then Nav:Focus(view.Buttons.Profile) end end) end
 end
 player:GetAttributeChangedSignal("ProgressionMenuOpen"):Connect(show)
-Nav.MenuRequested:Connect(function(id) if table.find({"Career","Main","Hub","Settings","Resume","Playlist","Pause"},id) then player:SetAttribute("ProgressionMenuOpen",false) end end)
+Nav.MenuRequested:Connect(function(id) if table.find({"Clan","Social","Career","Main","Hub","Settings","Resume","Playlist","Pause"},id) then player:SetAttribute("ProgressionMenuOpen",false) end end)
 gui.Parent=player.PlayerGui
 script:SetAttribute("Initialized",true) show()

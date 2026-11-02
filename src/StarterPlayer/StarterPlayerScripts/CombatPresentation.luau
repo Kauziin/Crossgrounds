@@ -536,7 +536,7 @@ RunService:BindToRenderStep("CTFCombatPresentation",Enum.RenderPriority.Camera.V
  local localVelocity=rotation:VectorToObjectSpace(root.AssemblyLinearVelocity)
  local turnRate=previousYaw and math.clamp((yaw-previousYaw)/math.max(dt,.001),-4,4) or 0 previousYaw=yaw
  local cameraAmount=setting("CameraMotion")*(setting("SimpleAnimations") and .15 or 1)
- local bob,lean,nod=motion:Update(dt,localVelocity,humanoid.FloorMaterial~=Enum.Material.Air,player:GetAttribute("SprintActive")==true,aiming,cameraAmount,turnRate)
+ local bob,lean,nod=motion:Update(dt,localVelocity,humanoid.FloorMaterial~=Enum.Material.Air,player:GetAttribute("SprintActive")==true,aiming,cameraAmount,turnRate,data.AdsMotionMultiplier)
  local runPose,runWeight,runPhase=carry:Update(dt,localVelocity,humanoid.FloorMaterial~=Enum.Material.Air,player:GetAttribute("SprintActive")==true,aiming,firing or tool:GetAttribute("Reloading") or tool:GetAttribute("Attacking"),setting("CameraMotion"))
  player:SetAttribute("WeaponRunWeight",runWeight) player:SetAttribute("CameraMotionPitch",nod)
  camera.CameraType=Enum.CameraType.Scriptable camera.CFrame=aimFrame*CFrame.new(bob)*CFrame.Angles(nod,0,lean) camera.Focus=CFrame.new(focus)
@@ -574,8 +574,9 @@ RunService:BindToRenderStep("CTFCombatPresentation",Enum.RenderPriority.Camera.V
 
   local arc=data.Kind~="Gun" and ActionMotion.Melee(os.clock()-swingAt,data) or 0
   local action=ActionMotion.Sample({equippedFor=os.clock()-equippedAt,ads=adsWeight,slide=loco.slide,land=loco.land,vertical=localMove.Y,firedAgo=os.clock()-firedAt})
-  action.weapon=loco.weapon*action.weapon
-  renderer:Render(deltaTime,camera,character,{runPose=runPose,runWeight=runWeight,runPhase=runPhase,recoil=recoil,pitch=recoilPitch,roll=roll,arc=arc,action=action,ads=adsWeight,sight=sightProfile,sightActive=aiming,firedAgo=os.clock()-firedAt,cooldown=data.Cooldown,recoilStrength=data.VisualRecoil and Kits.Weapons[weaponId].VisualRecoil and data.VisualRecoil.Push/math.max(.01,Kits.Weapons[weaponId].VisualRecoil.Push) or 1})
+  local adsMotion=1+(math.clamp(data.AdsMotionMultiplier or 1,0,2)-1)*adsWeight
+  action.weapon=CFrame.identity:Lerp(loco.weapon,adsMotion)*action.weapon
+  renderer:Render(deltaTime,camera,character,{runPose=runPose,runWeight=runWeight,runPhase=runPhase,recoil=recoil,pitch=recoilPitch,roll=roll,arc=arc,action=action,ads=adsWeight,adsMotionMultiplier=data.AdsMotionMultiplier,sight=sightProfile,sightActive=aiming,firedAgo=os.clock()-firedAt,cooldown=data.Cooldown,recoilStrength=data.VisualRecoil and Kits.Weapons[weaponId].VisualRecoil and data.VisualRecoil.Push/math.max(.01,Kits.Weapons[weaponId].VisualRecoil.Push) or 1})
  elseif renderer then renderer:SetVisible(false) end
  opticalSight:Update(sightProfile,camera.ViewportSize,Presentation:GetAimViewport(),adsWeight,firstPerson and renderer and renderer.opticalAperture or nil,aiming)
 

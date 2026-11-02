@@ -90,6 +90,7 @@ function Service.Ensure(player)
 				end
 
 				tool:SetAttribute("RecoveredEquipment", true)
+				require(script.Parent.WeaponFinishService).Apply(tool,player)
 				tool.Parent = bag
 				found[id] = tool
 				repaired += 1

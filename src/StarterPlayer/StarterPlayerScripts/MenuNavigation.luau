@@ -119,6 +119,10 @@ local function modal()
  if voting and voting.Enabled and player:GetAttribute("MapVotingMenuOpen")==true then return voting.Panel end
  local mobile=p:FindFirstChild("MobileCombatHUD")
  if mobile and mobile.Enabled and mobile.Editor.Visible then return mobile.Editor end
+ for _,name in {"ClanMenu","SocialMenu","CareerMenu"}do
+  local menu=p:FindFirstChild(name)local backdrop=menu and menu:FindFirstChild("Backdrop")
+  if menu and menu.Enabled and backdrop and backdrop.Visible then return backdrop.Panel end
+ end
  local music=p:FindFirstChild("LobbyMusicMenu")
  if music and music.Enabled and music.Backdrop.Visible then return music.Backdrop.Panel end
  local progress=p:FindFirstChild("ProgressionPanel")

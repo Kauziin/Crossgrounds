@@ -32,7 +32,9 @@ function Context:Prepare(settings)
  if prepared then return end prepared=true
  local function assign(p)
   if p:GetAttribute("CrossgroundsMode")==nil then
-   self:SetMode(p,(config.PlaceRole=="ctf" or config.PlaceRole=="legacy")and"ctf"or"hub")
+   local ok,join=pcall(p.GetJoinData,p)local transfer=config.GroupTransferEnabled and config.TeleportEnabled and ok and type(join.TeleportData)=="table"and type(join.TeleportData.crossgroundsPartyTransfer)=="string"
+   p:SetAttribute("PartyArrivalExpected",transfer==true)
+   self:SetMode(p,transfer and"hub"or (config.PlaceRole=="ctf" or config.PlaceRole=="legacy")and"ctf"or"hub")
    p:SetAttribute("CrossgroundsTransition",false)
   end
  end
@@ -60,7 +62,7 @@ function Context:Initialize(settings,hubScene)
   p:SetAttribute("CrossgroundsCanReturnHub",config.PlaceRole=="combinedPrototype" or config.TeleportEnabled and config.HubPlaceId~=nil)
   p:SetAttribute("CrossgroundsTransition",false)
   if p:GetAttribute("CrossgroundsMode")==nil then self:SetMode(p,(config.PlaceRole=="ctf" or config.PlaceRole=="legacy") and "ctf" or "hub") end
-  if config.PlaceRole=="hub" then
+  if config.PlaceRole=="hub" or config.PlaceRole=="arena"then
    local list={} hubConnections[p]=list
    local function characterAdded(character)
     local h=character:WaitForChild("Humanoid",10) local root=character:WaitForChild("HumanoidRootPart",10)
@@ -80,7 +82,7 @@ function Context:Initialize(settings,hubScene)
     end)
    end
    table.insert(list,p.CharacterAdded:Connect(characterAdded))
-   if p.Character then task.spawn(characterAdded,p.Character) else task.spawn(loadHubCharacter,p) end
+   if p.Character then task.spawn(characterAdded,p.Character) elseif config.PlaceRole=="hub"or p:GetAttribute("PartyArrivalExpected")then task.spawn(loadHubCharacter,p) end
   end
  end
  Players.PlayerAdded:Connect(added)

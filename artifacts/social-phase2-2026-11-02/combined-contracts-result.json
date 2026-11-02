@@ -1,0 +1,331 @@
+{
+  "failed": 0,
+  "cases": [
+    {
+      "suite": "CareerFoundation",
+      "name": "mastery badge customization cannot falsify progression",
+      "passed": true
+    },
+    {
+      "suite": "CareerFoundation",
+      "name": "all normal thresholds and cap",
+      "passed": true
+    },
+    {
+      "suite": "CareerFoundation",
+      "name": "migration preserves exact voluntary boundary and fractional overflow",
+      "passed": true
+    },
+    {
+      "suite": "CareerFoundation",
+      "name": "legacy high level does not guarantee prestige",
+      "passed": true
+    },
+    {
+      "suite": "CareerFoundation",
+      "name": "ten prestiges then mastery then legend",
+      "passed": true
+    },
+    {
+      "suite": "CareerFoundation",
+      "name": "migration can reach legend and is repeatable",
+      "passed": true
+    },
+    {
+      "suite": "CareerFoundation",
+      "name": "cap does not bank next cycle XP or erase weapon XP",
+      "passed": true
+    },
+    {
+      "suite": "CareerFoundation",
+      "name": "token scoped and duplicate rejected without consumption",
+      "passed": true
+    },
+    {
+      "suite": "CareerFoundation",
+      "name": "public identity omits inventory and rejects unowned cosmetics",
+      "passed": true
+    },
+    {
+      "suite": "CareerFoundation",
+      "name": "future and corrupt profiles fail closed",
+      "passed": true
+    },
+    {
+      "suite": "CareerFoundation",
+      "name": "load failure never creates blank profile",
+      "passed": true
+    },
+    {
+      "suite": "CareerFoundation",
+      "name": "exclusive lease and expired writer rejected",
+      "passed": true
+    },
+    {
+      "suite": "CareerFoundation",
+      "name": "uncertain write retries same snapshot exactly once",
+      "passed": true
+    },
+    {
+      "suite": "CareerFoundation",
+      "name": "malformed envelope cannot overwrite stored origin",
+      "passed": true
+    },
+    {
+      "suite": "CareerFoundation",
+      "name": "uncertain open recovers without repeating migration",
+      "passed": true
+    },
+    {
+      "suite": "CareerFoundation",
+      "name": "uncertain transaction prevents release and freezes candidate",
+      "passed": true
+    },
+    {
+      "suite": "CareerFoundation",
+      "name": "corrupt transitions and token balances preserve origin",
+      "passed": true
+    },
+    {
+      "suite": "ClanSystems",
+      "name": "new clan imports roster history but not clan accomplishments",
+      "passed": true
+    },
+    {
+      "suite": "ClanSystems",
+      "name": "joining changes roster sum and cannot import old XP as contribution",
+      "passed": true
+    },
+    {
+      "suite": "ClanSystems",
+      "name": "only leader and officers invite; capacity and expiry rechecked",
+      "passed": true
+    },
+    {
+      "suite": "ClanSystems",
+      "name": "cumulative contribution tolerates duplicate and older delivery",
+      "passed": true
+    },
+    {
+      "suite": "ClanSystems",
+      "name": "leave removes history from current roster and preserves earned totals",
+      "passed": true
+    },
+    {
+      "suite": "ClanSystems",
+      "name": "old membership stream cannot credit a rejoined user",
+      "passed": true
+    },
+    {
+      "suite": "ClanSystems",
+      "name": "leader must transfer before leaving; officers cannot remove leader",
+      "passed": true
+    },
+    {
+      "suite": "ClanSystems",
+      "name": "last member archives clan without erasing history",
+      "passed": true
+    },
+    {
+      "suite": "ClanSystems",
+      "name": "future schema and corrupt leadership fail closed",
+      "passed": true
+    },
+    {
+      "suite": "ClanSystems",
+      "name": "clan level thresholds do not depend on member history",
+      "passed": true
+    },
+    {
+      "suite": "ClanSystems",
+      "name": "uncertain create is idempotent",
+      "passed": true
+    },
+    {
+      "suite": "ClanSystems",
+      "name": "abort fences a late pending creation",
+      "passed": true
+    },
+    {
+      "suite": "ClanSystems",
+      "name": "abort revokes invite and fences a late pending join",
+      "passed": true
+    },
+    {
+      "suite": "ClanSystems",
+      "name": "uncertain contribution never doubles clan XP",
+      "passed": true
+    },
+    {
+      "suite": "ClanSystems",
+      "name": "clan and social identity survive personal prestige",
+      "passed": true
+    },
+    {
+      "suite": "WeaponFinishes",
+      "name": "curated account track covers every normal level",
+      "passed": true
+    },
+    {
+      "suite": "WeaponFinishes",
+      "name": "finish milestones follow weapon XP",
+      "passed": true
+    },
+    {
+      "suite": "WeaponFinishes",
+      "name": "permanent token is scoped to weapon and mode",
+      "passed": true
+    },
+    {
+      "suite": "WeaponFinishes",
+      "name": "unknown finishes and nonexistent weapons cannot use tokens",
+      "passed": true
+    },
+    {
+      "suite": "WeaponFinishes",
+      "name": "paint preserves glass, invisible helpers and combat properties",
+      "passed": true
+    },
+    {
+      "suite": "WeaponFinishes",
+      "name": "finishes and weapon progress survive prestige and mastery",
+      "passed": true
+    },
+    {
+      "suite": "WeaponFinishes",
+      "name": "optional finish state migrates old v2 profiles",
+      "passed": true
+    },
+    {
+      "suite": "PartySystems",
+      "name": "create is exclusive and snapshot is copied",
+      "passed": true
+    },
+    {
+      "suite": "PartySystems",
+      "name": "invite requires leader and target without group",
+      "passed": true
+    },
+    {
+      "suite": "PartySystems",
+      "name": "expired or replaced invitation cannot be accepted",
+      "passed": true
+    },
+    {
+      "suite": "PartySystems",
+      "name": "capacity is rechecked at accept",
+      "passed": true
+    },
+    {
+      "suite": "PartySystems",
+      "name": "lock prevents mutation and old leader invitation",
+      "passed": true
+    },
+    {
+      "suite": "PartySystems",
+      "name": "leader disconnect transfers to oldest remaining member",
+      "passed": true
+    },
+    {
+      "suite": "PartySystems",
+      "name": "last member dissolves group and invalidates invites",
+      "passed": true
+    },
+    {
+      "suite": "PartySystems",
+      "name": "same team needs six free seats while split can use twelve",
+      "passed": true
+    },
+    {
+      "suite": "PartySystems",
+      "name": "pending reservations participate in capacity",
+      "passed": true
+    },
+    {
+      "suite": "PartySystems",
+      "name": "whole group packing backtracks instead of splitting 3 3 2 2 2",
+      "passed": true
+    },
+    {
+      "suite": "PartySystems",
+      "name": "unpackable whole groups are rejected",
+      "passed": true
+    },
+    {
+      "suite": "PartySystems",
+      "name": "party percent and fraction conservation",
+      "passed": true
+    },
+    {
+      "suite": "PartySystems",
+      "name": "nonleader cannot initiate or consume collective entry",
+      "passed": true
+    },
+    {
+      "suite": "PartySystems",
+      "name": "collective success consumes every ticket and releases reserve",
+      "passed": true
+    },
+    {
+      "suite": "PartySystems",
+      "name": "failure rolls back even the partially entered failing member",
+      "passed": true
+    },
+    {
+      "suite": "PartySystems",
+      "name": "practice does not become a collective request",
+      "passed": true
+    },
+    {
+      "suite": "PartySystems",
+      "name": "collective transfer is gated before reserving tickets",
+      "passed": true
+    },
+    {
+      "suite": "PartySystems",
+      "name": "failed collective transfer releases every source ticket",
+      "passed": true
+    },
+    {
+      "suite": "PartySystems",
+      "name": "destination partial admission rolls back every attempted member",
+      "passed": true
+    },
+    {
+      "suite": "PartyTransfer",
+      "name": "handoff accepts only server members and destination",
+      "passed": true
+    },
+    {
+      "suite": "PartyTransfer",
+      "name": "first destination owns the whole handoff",
+      "passed": true
+    },
+    {
+      "suite": "PartyTransfer",
+      "name": "complete requires all members; claims are idempotent",
+      "passed": true
+    },
+    {
+      "suite": "PartyTransfer",
+      "name": "expiry and closure reject replay",
+      "passed": true
+    },
+    {
+      "suite": "PartyTransfer",
+      "name": "uncertain creation and arrival do not duplicate members",
+      "passed": true
+    },
+    {
+      "suite": "PartyTransfer",
+      "name": "unknown versions and invalid formations fail closed",
+      "passed": true
+    },
+    {
+      "suite": "PartyTransfer",
+      "name": "restoration validates entire formation before mutation",
+      "passed": true
+    }
+  ],
+  "passed": 65
+}

@@ -27,6 +27,7 @@ function Router:Snapshot()
  local join=p.PlayerGui:FindFirstChild("JoinMenu") local hud=p.PlayerGui:FindFirstChild("CombatHUD")
  local modal=p:GetAttribute("MapVotingMenuOpen")==true or p:GetAttribute("GameMenuOpen")==true or p:GetAttribute("ExperienceMenuOpen")==true
   or p:GetAttribute("ProgressionMenuOpen")==true or p:GetAttribute("LobbyMusicMenuOpen")==true
+  or p:GetAttribute("CareerMenuOpen")==true or p:GetAttribute("SocialMenuOpen")==true or p:GetAttribute("ClanMenuOpen")==true
   or p:GetAttribute("CTFKitMenuOpen")==true or p:GetAttribute("ArenaVotingOpen")==true
   or p:GetAttribute("HUDLayoutEditing")==true or p:GetAttribute("InventoryOpen")==true
   or p:GetAttribute("InventoryMenuOpen")==true or Scope:IsCTF() and

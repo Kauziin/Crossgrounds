@@ -36,6 +36,7 @@ function Travel:Verify(destination)
  return true
 end
 function Travel:Route(gameId,localAvailable)
+ if self.config.PlaceRole==gameId and localAvailable and table.find({"ctf","arena"},gameId)then return {kind="local",gameId=gameId}end
  if gameId=="ctf" and self.config.PlaceRole=="combinedPrototype" and self.config.EnableLocalCTFPrototype and localAvailable then return {kind="local",gameId=gameId} end
  if gameId=="arena" and self.config.PlaceRole=="combinedPrototype" and self.config.EnableLocalArenaPrototype and localAvailable then return {kind="local",gameId="arena"} end
  if gameId=="get_out" and self.config.PlaceRole=="combinedPrototype" and self.config.EnableLocalGetOutPrototype and localAvailable then return {kind="local",gameId="get_out"} end

@@ -43,40 +43,10 @@ end
 local function ring(p,x,y,w,h,color)
  local f=make("Frame",p) f.BackgroundTransparency=1 f.Position=UDim2.fromOffset(x,y) f.Size=UDim2.fromOffset(w,h) V.Round(f,100) V.Edge(f,color,2).Transparency=0 return f
 end
+local LibraryIcons=require(game.ReplicatedStorage.Crossgrounds.InterfaceIcons)
 function V.Icon(parent,id,x,y,size,color)
- local p=make("Frame",parent,"Icon") p.BackgroundTransparency=1 p.Position=UDim2.fromOffset(x,y) p.Size=UDim2.fromOffset(32,32)
- local scale=make("UIScale",p) scale.Scale=(size or 32)/32 color=color or C.Accent
- if id=="Profile" or id=="Friends" then
-  ring(p,11,3,10,10,color) ring(p,6,17,20,13,color)
-  if id=="Friends" then ring(p,1,9,7,7,color) line(p,1,27,1,21,color) ring(p,24,9,7,7,color) line(p,31,21,31,27,color) end
- elseif id=="Wins" or id=="Leaders" then
-  line(p,8,4,24,4,color) line(p,8,4,10,18,color) line(p,24,4,22,18,color) line(p,10,18,22,18,color) line(p,16,18,16,27,color) line(p,9,28,23,28,color)
-  line(p,7,7,2,7,color) line(p,2,7,3,15,color) line(p,3,15,10,17,color) line(p,25,7,30,7,color) line(p,30,7,29,15,color) line(p,29,15,22,17,color)
- elseif id=="Crown" then
-  line(p,4,24,28,24,color,3) line(p,4,24,2,8,color,3) line(p,2,8,10,15,color,3) line(p,10,15,16,3,color,3) line(p,16,3,22,15,color,3) line(p,22,15,30,8,color,3) line(p,30,8,28,24,color,3)
- elseif id=="Coins" then
-  ring(p,10,3,17,8,color) ring(p,10,9,17,8,color) ring(p,3,16,17,8,color) ring(p,3,22,17,8,color)
- elseif id=="PlaySeconds" then
-  ring(p,3,3,26,26,color) line(p,16,7,16,17,color) line(p,16,17,23,21,color)
- elseif id=="Captures" or id=="ctf" then
-  line(p,6,30,9,3,color) line(p,9,4,19,7,color) line(p,19,7,28,4,color) line(p,28,4,25,18,color) line(p,25,18,17,20,color) line(p,17,20,8,17,color)
- elseif id=="Deaths" or id=="Losses" then
-  ring(p,5,3,22,21,color) local l=make("Frame",p) l.BackgroundColor3=color l.Position=UDim2.fromOffset(10,21) l.Size=UDim2.fromOffset(13,8) V.Round(l,2)
-  for _,x0 in {10,20} do local eye=make("Frame",p) eye.BackgroundColor3=C.Card eye.Position=UDim2.fromOffset(x0,11) eye.Size=UDim2.fromOffset(4,6) V.Round(eye,3) end
- elseif id=="Ratio" then
-  line(p,1,19,9,19,color) line(p,9,19,13,5,color) line(p,13,5,19,27,color) line(p,19,27,23,16,color) line(p,23,16,31,16,color)
- elseif id=="general" or id=="XP" or id=="Level" then
-  for i=1,3 do local f=make("Frame",p) f.BackgroundColor3=color f.Size=UDim2.fromOffset(6,i*7) f.Position=UDim2.fromOffset(3+(i-1)*10,29-i*7) V.Round(f,1) end
- elseif id=="arena" or id=="duels" then
-  line(p,4,4,26,26,color,3) line(p,28,4,6,26,color,3) line(p,2,20,12,30,color) line(p,20,30,30,20,color)
- elseif id=="get_out" or id=="Escapes" then
-  ring(p,18,1,7,7,color) line(p,20,11,13,20,color,3) line(p,13,20,5,25,color,3) line(p,14,19,23,24,color,3) line(p,23,24,20,31,color,3) line(p,18,11,9,10,color) line(p,9,10,5,17,color) line(p,18,12,24,17,color) line(p,24,17,30,16,color)
- elseif id=="Back" then
-  line(p,26,16,5,16,color) line(p,5,16,13,8,color) line(p,5,16,13,24,color)
- else
-  ring(p,4,4,24,24,color) if id~="TrainingKills" then line(p,16,0,16,9,color) line(p,16,23,16,32,color) line(p,0,16,9,16,color) line(p,23,16,32,16,color) else ring(p,10,10,12,12,color) end
- end
- return p
+ local p=LibraryIcons.Image(parent,id,size or 32,color or C.Accent)
+ if p then p.Name="Icon"p.Position=UDim2.fromOffset(x,y)end return p
 end
 function V.Avatar(parent,data,x,y,size,color)
  local a=make("ImageLabel",parent,"Avatar") a.BackgroundColor3=Color3.fromRGB(18,43,48) a.Position=UDim2.fromOffset(x,y) a.Size=UDim2.fromOffset(size,size) a.Image="rbxthumb://type=AvatarHeadShot&id="..data.userId.."&w=150&h=150" V.Round(a,12) V.Edge(a,color or C.Accent,2).Transparency=0 return a

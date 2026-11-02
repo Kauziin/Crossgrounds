@@ -39,6 +39,8 @@ P.Copy=copy
 function P.New()
  local p={schemaVersion=2,curveVersion=1,revision=0,lifetimeXP=0,phase="normal",prestige=0,cycleXP=0,stats={},weapons={},tokens={},permanent={},cosmetics={cards={default=true},frames={default=true},titles={default=true},emblems={default=true}},identity={card="default",frame="default",title="default",emblem="default"},transitions=0}
  for _,mode in P.Modes do p.tokens[mode]=0 p.permanent[mode]={} end
+ p.social={favorites={},invites="friends",publicStats=true}
+ p.clanInvites={} p.weaponFinishes={}p.rankStyle="classic"
  return p
 end
 function P.Transition(p)
@@ -66,7 +68,15 @@ function P.Migrate(old)
   for _,mode in P.Modes do if old.tokens[mode]~=P.Number(old.tokens[mode]) or old.tokens[mode]>transitions then return nil,"Saldo de token inválido." end end
   for _,category in {"cards","frames","titles","emblems"} do if type(old.cosmetics[category])~="table" then return nil,"Coleção incompleta." end end
   for _,slot in {"card","frame","title","emblem"} do if type(old.identity[slot])~="string" or #old.identity[slot]>80 then return nil,"Identidade inválida." end end
-  return copy(old)
+  if old.social~=nil and (type(old.social)~="table" or type(old.social.favorites)~="table" or not table.find({"friends","none"},old.social.invites) or type(old.social.publicStats)~="boolean") then return nil,"Preferências sociais inválidas." end
+  if old.clan~=nil and(type(old.clan)~="table"or type(old.clan.id)~="string"or type(old.clan.epoch)~="string"or type(old.clan.contribution)~="table"or not table.find({"joining","active"},old.clan.state))then return nil,"Filiação inválida."end
+  if old.clanInvites~=nil and type(old.clanInvites)~="table"then return nil,"Caixa de convites inválida."end
+  if old.weaponFinishes~=nil and type(old.weaponFinishes)~="table"then return nil,"Acabamentos inválidos."end
+  if old.frameLayers~=nil and not require(script.Parent.ProfileFramePolicy).Validate(old.frameLayers,old.cosmetics.frames)then return nil,"Camadas de moldura inválidas."end
+  if old.rankStyle~=nil and not table.find({"classic","astral","solar"},old.rankStyle)then return nil,"Insígnia inválida."end
+  local result=copy(old) result.rankStyle=result.rankStyle or"classic" result.weaponFinishes=result.weaponFinishes or{} result.social=result.social or {favorites={},invites="friends",publicStats=true}
+  result.clanInvites=result.clanInvites or{}
+  return result
  end
  local p=P.New()
  for key,value in old do if type(key)=="string" and type(value)=="number" then p.stats[key]=P.Number(value) end end
@@ -101,9 +111,17 @@ function P.EquipIdentity(p,slot,id)
  local categories={card="cards",frame="frames",title="titles",emblem="emblems"}
  local category=categories[slot]
  if not category or type(id)~="string" or not p.cosmetics[category] or not p.cosmetics[category][id] then return false,"Cosmético não conquistado." end
- p.identity[slot]=id return true
+ p.identity[slot]=id if slot=="frame"then p.frameLayers=nil end return true
+end
+function P.SetRankStyle(p,id)
+ if p.phase~="mastery"and p.phase~="legend"then return false,"Personalização da insígnia requer Maestria."end
+ if not table.find({"classic","astral","solar"},id)then return false,"Estilo de insígnia inválido."end
+ p.rankStyle=id return true
 end
 function P.Public(p,userId,name)
- return {userId=userId,name=name,phase=p.phase,prestige=p.prestige,level=P.Level(p.cycleXP,p.phase),identity=copy(p.identity),revision=p.revision}
+ local result={userId=userId,name=name,phase=p.phase,prestige=p.prestige,level=P.Level(p.cycleXP,p.phase),identity=copy(p.identity),revision=p.revision}
+ result.rankStyle=p.rankStyle or"classic" result.frameLayers=copy(p.frameLayers)
+ if p.clan and p.clan.state=="active"then result.clan={id=p.clan.id,code=p.clan.code,emblem=p.clan.emblem,color=p.clan.color}end
+ return result
 end
 return P

@@ -18,6 +18,7 @@ local numericFields = {
 	FalloffEnd = true,
 	ProjectileSpeed = true,
 	AdsSpeedMultiplier = true,
+	AdsMotionMultiplier = true,
 	MovementSpeedMultiplier = true,
 	Cooldown = true,
 	Magazine = true,
@@ -58,6 +59,7 @@ function Stats.Resolve(weaponId, configuration)
 
 	local data = table.clone(base)
 	data.AdsSpeedMultiplier = data.AdsSpeedMultiplier or 1
+	data.AdsMotionMultiplier = data.AdsMotionMultiplier or 1
 	data.MovementSpeedMultiplier = data.MovementSpeedMultiplier or 1
 
 	local selected={} local slots={}
@@ -188,6 +190,7 @@ local function visible(data)
   controlRollDegrees = data.VisualRecoil and data.VisualRecoil.Roll,
   movementMultiplier = data.MovementSpeedMultiplier or 1,
   adsMultiplier = data.AdsSpeedMultiplier or 1,
+  adsMotionMultiplier = data.AdsMotionMultiplier or 1,
   falloffStart = data.FalloffStart,
   falloffEnd = data.FalloffEnd,
   projectileSpeed = data.ProjectileSpeed,

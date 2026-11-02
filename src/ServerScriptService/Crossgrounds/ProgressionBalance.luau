@@ -3,6 +3,8 @@ local defaults = {
  BotKillXP = 50, TrainingKillXP = 10,
  ArenaKillXP = 100, ArenaHeadshotXP = 50, ArenaKillCoins = 20,
  CTFKillXP = 70, CTFKillCoins = 15, CTFCaptureXP = 250, CTFCaptureCoins = 60,
+ PartyInviteSeconds=60, PartyAdmissionSeconds=25, PartyMemberXPPercent=5,
+ ClanMaxMembers=30,ClanInviteSeconds=600,
 }
 local values={}
 local snapshot

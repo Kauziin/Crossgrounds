@@ -1,0 +1,22 @@
+[
+  {
+    "name": "creation opens own overview",
+    "passed": true
+  },
+  {
+    "name": "automatic refresh does not overwrite success with rate warning",
+    "passed": true
+  },
+  {
+    "name": "sequential reads obey server interval",
+    "passed": true
+  },
+  {
+    "name": "equal clan metrics",
+    "passed": true
+  },
+  {
+    "name": "member avatar and frame after final changes",
+    "passed": true
+  }
+]

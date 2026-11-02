@@ -52,6 +52,7 @@ end
 function GameManager:GameReady() return self.loadReady==true and Player:GetJoinedCount()>=Config.MIN_PLAYERS end
 function GameManager:StopIntermission() Display:UpdateTimerInfo(false,false) Display:StopIntermission() end
 function GameManager:StartRound()
+ workspace:SetAttribute("CTFMatchSequence",(workspace:GetAttribute("CTFMatchSequence") or 0)+1)
  Team:ClearTeamScores() Player:ClearPlayerScores()
  resultRecorded=false active=true workspace:SetAttribute("DevelopmentEndCTF",false) workspace:SetAttribute("RoundState","Playing")
  Player:SetGameRunning(true)

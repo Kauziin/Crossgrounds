@@ -4,12 +4,13 @@ local Catalog=require(game.ReplicatedStorage.Crossgrounds.UnlockCatalog)
 local Config=require(game.ReplicatedStorage.Crossgrounds.WeaponVisualConfiguration)
 local Service={}
 function Service.Allows(player,mode,id,weapon)
+ if mode=="ctf"and player:GetAttribute("CTFPracticeRange")==true and require(script.Parent.PracticeRangeService):IsActive(player)then return Catalog.Get(mode,id)~=nil,"Item indisponível."end
  if not Career.Enabled() then return true end
  local p=Career.Get(player) if not p then return false,"Aguarde o carregamento da carreira." end
  local item=Catalog.Get(mode,id) if not item then return false,"Item sem desbloqueio disponível." end
  if p.permanent[mode] and p.permanent[mode][id] then return true end
  if item.weaponLevel then
-  local canonical=Catalog.Canonical(weapon)
+  local canonical=Catalog.Canonical(weapon or item.weaponId)
   return canonical~=nil and P.WeaponLevel(p.weapons[canonical] or 0)>=item.weaponLevel,"Requer nível "..item.weaponLevel.." da arma."
  end
  return p.accountUnlocked==true or P.Level(p.cycleXP,p.phase)>=item.level,"Requer nível "..item.level.." da conta."

@@ -13,6 +13,12 @@ return function(t)
   end
   return s
  end
+ t.test("mastery badge customization cannot falsify progression",function()
+  local p=P.New()t.expect.falsy(P.SetRankStyle(p,"solar"))
+  for _=1,11 do p.cycleXP=P.Cap(p.phase)t.expect.truthy(P.Transition(p))end
+  t.expect.truthy(P.SetRankStyle(p,"astral"))local public=P.Public(p,1,"Player")t.expect.equal(public.phase,"mastery")t.expect.equal(public.level,1)t.expect.equal(public.rankStyle,"astral")
+  t.expect.falsy(P.SetRankStyle(p,"unknown"))p.cycleXP=P.Cap(p.phase)P.Transition(p)t.expect.equal(p.rankStyle,"astral")t.expect.equal(P.Level(p.cycleXP,p.phase),1)
+ end)
  t.test("all normal thresholds and cap",function()
   for l=1,55 do t.expect.equal(P.Level(P.Threshold(l)),l) if l>1 then t.expect.equal(P.Level(P.Threshold(l)-1),l-1) end end
   t.expect.equal(P.CycleCost,343710) t.expect.equal(P.Level(1e9),55)
