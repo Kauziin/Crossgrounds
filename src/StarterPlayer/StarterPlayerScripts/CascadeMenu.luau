@@ -13,6 +13,7 @@ function Cascade.new(gui,name,title)
  self:AddPane("RootPane",title)
  workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(function() self:Resize(false) end)
  player:GetAttributeChangedSignal("SettingMenuScale"):Connect(function() self:Resize(false) end)
+ Theme.ObserveMobile(function() self:Resize(false)end)
  Nav:SetBack(panel,function() if #self.Stack>1 then self:Push({self.Stack[1]}) elseif self.OnClose then self.OnClose() end end)
  return self
 end
@@ -44,9 +45,10 @@ function Cascade:SetOpen(on)
 end
 function Cascade:Resize(animate)
  local v=self.Backdrop.AbsoluteSize if v.X<200 or v.Y<150 then v=workspace.CurrentCamera.ViewportSize end
+ v=Theme.MenuBounds(v)
  local w=math.min(1120,v.X-32) local h=math.min(660,v.Y-40) self.Panel.Size=UDim2.fromOffset(w,h)
  local scale=player:GetAttribute("SettingMenuScale") or 1
- local modifier=self.Panel:FindFirstChild("PreferenceScale") or Instance.new("UIScale") modifier.Name="PreferenceScale" modifier.Scale=scale modifier.Parent=self.Panel
+ local modifier=self.Panel:FindFirstChild("PreferenceScale") or Instance.new("UIScale") modifier.Name="PreferenceScale" modifier.Scale=scale*Theme.MobileFactor() modifier.Parent=self.Panel
  w=math.min(1120,(v.X-24)/scale) h=math.min(660,(v.Y-20)/scale) self.Panel.Size=UDim2.fromOffset(w,h)
  local narrow=w<720
  local n=#self.Stack self.Panel:SetAttribute("CascadeDepth",n) local step=218

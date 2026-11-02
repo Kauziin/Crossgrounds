@@ -49,7 +49,7 @@ local function resolve(o,config,origin,blocked,directions,ping,historicalTime)
  tool:SetAttribute("Ammo",tool:GetAttribute("Ammo")-1)
  tool:SetAttribute("ShotAmmoVersion",(tool:GetAttribute("ShotAmmoVersion") or 0)+1)
  if o.accept then o.accept() end
- Noise.Emit(c,origin,data.FireRange or 100)
+ Noise.Emit(c,origin,(data.FireRange or 100)*(tool:GetAttribute("ShotNoiseMultiplier") or 1))
  local rays={}
  local function visual(result,direction,phase)
   Shots.Emit(c,tool,origin,result.endpoint,nil,id,{phase=phase,shotType=config.kind,direction=direction,
@@ -156,7 +156,7 @@ function Authority.FireNPC(o)
  return true
 end
 function Authority.ReloadNPC(c,tool,valid)
- local data=Kits.Weapons[tool:GetAttribute("WeaponId")]
+ local data=WeaponStats.ResolveTool(tool) or Kits.Weapons[tool:GetAttribute("WeaponId")]
  if not data or data.Kind~="Gun" or tool:GetAttribute("Reloading") or tool.Parent~=c or not valid() then return false end
  local ammo,reserve=tool:GetAttribute("Ammo") or 0,tool:GetAttribute("ReserveAmmo") or 0
  if ammo>=data.Magazine or reserve<=0 then return false end

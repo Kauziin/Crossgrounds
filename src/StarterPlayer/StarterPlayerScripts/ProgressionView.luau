@@ -187,7 +187,7 @@ function V.new(gui)
  local backdrop=make("Frame",gui,"Backdrop") backdrop.BackgroundTransparency=1 backdrop.Size=UDim2.fromScale(1,1)
  local panel=make("Frame",backdrop,"Panel") panel:SetAttribute("CascadeDepth",2) panel:SetAttribute("ProgressionSurface",true) panel.BackgroundTransparency=1 panel.AnchorPoint=Vector2.new(.5,.5) panel.Position=UDim2.fromScale(.5,.5)
  local scale=make("UIScale",panel,"Fit")
- local title=V.Text(panel,"Title","PROGRESSO",8,0,240,32,24)
+ local title=V.Text(panel,"Title","PROGRESSÃO",8,0,240,32,24)
  local side=V.Box(panel,"Navigation",600) side.BackgroundColor3=C.Surface side.BackgroundTransparency=.05
  local content=V.Box(panel,"Content",600) content.BackgroundColor3=C.Surface content.BackgroundTransparency=.04
  local heading=V.Text(content,"Heading","ESTATÍSTICAS PESSOAIS",20,0,500,48,17)
@@ -210,16 +210,18 @@ function V.new(gui)
   self.Buttons[id]=b
  end
  function self:Select(id)
-  self.Selected=id self.Heading.Text=titles[id] or "PROGRESSO"
+  self.Selected=id self.Heading.Text=titles[id] or "PROGRESSÃO"
   for key,p in self.Panes do p.Frame.Visible=key==id end
   for key,b in self.Buttons do V.Select(b,key==id) end
  end
  function self:Resize()
   local viewport=backdrop.AbsoluteSize if viewport.X<100 then viewport=workspace.CurrentCamera.ViewportSize end
+  local theme=require(script.Parent.MenuTheme) viewport=theme.MenuBounds(viewport)
   local preference=math.clamp(player:GetAttribute("SettingMenuScale") or 1,.65,1.5)
   local desktop=viewport.X>=1000 and viewport.X/viewport.Y>1.3
   scale.Scale=desktop and math.min(preference,(viewport.X-32)/1400,(viewport.Y-50)/710) or math.min(preference,math.max(.65,(viewport.X-24)/360))
   local w=math.min(1400,(viewport.X-32)/scale.Scale) local h=math.min(710,(viewport.Y-76)/scale.Scale)
+  scale.Scale*=theme.MobileFactor()
   panel.Size=UDim2.fromOffset(w,h) self.Compact=w<780
   local compact=self.Compact local sidebar=compact and 0 or w<1150 and 218 or 240 local gap=compact and 0 or 12
   side.Position=UDim2.fromOffset(0,42) side.Size=compact and UDim2.fromOffset(w,60) or UDim2.fromOffset(sidebar,h-42)
@@ -246,6 +248,7 @@ function V.new(gui)
  workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(function() self:Resize() end)
  backdrop:GetPropertyChangedSignal("AbsoluteSize"):Connect(function() self:Resize() end)
  player:GetAttributeChangedSignal("SettingMenuScale"):Connect(function() self:Resize() end)
+ require(script.Parent.MenuTheme).ObserveMobile(function()self:Resize()end)
  self:Resize() return self
 end
 return V

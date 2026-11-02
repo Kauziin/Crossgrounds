@@ -24,8 +24,8 @@ local function openProgress() player:SetAttribute("ProgressionMenuOpen",true) en
 local function openSettings() Nav:OpenMenu("Settings") end
 local function openMusic() Nav:OpenMenu("Playlist") end
 browser:Button("RootPane","Modes","Jogar  ›",playModes)
-browser:Button("RootPane","Progress","Progresso",openProgress)
-browser:Button("RootPane","Settings","Ajustes",openSettings)
+browser:Button("RootPane","Progress","Progressão",openProgress)
+browser:Button("RootPane","Settings","Configurações",openSettings)
 browser:Button("RootPane","Music","Música / Playlist",openMusic)
 
 -- A presentation owned by this controller, used only at the root of the hub.
@@ -123,7 +123,7 @@ local function selectHome(button)
  end
  paintHomeFocus()
 end
-for index,entry in {{"Play","Jogar",playModes},{"StayLobby","Permanecer no lobby",stay},{"Progress","Progresso",openProgress},{"Settings","Ajustes",openSettings},{"Music","Música / Playlist",openMusic}} do
+for index,entry in {{"Play","Jogar",playModes},{"StayLobby","Permanecer no lobby",stay},{"Progress","Progressão",openProgress},{"Settings","Configurações",openSettings},{"Music","Música / Playlist",openMusic}} do
  local button=homeObject("TextButton",entry[1],homeList) button.Text="" button.AutoButtonColor=false button.LayoutOrder=index
  button.BackgroundColor3=Color3.fromRGB(2,16,23) button.Size=UDim2.new(1,-2,0,60) button:SetAttribute("AccessibleLabel",entry[2]) homeCorner(button,11)
  local edge=homeStroke(button,1.6,1) local glow=homeStroke(button,7,1)
@@ -140,7 +140,9 @@ selectedHome=homeButtons[1]
 for index,button in homeButtons do button.NextSelectionUp=homeButtons[index-1] or button button.NextSelectionDown=homeButtons[index+1] or button end
 local function layoutHome()
  local size=home.AbsoluteSize if size.X<100 or size.Y<100 then return end
- local scale=player:GetAttribute("SettingMenuScale") or 1 homeScale.Scale=scale
+ size=Theme.MenuBounds(size)
+ local scale=player:GetAttribute("SettingMenuScale") or 1 homeScale.Scale=scale*Theme.MobileFactor()
+ content.AnchorPoint=Theme.Mobile()and Vector2.new(.5,.5)or Vector2.zero content.Position=Theme.Mobile()and UDim2.fromScale(.5,.5)or UDim2.new()
  local w,h=size.X/scale,size.Y/scale content.Size=UDim2.fromOffset(w,h)
  local compact=h<520 local left=math.clamp(w*.064,22,108) local top=compact and 12 or math.clamp(h*.12,24,112)
  local fontSize=math.clamp(math.min(w*.058,h*(compact and .12 or .108)),27,90)
@@ -196,6 +198,8 @@ function browser:Push(ids)
  end
 end
 home:GetPropertyChangedSignal("AbsoluteSize"):Connect(layoutHome)
+Theme.ObserveMobile(layoutHome)
+player:GetAttributeChangedSignal("SettingMenuScale"):Connect(layoutHome)
 Nav.FocusChanged:Connect(function(object) if homeActive and object and homeRows[object] then selectHome(object) end end)
 InputMode.Changed:Connect(function() selectHome(selectedHome) end)
 browser.Backdrop:GetPropertyChangedSignal("Visible"):Connect(function()
@@ -248,10 +252,10 @@ local reopen=Instance.new("TextButton") reopen.Name="OpenModes" reopen.Text="Jog
 Nav:Connect(reopen,function() catalogOpen=true browser:Push({"RootPane","Modes"}) refresh() end)
 refresh=function()
  local data=Bridge:Get() local mode=Scope:Get() local q=data and data.queue or {state="idle"}
- local open=mode=="hub" and catalogOpen and not player:GetAttribute("ExperienceMenuOpen") and not player:GetAttribute("ProgressionMenuOpen") and not player:GetAttribute("LobbyMusicMenuOpen")
+ local open=mode=="hub" and catalogOpen and not player:GetAttribute("ExperienceMenuOpen") and not player:GetAttribute("ProgressionMenuOpen") and not player:GetAttribute("LobbyMusicMenuOpen") and not player:GetAttribute("HUDLayoutEditing")
  if browser.Backdrop.Visible~=open then browser:SetOpen(open) end
  player:SetAttribute("LobbyBrowserOpen",open)
- reopen.Visible=mode=="hub" and not open and not player:GetAttribute("ExperienceMenuOpen") and not player:GetAttribute("ProgressionMenuOpen") and not player:GetAttribute("LobbyMusicMenuOpen")
+ reopen.Visible=mode=="hub" and not open and not player:GetAttribute("ExperienceMenuOpen") and not player:GetAttribute("ProgressionMenuOpen") and not player:GetAttribute("LobbyMusicMenuOpen") and not player:GetAttribute("HUDLayoutEditing")
  local attention=mode~="hub" and (q.state=="failed" or q.state=="entering" or q.state=="travelling" or data and data.error or Bridge.LocalError)
  overlay.Visible=attention and true or false message.Text=Bridge.LocalError or data and data.error or q.message or ""
  acknowledge.Visible=q.state~="entering" and q.state~="travelling"
@@ -279,4 +283,5 @@ Bridge.Changed:Connect(refresh)
 player:GetAttributeChangedSignal("ExperienceMenuOpen"):Connect(refresh)
 player:GetAttributeChangedSignal("ProgressionMenuOpen"):Connect(refresh)
 player:GetAttributeChangedSignal("LobbyMusicMenuOpen"):Connect(refresh)
+player:GetAttributeChangedSignal("HUDLayoutEditing"):Connect(refresh)
 browser:Push({"RootPane"}) refresh()

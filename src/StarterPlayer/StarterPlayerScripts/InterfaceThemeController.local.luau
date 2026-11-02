@@ -3,7 +3,7 @@ local Theme=require(script.Parent:WaitForChild("MenuTheme"))
 local Preferences=require(script.Parent:WaitForChild("PreferenceClient"))
 local GuiService=game:GetService("GuiService")
 local fonts=setmetatable({},{__mode="k"}) local applying=setmetatable({},{__mode="k"})
-local hud={CombatHUD=true,ArenaHUD=true,MatchStandings=true,AccessibleInteractionHUD=true}
+local hud={GetOutHUD=true,CombatHUD=true,ArenaHUD=true,MatchStandings=true,AccessibleInteractionHUD=true}
 local function typography(v)
  if not (v:IsA("TextLabel") or v:IsA("TextButton") or v:IsA("TextBox")) then return end
  if not fonts[v] then
@@ -18,18 +18,35 @@ local function typography(v)
  local _,saturation=fonts[v].color:ToHSV()
  if saturation<.2 then v.TextColor3=player:GetAttribute("SettingHighContrast") and Color3.new(1,1,1) or fonts[v].color end
 end
+local hudPositions=setmetatable({},{__mode='k'})
+local function safePosition(object)
+ local record=hudPositions[object]
+ if not record then
+  record={base=object.Position}hudPositions[object]=record
+  object:GetPropertyChangedSignal('Position'):Connect(function()
+   if record.writing or not object.Parent or object.Position==record.output then return end
+   record.base=object.Position safePosition(object)
+  end)
+ end
+ local x=Theme.Mobile()and (player:GetAttribute('SettingTouchSafeX')or 0)or 0
+ local y=Theme.Mobile()and (player:GetAttribute('SettingTouchSafeY')or 0)or 0
+ local base=record.base
+ record.output=UDim2.new(x+base.X.Scale*(1-2*x),base.X.Offset,y+base.Y.Scale*(1-2*y),base.Y.Offset)
+ record.writing=true object.Position=record.output record.writing=false
+end
 local function scaleHUD(gui)
  if not hud[gui.Name] then return end
  local width=workspace.CurrentCamera.ViewportSize.X
  for _,v in gui:GetChildren() do
   if v:IsA("GuiObject") and v.Size~=UDim2.fromScale(1,1) then
+   safePosition(v)
    local scale=v:FindFirstChild("HUDPreferenceScale") or Instance.new("UIScale") scale.Name="HUDPreferenceScale" scale.Parent=v
    local nominal=player:GetAttribute("SettingHUDScale") or 1
    scale.Scale=math.min(nominal,(width-24)/math.max(1,v.Size.X.Offset+v.Size.X.Scale*width))
   end
  end
 end
-local names={ExperienceMenu=true,JoinMenu=true,CrossgroundsHub=true,ArenaHUD=true,CombatHUD=true,MobileCombatHUD=true,ProgressionPanel=true,HeldStandings=true,MatchStandings=true,AccessibleInteractionHUD=true,AccessibleMenuCursor=true,LobbyMusicMenu=true}
+local names={MenuDialog=true,ClassOptionsOverlay=true,FloatingMapVote=true,GetOutHUD=true,GetOutActions=true,CrossgroundsLoading=true,WeaponHUD=true,ExperienceMenu=true,JoinMenu=true,CrossgroundsHub=true,ArenaHUD=true,CombatHUD=true,MobileCombatHUD=true,ProgressionPanel=true,HeldStandings=true,MatchStandings=true,AccessibleInteractionHUD=true,AccessibleMenuCursor=true,LobbyMusicMenu=true}
 local bound=setmetatable({},{__mode="k"}) local panels=setmetatable({},{__mode="k"})
 local function attach(gui)
  if not gui:IsA("ScreenGui") or not names[gui.Name] or bound[gui] then return end
@@ -56,8 +73,9 @@ local function refresh()
  end end
 end
 Preferences.Changed:Connect(function(changes)
- if not changes or changes.FontScale or changes.HighContrast or changes.HUDScale then refresh() end
+ if not changes or changes.FontScale or changes.HighContrast or changes.HUDScale or changes.TouchSafeX or changes.TouchSafeY then refresh() end
 end)
+Theme.ObserveMobile(refresh)
 workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(refresh)
 pcall(function() GuiService:GetPropertyChangedSignal("PreferredTransparency"):Connect(refresh) end)
 Run.RenderStepped:Connect(function(dt)

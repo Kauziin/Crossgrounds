@@ -1,0 +1,60 @@
+return function(t)
+ local Rules=require(game.ReplicatedStorage.ExperienceSettings)
+ local Profile=require(game.ReplicatedStorage.Crossgrounds.PreferenceProfile)
+ local Layout=require(game.ReplicatedStorage.Crossgrounds.MobileLayout)
+ local Interface=require(game.ReplicatedStorage.Crossgrounds.InterfaceLayout)
+ t.test('mobile menus default to sixty percent without changing desktop scale',function()
+  t.expect.equal(Interface.MobileScale(true,nil),.6)
+  t.expect.equal(Interface.MobileScale(false,.4),1)
+  t.expect.equal(Interface.MobileScale(true,0/0),.6)
+  t.expect.equal(Interface.MobileScale(true,5),1)
+ end)
+ t.test('mobile size and safe zones are isolated in touch preferences',function()
+  local p=Profile.New()
+  for _,key in {'MobileMenuScale','TouchSafeX','TouchSafeY'}do
+   t.expect.falsy(Profile.Set(p,'Global',key,.1))
+   t.expect.falsy(Profile.Set(p,'Mode:arena',key,.1))
+   t.expect.truthy(Profile.Set(p,'Device:Touch',key,.1))
+  end
+  t.expect.equal(Profile.Resolve(p,'MenuScale','hub'),1)
+  t.expect.equal(Rules:Sanitize('TouchSafeX',9),.2)
+ end)
+ t.test('essential combat controls cannot be hidden through the preference schema',function()
+  for _,action in {'Fire','Aim','ReloadInteract','Jump','SwitchWeapon'}do
+   t.expect.falsy(Layout.Buttons[action].Optional)
+   t.expect.equal(Rules.Rules[Layout.Key(action,'Visible')],nil)
+  end
+ end)
+ t.test('optional controls preserve explicit false and legacy layouts stay visible',function()
+  local old=Layout.Read('Sprint',function()return nil end)
+  local hidden=Layout.Read('Sprint',function(key)if key=='TouchSprintVisible'then return false end end)
+  t.expect.equal(old.Visible,true)t.expect.equal(hidden.Visible,false)
+  local p=Profile.Migrate({Version=2,Devices={Touch={TouchSprintVisible=false,TouchSafeY=.1}}})
+  t.expect.equal(Profile.Resolve(p,'TouchSprintVisible','ctf'),false)
+  t.expect.equal(Profile.Resolve(p,'TouchSprintVisible','arena'),false)
+  t.expect.equal(Profile.Resolve(p,'TouchSafeY','hub'),.1)
+ end)
+ t.test('all buttons stay completely inside the maximum safe zone across phone sizes',function()
+  for _,viewport in {Vector2.new(750,290),Vector2.new(568,320),Vector2.new(320,160)}do
+   local margin,usable=Layout.SafeBounds(viewport,.2,.2)
+   for _,button in Layout.Buttons do
+    local point,diameter=Layout.Pixels(button,viewport,.2,.2)
+    t.expect.truthy(point.X-diameter/2>=margin.X-0.001)
+    t.expect.truthy(point.Y-diameter/2>=margin.Y-0.001)
+    t.expect.truthy(point.X+diameter/2<=margin.X+usable.X+.001)
+    t.expect.truthy(point.Y+diameter/2<=margin.Y+usable.Y+.001)
+   end
+  end
+ end)
+ t.test('dragging inside a safe zone round trips without a positional jump',function()
+  local viewport=Vector2.new(750,290)local original=Layout.Buttons.Fire
+  local point,diameter=Layout.Pixels(original,viewport,.15,.12)
+  local uv=Layout.NormalizePoint(point,viewport,.15,.12)
+  local moved=table.clone(original)moved.X=uv.X moved.Y=uv.Y
+  local rendered=Layout.Pixels(moved,viewport,.15,.12)
+  t.expect.truthy((point-rendered).Magnitude<.001)
+  local edge=Layout.ClampPoint(Vector2.new(-999,999),diameter,viewport,.15,.12)
+  t.expect.truthy(edge.X>=viewport.X*.15+diameter/2)
+  t.expect.truthy(edge.Y<=viewport.Y*.88-diameter/2)
+ end)
+end

@@ -1608,7 +1608,9 @@ Catalog.Weapons.combat_knife.category = "MELEE"
 Catalog.Weapons.combat_knife.sourceCategory = "SPECIAL"
 
 function Catalog.Get(id)
-    return Catalog.Weapons[id]
+    table.insert(Catalog.Weapons.m4a1.slots,"magazine")
+Catalog.Weapons.m4a1.mountPoints.magazine="M4MagazineWell"
+return Catalog.Weapons[id]
 end
 
 function Catalog.List(slot)
@@ -1692,4 +1694,6 @@ Catalog.Weapons.ax_50.mountPoints={optic="TopRail",muzzle="MuzzleThread",underba
 Catalog.Weapons.aug.platform="AUG"
 Catalog.Weapons.aug.mountPoints={fireControl="AUGFireControl"}
 if not table.find(Catalog.Weapons.aug.slots,"fireControl") then table.insert(Catalog.Weapons.aug.slots,"fireControl") end
+table.insert(Catalog.Weapons.m4a1.slots,"magazine")
+Catalog.Weapons.m4a1.mountPoints.magazine="M4MagazineWell"
 return Catalog

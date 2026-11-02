@@ -43,5 +43,32 @@ for id,a in Catalog do
  if a.pendingAudit then a.mountType=nil end
 end
 Catalog.suppressors_colossus_suppressor.visualVariantOf="suppressors_monolithic_suppressor"
+
+Catalog.barrels_ax_50_heavy={id="barrels_ax_50_heavy",name="AX-50 Heavy Barrel",slot="barrel",status="Available",compatible={"ax_50"},compatibleWeapons={"ax_50"},compatibilityMode="SpecificWeapon",auditStatus="Verified",pendingAudit=false,mountType="AX50Barrel",requiresMount=true,visualOnly=false,publicationBlocked=true,physicalAssetPath=Registry.barrels_ax_50_heavy,statMultipliers={Spread=.65,VisualRecoil={Push=.60,Pitch=.60,Roll=.60},Range=1.12,FalloffStart=1.12,FalloffEnd=1.12,AdsSpeedMultiplier=.85,MovementSpeedMultiplier=.90},description="Heavy: estabilidade maior que Extended, alcance menor; valores provisórios."}
+local magazines={magazines_20rnd_5_56x45mm_normal_magazine=20,magazines_30rnd_5_56x45mm_nato_magazine_kilo=30,magazines_30rnd_5_56x45mm_holger_magazine=30}
+for id,capacity in magazines do
+ local a=Catalog[id] a.status="Available" a.auditStatus="Verified" a.pendingAudit=false
+ a.compatible={"m4a1"} a.compatibleWeapons={"m4a1"} a.compatibilityMode="SpecificWeapon"
+ a.mountType="M4MagazineWell" a.requiresMount=true a.visualOnly=false a.publicationBlocked=true
+ a.statOverrides={Magazine=capacity} a.alignmentPart="Bullets"
+ a.description=tostring(capacity).." munições; reserva e dano preservados. Encaixe dedicado M4A1."
+end
+for _,id in {"suppressors_monolithic_suppressor","suppressors_colossus_suppressor"} do Catalog[id].suppressed=true Catalog[id].noiseMultiplier=.6 Catalog[id].publicationBlocked=true end
+
+-- Loaded-weight estimates are balance parameters, not measured physical masses.
+local ar15Magazines={
+ {id="magazines_ar15_pmag_10",name="AR15 PMAG · 10 munições",capacity=10,weight=.32,movement=1,ads=1,yaw=0},
+ {id="magazines_ar15_pmag_40",name="AR15 PMAG · 40 munições",capacity=40,weight=.68,movement=.97,ads=.96,yaw=0},
+ {id="magazines_ar15_surefire_60",name="AR15 Surefire STANAG · 60 munições",capacity=60,weight=.92,movement=.93,ads=.90,yaw=180},
+}
+for _,v in ar15Magazines do
+ Catalog[v.id]={id=v.id,name=v.name,slot="magazine",status="Available",auditStatus="Verified",pendingAudit=false,
+ compatible={"m4a1"},compatibleWeapons={"m4a1"},compatibilityMode="SpecificWeapon",mountType="M4MagazineWell",requiresMount=true,
+ visualOnly=false,publicationBlocked=true,sourcePack="Rialag's Attachment Pack V2",physicalAssetPath=Registry[v.id],
+ visualScale=1.8,mountYawDegrees=v.yaw,alignmentMode="Top",insertionHeight=.15,
+ estimatedLoadedWeightKg=v.weight,statOverrides={Magazine=v.capacity},
+ statMultipliers={MovementSpeedMultiplier=v.movement,AdsSpeedMultiplier=v.ads},
+ description=string.format("%d munições · movimento -%d%% · velocidade de ADS -%d%%. Peso estimado para balanceamento: %.2f kg.",v.capacity,math.floor((1-v.movement)*100+.5),math.floor((1-v.ads)*100+.5),v.weight)}
+end
 return Catalog
 

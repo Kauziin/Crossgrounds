@@ -1,5 +1,6 @@
 local Catalog=require(script.Parent.WeaponCatalog)
 local Sights={Weapons={},Optics={}}
+Sights.Optics.optics_g_i_mini_reflex={levels={1.35},reticle="RedDot",physical=true,hideWeapon=false}
 Sights.Telescopic={levels={4,8},reticle="MilDot",hideWeapon=true}
 Sights.Weapons.ax_50={levels={4,8},reticle="MilDot",hideWeapon=false,physical=true}
 Sights.Weapons.kar98k=Sights.Telescopic

@@ -4,6 +4,7 @@ local UIS=game:GetService("UserInputService") local Run=game:GetService("RunServ
 local Scope=require(script.Parent:WaitForChild("ModeScope")) local Mode=require(script.Parent:WaitForChild("InputMode"))
 local Router=require(script.Parent:WaitForChild("ControlRouter")) local Nav=require(script.Parent:WaitForChild("MenuNavigation"))
 local Icons=require(script.Parent:WaitForChild("InputIcons"))
+local Theme=require(script.Parent:WaitForChild("MenuTheme"))
 local Settings=require(game.ReplicatedStorage:WaitForChild("ExperienceSettings"))
 local Layout=require(game.ReplicatedStorage:WaitForChild("Crossgrounds"):WaitForChild("MobileLayout"))
 local update=game.ReplicatedStorage.Events:WaitForChild("UpdateExperienceSetting")
@@ -29,13 +30,22 @@ local function cancelInputs()
 end
 -- Properties live independently of the persistent save/cancel toolbar.
 local canvas=button(editor,"Canvas","",0,0,1,1) canvas.Size=UDim2.fromScale(1,1) canvas.BackgroundTransparency=1 canvas.AutoButtonColor=false canvas.ZIndex=1
-local panel=Instance.new("Frame") panel.Name="Tools" panel.Size=UDim2.fromOffset(232,132) panel.BackgroundColor3=Color3.fromRGB(14,25,38) panel.BackgroundTransparency=.12 panel.BorderSizePixel=0 panel.Visible=false panel.ZIndex=30 panel.Parent=editor round(panel,12)
+local panel=Instance.new("Frame") panel.Name="Tools" panel.Size=UDim2.fromOffset(232,176) panel.BackgroundColor3=Color3.fromRGB(14,25,38) panel.BackgroundTransparency=.12 panel.BorderSizePixel=0 panel.Visible=false panel.ZIndex=30 panel.Parent=editor round(panel,12)
 local scale=Instance.new("UIScale") scale.Parent=panel
 local name=label(panel,"Selected","",12,6,208,26,13)
+local visibility=button(panel,'Visibility','',12,124,208,40)
+local safeGuide=Instance.new('Frame')safeGuide.Name='SafeZone'safeGuide.BackgroundTransparency=1 safeGuide.BorderSizePixel=0 safeGuide.Active=false safeGuide.ZIndex=2 safeGuide.Parent=editor
+local guideEdge=Instance.new('UIStroke',safeGuide)guideEdge.Color=accent guideEdge.Transparency=.35 guideEdge.Thickness=1
+local guideLabel=label(safeGuide,'Label','ZONA SEGURA',6,2,140,18,11)
+local function safe()return get('TouchSafeX'),get('TouchSafeY')end
 local function refreshFields()
  panel.Visible=editing and selected~=nil
  if not editing or not selected then return end
  name.Text=Layout.Buttons[selected].Label
+ local optional=Layout.Buttons[selected].Optional
+ visibility.Active=optional==true visibility.Selectable=optional==true
+ visibility.Text=optional and (draft[selected].Visible~=false and 'OCULTAR BOTÃO' or 'MOSTRAR BOTÃO')or 'CONTROLE ESSENCIAL'
+ visibility.TextTransparency=optional and 0 or .4
  for field,box in fields do if UIS:GetFocusedTextBox()~=box then box.Text=string.format("%.0f",draft[selected][field]*(field=="Size" and 1 or 100)) end end
 end
 local function change(field,value,action)
@@ -44,6 +54,9 @@ local function change(field,value,action)
  local clean=Settings:Sanitize(Layout.Key(action,field),value)
  if clean~=nil then draft[action][field]=clean refreshFields() end
 end
+Nav:Connect(visibility,function()
+ if editing and selected and Layout.Buttons[selected].Optional then draft[selected].Visible=not draft[selected].Visible refreshFields()end
+end)
 for i,field in {"Size","Opacity"} do
  local row=Instance.new("Frame") row.Name=field row.Position=UDim2.fromOffset(12,34+(i-1)*44) row.Size=UDim2.fromOffset(208,40) row.BackgroundTransparency=1 row.Parent=panel
  label(row,"Label",field=="Size" and "Tamanho" or "Opacidade",0,0,76,36,11)
@@ -74,22 +87,24 @@ canvas.InputBegan:Connect(function(input)
 end)
 local function move(action,point)
  local d=draft[action] local size=editor.AbsoluteSize
- local _,diameter=Layout.Pixels(d,size)
- point=Layout.ClampPoint(point,diameter,size)
- d.X=point.X/math.max(size.X,1) d.Y=point.Y/math.max(size.Y,1)
+ local sx,sy=safe()
+ local _,diameter=Layout.Pixels(d,size,sx,sy)
+ point=Layout.ClampPoint(point,diameter,size,sx,sy)
+ local normalized=Layout.NormalizePoint(point,size,sx,sy)d.X=normalized.X d.Y=normalized.Y
 end
 local function positionPanel()
  if not selected then return end
  local size=editor.AbsoluteSize
- scale.Scale=math.max(.4,math.min(1,(size.X-16)/232,(size.Y-70)/132))
- local width,height=232*scale.Scale,132*scale.Scale
- local center=Layout.Pixels(draft[selected],size)
+ local sx,sy=safe()local margin,usable=Layout.SafeBounds(size,sx,sy)
+ scale.Scale=math.max(.1,math.min(1,(usable.X-16)/232,(usable.Y-70)/176))*Theme.MobileFactor()
+ local width,height=232*scale.Scale,176*scale.Scale
+ local center=Layout.Pixels(draft[selected],size,sx,sy)
  local best,score
  for _,p in {Vector2.new(8,54),Vector2.new(math.max(8,size.X-width-8),54),Vector2.new(8,math.max(54,size.Y-height-8)),Vector2.new(math.max(8,size.X-width-8),math.max(54,size.Y-height-8))} do
   local distance=(p+Vector2.new(width/2,height/2)-center).Magnitude
   if not score or distance>score then best=p score=distance end
  end
- panel.Position=UDim2.fromOffset(best.X,best.Y)
+ panel.Position=UDim2.fromOffset(math.clamp(best.X,margin.X,math.max(margin.X,size.X-margin.X-width)),math.clamp(best.Y,margin.Y,math.max(margin.Y,size.Y-margin.Y-height)))
 end
 local function close(keep)
  if not editing then return end
@@ -104,7 +119,7 @@ local function close(keep)
 end
 Nav:Connect(save,function() close(true) end) Nav:Connect(cancel,function() close(false) end)
 Nav:Connect(reset,function()
- for action,data in Layout.Buttons do for _,field in {"X","Y","Size","Opacity"} do draft[action][field]=data[field] end end
+ for action,data in Layout.Buttons do for _,field in {"X","Y","Size","Opacity"} do draft[action][field]=data[field] end if data.Optional then draft[action].Visible=true end end
  refreshFields()
 end)
 Nav:SetBack(editor,function() close(false) end,save)
@@ -175,6 +190,9 @@ Run.RenderStepped:Connect(function()
  if not show and next(active) or not show and aimToggle then cancelInputs() end
  surface.Visible=show
  if editing then
+  local sx,sy=safe()safeGuide.Position=UDim2.fromScale(sx,sy)safeGuide.Size=UDim2.fromScale(1-2*sx,1-2*sy)
+  local toolbarScale=toolbar:FindFirstChildOfClass('UIScale')or Instance.new('UIScale',toolbar)toolbarScale.Scale=Theme.MobileFactor()
+  toolbar.Position=UDim2.new(.5,0,sy,8)
   if gamepadDrag then
    local cursor=player:GetAttribute("MenuCursorPosition")
    if cursor and gamepadDrag.cursor then move(gamepadDrag.action,gamepadDrag.position+cursor-gamepadDrag.cursor) end
@@ -183,15 +201,17 @@ Run.RenderStepped:Connect(function()
  end
  for action,b in buttons do
   local data=editing and draft[action] or Layout.Read(action,get)
-  local point,diameter=Layout.Pixels(data,(editing and editor or surface).AbsoluteSize)
+  local sx,sy=safe()local point,diameter=Layout.Pixels(data,(editing and editor or surface).AbsoluteSize,sx,sy)
   b.Position=UDim2.fromScale(point.X/math.max((editing and editor or surface).AbsoluteSize.X,1),point.Y/math.max((editing and editor or surface).AbsoluteSize.Y,1)) b.Size=UDim2.fromOffset(diameter,diameter)
   -- Store the displayed normalized position for resolution-independent dragging.
   if editing and not drag then b.Position=UDim2.fromScale(point.X/math.max(editor.AbsoluteSize.X,1),point.Y/math.max(editor.AbsoluteSize.Y,1)) end
   local adminButton=Layout.Buttons[action].AdminOnly
   b.Visible=adminButton and admin and (editing or (not player:GetAttribute("AdminCaptureClean") and (action=="AdminMode" or freecam))) or not adminButton and (editing or Scope:IsCombat() and not Router:IsBlocked() and not freecam and allowed(action,kind))
+  if not editing and data.Visible==false then b.Visible=false end
+  if not b.Visible and active[action]then Router:Dispatch(action,Enum.UserInputState.Cancel,active[action])active[action]=nil end
   local pressed=active[action]~=nil or action=="Aim" and aimToggle
   b.BackgroundColor3=pressed and Color3.fromRGB(36,119,136) or Color3.fromRGB(19,32,45)
-  local opacity=data.Opacity*(adminButton and not editing and not pressed and .55 or 1)
+  local opacity=data.Opacity*(editing and data.Visible==false and .3 or 1)*(adminButton and not editing and not pressed and .55 or 1)
   b.BackgroundTransparency=1-opacity*(adminButton and .24 or .48)
   b.Outline.Color=editing and selected==action and accent or white b.Outline.Transparency=1-opacity b.Outline.Thickness=adminButton and not editing and 1 or 2
   artwork[action]:SetOpacity(opacity)
@@ -200,7 +220,7 @@ Run.RenderStepped:Connect(function()
  local jump=touchGui and touchGui:FindFirstChild("JumpButton",true)
  if jump~=nativeJump then nativeJump=jump oldJumpVisible=nil end
  if nativeJump then
-  if show and not freecam then if oldJumpVisible==nil then oldJumpVisible=nativeJump.Visible end nativeJump.Visible=false
+  if UIS.TouchEnabled and (show and not freecam or editing or player:GetAttribute('GameMenuOpen')) then if oldJumpVisible==nil then oldJumpVisible=nativeJump.Visible end nativeJump.Visible=false
   elseif oldJumpVisible~=nil then nativeJump.Visible=oldJumpVisible oldJumpVisible=nil end
  end
 end)

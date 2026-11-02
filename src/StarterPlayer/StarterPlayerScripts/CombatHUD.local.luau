@@ -35,16 +35,16 @@ local function button(parent,name,text,pos,size)
 end
 task.spawn(function() for _=1,8 do local ok=pcall(function() StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack,false) StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Health,false) end) if ok then break end task.wait(.5) end end)
 local panel=frame(gui,"StatusPanel",UDim2.new(0,24,1,-24),UDim2.fromOffset(278,112),dark,1) panel.AnchorPoint=Vector2.new(0,1) round(panel,9)
-local weapon=label(panel,"Weapon","",UDim2.fromOffset(12,7),UDim2.fromOffset(145,24),15) weapon.Font=Enum.Font.GothamBold
-local ammo=label(panel,"Ammo","",UDim2.fromOffset(153,5),UDim2.fromOffset(113,27),20) ammo.TextXAlignment=Enum.TextXAlignment.Right ammo.Font=Enum.Font.GothamBold
-local hp=label(panel,"Health","200",UDim2.fromOffset(230,34),UDim2.fromOffset(36,18),12) hp.TextXAlignment=Enum.TextXAlignment.Right
-local healthBack=frame(panel,"HealthBar",UDim2.fromOffset(12,39),UDim2.fromOffset(209,7),Color3.fromRGB(51,64,76)) round(healthBack,3) Style.Outline(healthBack)
+local weapon=label(panel,"Weapon","",UDim2.fromOffset(12,46),UDim2.fromOffset(145,24),15) weapon.Font=Enum.Font.GothamBold
+local ammo=label(panel,"Ammo","",UDim2.fromOffset(153,44),UDim2.fromOffset(113,27),20) ammo.TextXAlignment=Enum.TextXAlignment.Right ammo.Font=Enum.Font.GothamBold
+local hp=label(panel,"Health","200",UDim2.fromOffset(12,7),UDim2.fromOffset(252,22),15) hp.TextXAlignment=Enum.TextXAlignment.Left
+local healthBack=frame(panel,"HealthBar",UDim2.fromOffset(12,33),UDim2.fromOffset(252,9),Color3.fromRGB(51,64,76)) round(healthBack,3) Style.Outline(healthBack)
 local healthFill=frame(healthBack,"Fill",UDim2.new(),UDim2.fromScale(1,1),Color3.fromRGB(92,213,139)) round(healthFill,3)
 -- Health is driven by the current Humanoid, independent of HUD visibility/polling.
 local healthConnections={} local boundHumanoid
 local function refreshHealth()
  local h=boundHumanoid local value=h and h.Health or 0 local maximum=h and h.MaxHealth or 1
- hp.Text=tostring(math.ceil(value))
+ hp.Text="VIDA "..math.ceil(value).." / "..math.ceil(maximum)
  healthFill.Size=UDim2.fromScale(math.clamp(value/math.max(1,maximum),0,1),1)
  healthFill.BackgroundColor3=value/math.max(1,maximum)<.3 and Color3.fromRGB(239,102,88) or Color3.fromRGB(92,213,139)
 end
@@ -66,7 +66,8 @@ end
 player.CharacterAdded:Connect(bindHealth)
 player.CharacterRemoving:Connect(function(character) if boundHumanoid and boundHumanoid.Parent==character then bindHealth(nil) end end)
 bindHealth(player.Character)
-local staminaBack=frame(panel,"StaminaBar",UDim2.fromOffset(12,53),UDim2.fromOffset(254,4),Color3.fromRGB(51,64,76)) round(staminaBack,2) Style.Outline(staminaBack,Color3.fromRGB(129,202,255))
+local staminaTitle=label(panel,"StaminaTitle","ESTAMINA",UDim2.fromOffset(12,72),UDim2.fromOffset(252,18),11)
+local staminaBack=frame(panel,"StaminaBar",UDim2.fromOffset(12,95),UDim2.fromOffset(252,6),Color3.fromRGB(51,64,76)) round(staminaBack,2) Style.Outline(staminaBack,Color3.fromRGB(129,202,255))
 local staminaFill=frame(staminaBack,"Fill",UDim2.new(),UDim2.fromScale(1,1),Color3.fromRGB(99,182,236)) round(staminaFill,2)
 local activeWeapons
 local function refreshActiveWeapons()
@@ -80,7 +81,7 @@ local function refreshActiveWeapons()
 end
 player:GetAttributeChangedSignal("CTFArsenalState"):Connect(refreshActiveWeapons) refreshActiveWeapons()
 local slots={}
-for i=1,3 do slots[i]=button(panel,"Slot"..i,"",UDim2.fromOffset(12+(i-1)*86,70),UDim2.fromOffset(80,30)) Style.Outline(slots[i]) Style.Text(slots[i]) end
+for i=1,3 do slots[i]=button(panel,"Slot"..i,"",UDim2.fromOffset(12+(i-1)*86,112),UDim2.fromOffset(80,30)) Style.Outline(slots[i]) Style.Text(slots[i]) end
 local menu=button(gui,"MenuButton","",UDim2.fromOffset(24,56),UDim2.fromOffset(155,30)) menu.BackgroundTransparency=1 Style.Outline(menu) Style.Text(menu)
 local menuGlyph=Icons:Glyph(menu,"Command",function() return Router:Key(player:GetAttribute("InMatch") and "Leave" or "KitMenu",InputMode:Get()==Enum.PreferredInput.Gamepad and "Gamepad" or "Keyboard") end,24) menuGlyph.Position=UDim2.new(0,5,.5,-12)
 menu.TextXAlignment=Enum.TextXAlignment.Right
@@ -165,7 +166,7 @@ local function resize()
  local safeY=gamepad and math.max(24,v.Y*.05) or 24
  panel.AnchorPoint=touch and Vector2.new(0,0) or Vector2.new(0,1)
  panel.Position=touch and UDim2.fromOffset(18,135) or UDim2.new(0,safeX,1,-safeY)
- panel.Size=UDim2.fromOffset(278,touch and 126 or 112)
+ panel.Size=UDim2.fromOffset(278,touch and 168 or 152)
  for _,b in slots do b.Size=UDim2.fromOffset(80,touch and 44 or 30) end
  local scale=panel:FindFirstChildOfClass("UIScale") or Instance.new("UIScale",panel)
  local factor=gamepad and math.clamp(v.Y/720,1,1.5) or touch and 1 or math.clamp(v.X/1100,.72,1)

@@ -105,6 +105,13 @@ function Stats.Resolve(weaponId, configuration)
 		end
 	end
 
+ -- Exact capacity overrides are restricted to integer magazine capacities.
+ for _,attachment in selected do
+  for field,value in attachment.statOverrides or {} do
+   if field~="Magazine" or not finite(value) or value%1~=0 or value<1 or value>200 then return nil end
+   data.Magazine=value
+  end
+ end
 	-- Proteções para valores utilizados no combate.
 	data.Cooldown = math.max(0.03, data.Cooldown)
 	data.Magazine = math.max(1, math.floor(data.Magazine + 0.5))
@@ -131,6 +138,7 @@ function Stats.ResolveTool(tool)
 	end
 
 	local id = tool:GetAttribute("WeaponId")
+ if tool:GetAttribute("ArenaWeapon")==true then return Kits.Weapons[id] end
 	local visualId = tool:GetAttribute("VisualWeaponId")
 	local raw = tool:GetAttribute("VisualConfiguration") or ""
 

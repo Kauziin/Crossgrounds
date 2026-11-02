@@ -396,7 +396,8 @@ bind("Shoulder",function() Presentation:ToggleShoulder() end)
 bind("Perspective",function() Presentation:TogglePerspective() end)
 local function canZoom()
  local _,_,t=current()
- return aiming and not Presentation:IsBlocked() and t~=nil and SightDefinitions.Get(t:GetAttribute("WeaponId"),t:GetAttribute("OpticalAttachmentId"))~=nil
+ local profile=t and SightDefinitions.Get(t:GetAttribute("WeaponId"),t:GetAttribute("OpticalAttachmentId"))
+ return aiming and not Presentation:IsBlocked() and profile~=nil and #profile.levels>1
 end
 local function toggleZoom() if canZoom() then zoomLevel=zoomLevel==1 and 2 or 1 end end
 for action,level in {ScopeZoomIn=2,ScopeZoomOut=1} do
@@ -538,7 +539,7 @@ RunService:BindToRenderStep("CTFCombatPresentation",Enum.RenderPriority.Camera.V
  local weaponId=tool:GetAttribute("WeaponId")
  local scoped=sightProfile~=nil
  -- Optical overlay is updated after the physical weapon pose below.
- zoomButton.Visible=scoped
+ zoomButton.Visible=scoped and #sightProfile.levels>1
  if scoped then
   local device=InputMode:Get()==Enum.PreferredInput.Gamepad and "Gamepad" or "Keyboard"
   zoomButton.Text=(zoomLevel==1 and "4×" or "8×")
@@ -567,9 +568,9 @@ RunService:BindToRenderStep("CTFCombatPresentation",Enum.RenderPriority.Camera.V
   local arc=data.Kind~="Gun" and ActionMotion.Melee(os.clock()-swingAt,data) or 0
   local action=ActionMotion.Sample({equippedFor=os.clock()-equippedAt,ads=adsWeight,slide=loco.slide,land=loco.land,vertical=localMove.Y,firedAgo=os.clock()-firedAt})
   action.weapon=loco.weapon*action.weapon
-  renderer:Render(deltaTime,camera,character,{runPose=runPose,runWeight=runWeight,runPhase=runPhase,recoil=recoil,pitch=recoilPitch,roll=roll,arc=arc,action=action,ads=adsWeight,sight=sightProfile,firedAgo=os.clock()-firedAt,cooldown=data.Cooldown})
+  renderer:Render(deltaTime,camera,character,{runPose=runPose,runWeight=runWeight,runPhase=runPhase,recoil=recoil,pitch=recoilPitch,roll=roll,arc=arc,action=action,ads=adsWeight,sight=sightProfile,sightActive=aiming,firedAgo=os.clock()-firedAt,cooldown=data.Cooldown})
  elseif renderer then renderer:SetVisible(false) end
- opticalSight:Update(sightProfile,camera.ViewportSize,Presentation:GetAimViewport(),adsWeight,firstPerson and renderer and renderer.opticalAperture or nil)
+ opticalSight:Update(sightProfile,camera.ViewportSize,Presentation:GetAimViewport(),adsWeight,firstPerson and renderer and renderer.opticalAperture or nil,aiming)
 
  player:SetAttribute("CombatCameraActive",true) player:SetAttribute("CameraLocked",locked) player:SetAttribute("FirstPerson",firstPerson) player:SetAttribute("CameraShoulder",shoulder) player:SetAttribute("CombatAiming",aiming) player:SetAttribute("UsingXboxCursor",false)
  player:SetAttribute("VisualWeaponRecoil",recoil) player:SetAttribute("VisualWeaponPitch",recoilPitch)

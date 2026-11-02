@@ -131,5 +131,9 @@ Registry["melee_meteoric_scorching_sword"]={"ServerStorage","ImportedArsenalOrig
 Registry["melee_charcoal_burner_sword"]={"ServerStorage","ImportedArsenalOriginals","32 Free Low Poly Fantasy Sword & Weapon Models","Fire_and_Volcanic_Swords","Charcoal_Burner_Sword"}
 Registry["melee_forge_god_hammer_sword"]={"ServerStorage","ImportedArsenalOriginals","32 Free Low Poly Fantasy Sword & Weapon Models","Fire_and_Volcanic_Swords","Forge_God_Hammer_Sword"}
 Registry["melee_flame_king_crown_sword"]={"ServerStorage","ImportedArsenalOriginals","32 Free Low Poly Fantasy Sword & Weapon Models","Fire_and_Volcanic_Swords","Flame_King_Crown_Sword"}
+Registry.barrels_ax_50_heavy={"ServerStorage","ImportedArsenalOriginals","CoD:MW Weapon/Attachment Props","ATTACHMENTS","Barrels","AX-50 Heavy Barrel"}
+Registry.magazines_ar15_pmag_10={"ServerStorage","ImportedArsenalOriginals","RialagAR15_Selections","PMAG 10"}
+Registry.magazines_ar15_pmag_40={"ServerStorage","ImportedArsenalOriginals","RialagAR15_Selections","PMAG 40"}
+Registry.magazines_ar15_surefire_60={"ServerStorage","ImportedArsenalOriginals","RialagAR15_Selections","60RD SUREFIRE STANAG"}
 return Registry
 

@@ -58,6 +58,8 @@ function Renderer:Flash() self.flashUntil=os.clock()+.045 end
 function Renderer:Render(dt,camera,character,params)
  self:SetVisible(true)
  local transition=ADS.Sample(params.sight and params.ads or 0,params.sight)
+ transition.reticle=params.sightActive and 1 or 0
+ transition.lens=params.sightActive and 1 or 0
  if self.ocular then for _,v in self.ocular do v.part.Transparency=1-transition.lens end end
  local weight=Motion.WeaponWeight(player)
  local projection,depth=Motion.WeaponProjection(camera.FieldOfView,Motion.Get(player,"WeaponFOVScale",1))
@@ -89,12 +91,23 @@ function Renderer:Render(dt,camera,character,params)
  local action=params.action or {weapon=CFrame.new(),slide=CFrame.new(),support=Vector3.zero}
  local cf=base*softened(action.weapon)*softened(params.runPose or CFrame.new())*reload.weapon*CFrame.new(-arc*.7,self.wall*.12-arc*.35,self.wall*.45+(params.recoil or 0)*weight)*CFrame.Angles(math.rad((params.pitch or 0)*weight+self.wall*55-arc*65),0,math.rad((params.roll or 0)*weight-arc*55))
  local bolt=self.ax50 and AX50.Bolt(params.firedAgo or 100,params.cooldown,reloading) or nil
+ if params.sight and params.sight.reticle=="RedDot" then
+  for _,entry in self.parts do
+   if entry.part:GetAttribute("VisualAttachmentSlot")=="optic" and entry.part.Name:find("Lens",1,true) then
+    local eye=entry.rest.Position
+    cf=cf:Lerp(CFrame.new(-eye.X,-eye.Y,-eye.Z-.65),transition.alignment)
+    break
+   end
+  end
+ end
  if bolt then cf*=softened(bolt.weapon) end
  if self.optic then
   local aligned=AXOptics.Alignment(self.optic,projection)
   local settle=transition.alignment*(1-reload.active)
   local kick=CFrame.new(0,0,(params.recoil or 0)*.12*weight)*CFrame.Angles(math.rad((params.pitch or 0)*.13*weight),0,math.rad((params.roll or 0)*.2*weight))
   local breath=math.sin(os.clock()*1.4)*.0015*weight
+  local tilt=math.rad(-4)*transition.alignment
+  aligned=aligned*CFrame.new(self.optic.center)*CFrame.Angles(tilt,0,0)*CFrame.new(-self.optic.center)
   aligned=aligned*CFrame.new(breath,breath*.55,0)*softened(bolt.weapon)*kick
   cf=cf:Lerp(aligned,settle)
  end
@@ -112,12 +125,13 @@ function Renderer:Render(dt,camera,character,params)
   end
   local bore=self.optic and (entry.part.Name=='Bolt' or entry.part.Name=='Base' or entry.part.Name=='Barrel' or entry.part.Name=='Muzzle' or entry.part.Name=='Rails' or entry.part.Name=='Handguard' or entry.part.Name=='Bullet')
   local reloadTransparency=reload.visibility and reload.visibility[entry.group] or 0
-  entry.part.LocalTransparencyModifier=math.max(reloadTransparency*weight,entry.closedOptic and transition.lens or bore and transition.lens*(1-bolt.active) or self.optic and 0 or params.sight and params.sight.hideWeapon and transition.lens or cap and transition.lens or 0)
+  local reflexLens=params.sight and params.sight.reticle=="RedDot" and entry.part:GetAttribute("VisualAttachmentSlot")=="optic" and entry.part.Name:find("Lens",1,true)
+  entry.part.LocalTransparencyModifier=math.max(reloadTransparency*weight,reflexLens and transition.lens or entry.closedOptic and transition.lens or self.optic and 0 or params.sight and params.sight.hideWeapon and transition.lens or cap and transition.lens or 0)
   entry.part.CFrame=cf*transform*entry.rest
   if entry.reloadOnly then entry.part.Transparency=reload.active>.02 and 0 or 1 end
  end
  for _,arm in self.arms do
-  arm.part.LocalTransparencyModifier=self.optic and transition.arms*(1-bolt.active) or transition.arms
+  arm.part.LocalTransparencyModifier=self.optic and 0 or transition.arms
   local side=arm.side=="Right" and 1 or -1
   local hand=arm.hand+(side<0 and reload.hand+(action.support or Vector3.zero)*weight or bolt and bolt.hand*weight or Vector3.zero)
   local elbow=Vector3.new(side*(.9+(.18+.36*math.sin(params.runPhase or 0))*(params.runWeight or 0)*weight),-.65,1.25)

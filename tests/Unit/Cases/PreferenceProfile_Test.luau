@@ -21,7 +21,9 @@ return function(t)
  t.test("corrupt and unknown fields fall back safely",function()
   local p=Profile.Migrate({Version=2,Global={MenuScale=math.huge,ReticleColor=99,Damage=999},Modes="invalid",Devices={Touch={TouchFireX=99}}})
   t.expect.equal(Profile.Resolve(p,"MenuScale","hub"),1) t.expect.equal(Profile.Resolve(p,"ReticleColor","ctf"),1)
-  t.expect.equal(p.Global.Damage,nil) t.expect.equal(p.Devices.Touch.TouchFireX,.96)
+  -- Coordinates span 0..1; MobileLayout keeps the rendered button inside the
+  -- device bounds and the selected safe zone, including its actual radius.
+  t.expect.equal(p.Global.Damage,nil) t.expect.equal(p.Devices.Touch.TouchFireX,1)
   t.expect.equal(Profile.Migrate({Version=2,Global=2,Devices=1}).Version,2)
  end)
  t.test("unimplemented modes and disallowed scope matrices cannot be written",function()

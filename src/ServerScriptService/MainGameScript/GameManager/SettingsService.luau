@@ -8,6 +8,8 @@ local store= not Run:IsStudio() and game:GetService("DataStoreService"):GetDataS
 local profiles,dirty,revisions,rate,states,connections={},{},{},{},{},{}
 local acknowledgements={}
 local Policy=require(game.ReplicatedStorage.ControlPolicy)
+local Themes=require(game.ReplicatedStorage.Crossgrounds.ThemeCatalog)
+local ThemeAccess=require(game.ServerScriptService.Crossgrounds.ThemeEntitlements)
 local normalize
 local scopes={"Global","Mode:ctf","Mode:arena","Device:Keyboard","Device:Gamepad","Device:Touch"}
 local function sync(p)
@@ -31,7 +33,9 @@ local function mark(p,scope,key)
  revisions[p]=(revisions[p] or 0)+1 dirty[p]=dirty[p] or {} dirty[p][scope.."|"..key]=revisions[p]
 end
 local function set(p,scope,key,value,inherit)
- local profile=profiles[p] if not profile or not Profile.Set(profile,scope,key,value,inherit) then return false end
+ local profile=profiles[p] if not profile then return false end
+ if not inherit and value~=Definition.Rules[key].Default and not Themes.CanEdit(key,value,ThemeAccess.Owns(p)) then return false end
+ if not Profile.Set(profile,scope,key,value,inherit) then return false end
  mark(p,scope,key) return true
 end
 local function rebind(p,action,device,name)
@@ -63,6 +67,7 @@ local function save(p)
 end
 local function added(p)
  profiles[p]=Profile.New() revisions[p]=0 dirty[p]={} acknowledgements[p]={}
+ ThemeAccess.Add(p)
  local gui=Instance.new("ScreenGui") gui.Name="PreferenceState" gui.ResetOnSpawn=false gui.Enabled=false gui.Parent=p:WaitForChild("PlayerGui") states[p]=gui
  p:SetAttribute("SettingsPersistence",not Run:IsStudio()) p:SetAttribute("SettingsSaveState",Run:IsStudio() and "StudioSessionOnly" or "Loading") sync(p)
  connections[p]=p:GetAttributeChangedSignal("CrossgroundsMode"):Connect(function() sync(p) end)
@@ -129,6 +134,7 @@ update.OnServerEvent:Connect(function(p,key,value)
  sync(p) p:SetAttribute("SettingsSaveState",Run:IsStudio() and "StudioSessionOnly" or "Pending")
 end)
 function Service:Snapshot(p) return profiles[p] and Profile.Migrate(profiles[p]) end
+ThemeAccess.Start(function(p) if profiles[p] then sync(p) end end)
 Players.PlayerAdded:Connect(function(p) task.spawn(added,p) end)
 Players.PlayerRemoving:Connect(function(p)
  save(p) if connections[p] then connections[p]:Disconnect() end

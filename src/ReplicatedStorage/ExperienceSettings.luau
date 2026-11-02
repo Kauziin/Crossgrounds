@@ -35,7 +35,9 @@ local extra={
  MenuScale={Label="Escala do menu",Default=1,Min=.8,Max=1.3,Step=.05,Percent=true,Category="Interface"},
  HUDScale={Label="Escala da HUD",Default=1,Min=.8,Max=1.3,Step=.05,Percent=true,Category="Interface",ModeOverride=true},
  FontScale={Label="Tamanho adicional do texto",Default=1,Min=.9,Max=1.35,Step=.05,Percent=true,Category="Accessibility"},
- AccentHue={Label="Tema · cor de destaque",Default=180,Min=0,Max=355,Step=5,Category="Interface"},
+ AccentHue={Label="Matiz",Default=180,Min=0,Max=359,Step=1,Category="Themes"},
+ AccentSaturation={Label="Saturação",Default=.84,Min=0,Max=1,Step=.01,Percent=true,Category="Themes"},
+ AccentValue={Label="Brilho",Default=1,Min=0,Max=1,Step=.01,Percent=true,Category="Themes"},
  HighContrast={Label="Alto contraste",Default=false,Category="Accessibility"},
  KillFeedVisible={Label="Mostrar killfeed",Default=true,Category="Interface",ModeOverride=true},
  ReticleColor={Label="Cor do retículo",Default=1,Choices={1,2,3,4,5,6},Labels={[1]="BRANCO",[2]="VERDE",[3]="CIANO",[4]="AMARELO",[5]="ROSA",[6]="VERMELHO"},Category="Reticle",ModeOverride=true},
@@ -47,10 +49,19 @@ local extra={
  ReticleOpacity={Label="Opacidade do retículo",Default=1,Min=.2,Max=1,Step=.05,Percent=true,Category="Reticle",ModeOverride=true},
  ReticleDynamic={Label="Retículo dinâmico ao mover/disparar",Default=false,Category="Reticle",ModeOverride=true},
 }
+local themeChoices={0} local themeLabels={[0]='PERSONALIZADO'}
+for i,preset in require(script.Parent.Crossgrounds.ThemeCatalog).Presets do table.insert(themeChoices,i) themeLabels[i]=preset.Name end
+extra.ThemePreset={Label='Tema da interface',Default=1,Choices=themeChoices,Labels=themeLabels,Category='Themes'}
 for key,rule in extra do Settings.Rules[key]=rule table.insert(Settings.Order,key) end
 Settings.Rules.CameraMotion.ModeOverride=true Settings.Rules.DamageFlash.ModeOverride=true
 local Layout=require(script.Parent.Crossgrounds.MobileLayout)
+for key,rule in {
+ MobileMenuScale={Label='Escala dos menus no celular',Default=.6,Min=.35,Max=1,Step=.05,Percent=true},
+ TouchSafeX={Label='Zona segura horizontal',Default=0,Min=0,Max=.2,Step=.01,Percent=true},
+ TouchSafeY={Label='Zona segura vertical',Default=0,Min=0,Max=.2,Step=.01,Percent=true},
+} do rule.Category='Touch' rule.PreferenceDevice='Touch' Settings.Rules[key]=rule table.insert(Settings.Order,key) end
 for action,data in Layout.Buttons do
+ if data.Optional then Settings.Rules[Layout.Key(action,'Visible')]={Label='Mostrar '..data.Label:lower(),Default=true,MobileLayout=true} end
  for _,field in {"X","Y","Size","Opacity"} do
   local limits=field=="Size" and {40,112} or field=="Opacity" and {.15,1} or {0,1}
   Settings.Rules[Layout.Key(action,field)]={Default=data[field],MobileLayout=true,Min=limits[1],Max=limits[2],Step=field=="Size" and 1 or field=="Opacity" and .01 or .0001}
@@ -66,16 +77,17 @@ local Controls=require(script.Parent.ControlDefinitions)
 for action,data in pairs(Controls.Actions) do
  for _,device in {"Gamepad","Keyboard"} do Settings.Rules[Controls:Attribute(action,device)]={Default=data[device],Device=device,Action=action} end
 end
-local categories={Gameplay={"AutoSprint"},Camera={"FieldOfView","WeaponFOVScale","FirstPerson","ShiftLock","Shoulder","CameraMotion"},Aim={"LookSensitivity","AimSensitivity","AimAssist","AimAssistStrength","AimAssistSlowdown","AimAssistTracking","AimAssistCentering"},Analog={"LeftStickDeadzone","RightStickDeadzone","StickCurve","StickCurveStrength"},Audio={"MenuVolume","MenuSFXVolume","GameSFXVolume","BeastProximityVolume"},Accessibility={"FontScale","HighContrast","ReducedMenuMotion","SimpleAnimations","WeaponAnimationIntensity","FOVTransitionSpeed","DamageFlash"},Interface={"AccentHue","MenuScale","HUDScale","KillFeedVisible"}}
+local categories={Gameplay={"AutoSprint"},Camera={"FieldOfView","WeaponFOVScale","FirstPerson","ShiftLock","Shoulder","CameraMotion"},Aim={"LookSensitivity","AimSensitivity","AimAssist","AimAssistStrength","AimAssistSlowdown","AimAssistTracking","AimAssistCentering"},Analog={"LeftStickDeadzone","RightStickDeadzone","StickCurve","StickCurveStrength"},Audio={"MenuVolume","MenuSFXVolume","GameSFXVolume","BeastProximityVolume"},Accessibility={"FontScale","HighContrast","ReducedMenuMotion","SimpleAnimations","WeaponAnimationIntensity","FOVTransitionSpeed","DamageFlash"},Interface={"MenuScale","HUDScale","KillFeedVisible"}}
 categories.Reticle={"ReticleColor","ReticleSize","ReticleThickness","ReticleGap","ReticleDot","ReticleOutline","ReticleOpacity","ReticleDynamic"}
 categories.Graphics={"GraphicsQuality"}
+categories.Themes={"ThemePreset","AccentHue","AccentSaturation","AccentValue"}
 Settings.Categories=categories
 Settings.Groups={}
 for _,entry in {{"Gameplay","GERAL"},{"Camera","CÂMERA"},{"Aim","MIRA"},{"Reticle","RETÍCULO"},{"Analog","ANALÓGICOS"},{"Interface","INTERFACE"},{"Audio","ÁUDIO"},{"Graphics","GRÁFICOS"},{"Accessibility","ACESSIBILIDADE"}} do table.insert(Settings.Groups,{Label=entry[2],Keys=categories[entry[1]]}) end
 for category,keys in categories do for _,key in keys do Settings.Rules[key].Category=category end end
 for key,rule in Settings.Rules do
  rule.Id=key rule.Category=rule.Category or (rule.MobileLayout and "Touch" or rule.Device and "Bindings" or "Gameplay")
- rule.PreferenceDevice=rule.Device or rule.MobileLayout and "Touch" or table.find(categories.Analog,key) and "Gamepad" or key=="AutoSprint" and "Touch" or nil
+ rule.PreferenceDevice=rule.PreferenceDevice or rule.Device or rule.MobileLayout and "Touch" or table.find(categories.Analog,key) and "Gamepad" or key=="AutoSprint" and "Touch" or nil
  rule.Scope=rule.PreferenceDevice and "Device" or rule.ModeOverride and "Global+Mode" or "Global"
  rule.Type=rule.Device and "binding" or rule.Choices and "choice" or typeof(rule.Default)=="boolean" and "boolean" or "number"
  rule.Modes=rule.ModeOverride and {"ctf","arena"} or nil rule.Local=true rule.Experimental=false

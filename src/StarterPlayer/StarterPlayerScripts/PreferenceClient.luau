@@ -63,6 +63,7 @@ local function snapshot()
 end
 function Client:Edit(key,scope,value,op)
  if not Definition.Rules[key] then return false end
+ if (op==nil or op=='set') and not require(game.ReplicatedStorage.Crossgrounds.ThemeCatalog).CanEdit(key,value,player:GetAttribute('ThemeCustomAllowed')) then return false end
  if op~=nil and op~="set" and op~="default" and op~="inherit" then return false end
  scope=self:Context(key,scope) if not Definition:Allows(key,scope) then return false end
  if op=="default" then value=Definition.Rules[key].Default end

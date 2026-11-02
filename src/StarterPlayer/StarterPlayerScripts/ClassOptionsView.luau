@@ -1,13 +1,17 @@
 local View={}
+local Theme=require(script.Parent.MenuTheme)
 function View.new(parent,options)
  local nav=options.Navigation local self={} local dead=false local buttons={} local confirming=false
  local gui=Instance.new('ScreenGui') gui.Name='ClassOptionsOverlay' gui.IgnoreGuiInset=true gui.ResetOnSpawn=false gui.DisplayOrder=90 gui.Parent=game.Players.LocalPlayer.PlayerGui
  local shade=Instance.new('TextButton') shade.Name='ClassOptions' shade.Text='' shade.BackgroundColor3=Color3.new() shade.BackgroundTransparency=.45 shade.Size=UDim2.fromScale(1,1) shade.ZIndex=20 shade:SetAttribute('CascadeDecoration',true) shade.Parent=gui self.Root=shade
  local panel=Instance.new('Frame') panel.Name='Panel' panel.Size=UDim2.new(1,-32,0,330) panel.AnchorPoint=Vector2.new(.5,.5) panel.Position=UDim2.fromScale(.5,.48) panel.BackgroundColor3=Color3.fromRGB(10,25,32) panel.ZIndex=21 panel:SetAttribute('CascadeDecoration',true) panel.Parent=shade
+ local mobileScale=Instance.new('UIScale',panel)mobileScale.Scale=Theme.MobileFactor()
+ local stopMobile=Theme.ObserveMobile(function()mobileScale.Scale=Theme.MobileFactor()end)panel.Destroying:Once(stopMobile)
  local limit=Instance.new('UISizeConstraint',panel) limit.MaxSize=Vector2.new(400,330) Instance.new('UICorner',panel).CornerRadius=UDim.new(0,14)
+ Theme.Surface(panel)
  local title=Instance.new('TextLabel') title.Name='Title' title.BackgroundTransparency=1 title.Text=options.Name title.Font=Enum.Font.GothamBold title.TextSize=20 title.TextColor3=Color3.new(1,1,1) title.Position=UDim2.fromOffset(16,12) title.Size=UDim2.new(1,-32,0,36) title.ZIndex=22 title.Parent=panel
  local function button(name,text,y,fn)
-  local b=Instance.new('TextButton') b.Name=name b.Text=text b.Font=Enum.Font.GothamMedium b.TextSize=16 b.TextColor3=Color3.new(1,1,1) b.BackgroundColor3=Color3.fromRGB(20,51,61) b.Position=UDim2.fromOffset(16,y) b.Size=UDim2.new(1,-32,0,48) b.ZIndex=22 b:SetAttribute('CascadeDecoration',true) b:SetAttribute('ArsenalFocus',true) b.Parent=panel Instance.new('UICorner',b).CornerRadius=UDim.new(0,8) nav:Connect(b,fn) table.insert(buttons,b) return b
+  local b=Instance.new('TextButton') b.Name=name b.Text=text b.Font=Enum.Font.GothamMedium b.TextSize=16 b.TextColor3=Color3.new(1,1,1) b.BackgroundColor3=Color3.fromRGB(20,51,61) b.Position=UDim2.fromOffset(16,y) b.Size=UDim2.new(1,-32,0,48) b.ZIndex=22 b:SetAttribute('CascadeDecoration',true) b:SetAttribute('ArsenalFocus',true) b.Parent=panel Instance.new('UICorner',b).CornerRadius=UDim.new(0,8) Theme.Button(b) nav:Connect(b,fn) table.insert(buttons,b) return b
  end
  local rename
  rename=button('Rename','Renomear',58,function()
@@ -17,7 +21,7 @@ function View.new(parent,options)
  end)
  button('Duplicate','Duplicar',114,function() options.Action('duplicate') end)
  local delete delete=button('Delete','Excluir',170,function() if not confirming then confirming=true delete.Text='Excluir? A confirma' else options.Action('delete') end end)
- button('Close','B  Voltar',226,function() options.Close() end)
+ button('Close','Voltar',226,function() options.Close() end)
  for i,b in buttons do b.NextSelectionUp=buttons[(i-2)%#buttons+1] b.NextSelectionDown=buttons[i%#buttons+1] b.NextSelectionLeft=b b.NextSelectionRight=b nav:SetActions(b,{options=options.Close}) end
  nav:SetFloatingRoot(shade,options.Close,buttons[1]) task.defer(function() if not dead then nav:Focus(buttons[1]) end end)
  function self:Destroy() if dead then return end dead=true nav:SetFloatingRoot(nil) gui:Destroy() end

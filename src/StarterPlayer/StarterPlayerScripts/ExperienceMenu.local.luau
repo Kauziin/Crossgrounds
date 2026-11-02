@@ -6,6 +6,7 @@ local Router=require(script.Parent:WaitForChild("ControlRouter")) local Icons=re
 local Mode=require(script.Parent:WaitForChild("InputMode")) local Bridge=require(script.Parent:WaitForChild("HubBridge"))
 local Card=require(script.Parent:WaitForChild("SettingsCard"))
 local Visual=require(script.Parent:WaitForChild("SettingsVisual"))
+local Adaptive=require(root.Crossgrounds.InterfaceLayout)
 local Palette=Theme.Settings
 local Preferences=require(script.Parent:WaitForChild("PreferenceClient"))
 local Reticle=require(root.Crossgrounds.Reticle)
@@ -36,7 +37,7 @@ for _,id in {"Main","Options","Categories","Detail"} do
 end
 local page="Main" local category="Options" local connections={} local detailRows={} local mainButtons={}
 local activeLoadoutView
-local show,render,resize,confirm,switchCategory
+local show,render,resize,confirm,switchCategory,hints
 local pageState={} local navSelection={} local pendingConfirmation
 local paneTweens={}
 local function remember()
@@ -52,13 +53,13 @@ for index,entry in {{"Keyboard","Teclado & Mouse"},{"Gamepad","Controle"},{"Touc
  Nav:Connect(b,function() if not player:GetAttribute("Rebinding") then bindingDevice=entry[1] render("Bindings") Nav:Focus(b) end end)
 end
 local categories={
- Options={{"Gameplay","Geral"},{"Controls","Controles"},{"Camera","Mira e Câmera"},{"Interface","Interface"},{"Graphics","Gráficos"},{"Accessibility","Acessibilidade"},{"Audio","Áudio"},{"Progress","Progresso"},{"Maps","Votação de mapa"},{"AdminMaps","Admin · mapas e capturas"},{"Development","Desenvolvimento · Studio"}},
+ Options={{"Gameplay","Geral"},{"Controls","Controles"},{"Camera","Mira e Câmera"},{"Interface","Interface"},{"Themes","Temas"},{"Graphics","Gráficos"},{"Accessibility","Acessibilidade"},{"Audio","Áudio"},{"Progress","Progresso"},{"Maps","Votação de mapa"},{"AdminMaps","Admin · mapas e capturas"},{"Development","Desenvolvimento · Studio"}},
  Controls={{"Analog","Analógicos"},{"Bindings","Remapear comandos"},{"HUDSettings","Toque · editar HUD"}},
  Camera={{"CameraCore","Câmera e perspectiva"},{"Aim","Mira e sensibilidade"},{"Reticle","Retículo"}},
 }
 local leafParent={Aim="Camera",Reticle="Camera",CameraCore="Camera",Analog="Controls",Bindings="Controls",HUDSettings="Controls"}
 local keys={Graphics=Settings.Categories.Graphics,Gameplay=Settings.Categories.Gameplay,CameraCore=Settings.Categories.Camera,Aim=Settings.Categories.Aim,Analog=Settings.Categories.Analog,Interface=Settings.Categories.Interface,Accessibility=Settings.Categories.Accessibility,Audio=Settings.Categories.Audio,Reticle=Settings.Categories.Reticle}
-local titles={Graphics="GRÁFICOS",AdminMaps="ADMIN · MAPAS E CAPTURAS",Gameplay="GERAL",Controls="CONTROLES",Camera="MIRA E CÂMERA",CameraCore="CÂMERA",Aim="MIRA",Reticle="RETÍCULO",Interface="INTERFACE",Analog="ANALÓGICOS",Accessibility="ACESSIBILIDADE",Audio="ÁUDIO",Bindings="REMAPEAR COMANDOS",HUDSettings="TOQUE · HUD",Options="OPÇÕES",Loadout="LOADOUT",Maps="MAPAS",Development="DESENVOLVIMENTO",Surrender="RENDER-SE",Exit="SAIR"}
+local titles={Graphics="GRÁFICOS",AdminMaps="ADMIN · MAPAS E CAPTURAS",Gameplay="GERAL",Controls="CONTROLES",Camera="MIRA E CÂMERA",CameraCore="CÂMERA",Aim="MIRA",Reticle="RETÍCULO",Interface="INTERFACE",Analog="ANALÓGICOS",Accessibility="ACESSIBILIDADE",Audio="ÁUDIO",Bindings="REMAPEAR COMANDOS",HUDSettings="TOQUE · HUD",Themes="TEMAS",Options="CONFIGURAÇÕES",Loadout="ARMAMENTOS",Maps="MAPAS",Development="DESENVOLVIMENTO",Surrender="RENDER-SE",Exit="SAIR"}
 local function get(key) local v=player:GetAttribute("Setting"..key) if v==nil then return Settings.Rules[key].Default end return v end
 local function cleanDetail()
  if activeLoadoutView then activeLoadoutView:Destroy() activeLoadoutView=nil end
@@ -79,23 +80,27 @@ local function commit(key,value)
  Preferences:Edit(key,context(key),value,"set")
 end
 local function settingRow(key)
- local row=Card.new(lists.Detail,key,{Settings=Settings,Preferences=Preferences,Nav=Nav,Context=context,Commit=commit,Scale=function() return get("MenuScale") end})
+ local row=Card.new(lists.Detail,key,{Settings=Settings,Preferences=Preferences,Nav=Nav,Context=context,Commit=commit,Scale=function() return Theme.Scale() end})
  table.insert(detailRows,row)
 end
+local activeDialog
 confirm=function(message,callback)
- remember() cleanDetail() pendingConfirmation=page
- info(message)
- action("ConfirmReset","CONFIRMAR RESTAURAÇÃO",function() local target=pendingConfirmation pendingConfirmation=nil callback() render(target) end)
- action("CancelReset","Cancelar",function() local target=pendingConfirmation pendingConfirmation=nil render(target) end)
- resize(true)
+ if activeDialog then activeDialog:Destroy()end
+ activeDialog=require(script.Parent.MenuDialog).new({Navigation=Nav,Title='Restaurar padrões',Message=message,Actions={
+  {Name='ConfirmReset',Text='Confirmar restauração',Callback=callback},
+  {Name='CancelReset',Text='Cancelar'},
+ },Closed=function()activeDialog=nil end})
 end
+
 local function dev(actionName,payload)
  local remote=remotes:FindFirstChild("DevelopmentCommand") if not remote then status.Text="Ferramentas disponíveis somente no Studio." return end
  task.spawn(function() local ok,success,message=pcall(function() return remote:InvokeServer(actionName,payload) end) status.Text=ok and message or "Falha na solicitação." end)
 end
 render=function(id)
  remember() page=id navSelection[leafParent[id] or "Options"]=id pendingConfirmation=nil cleanDetail() panes.Detail.Back.Text="‹  "..(titles[id] or id)
- if keys[id] then
+ if id=='Themes' then
+  activeLoadoutView=require(script.Parent.ThemeSelectionView).new(lists.Detail,{Navigation=Nav,Preferences=Preferences,Scale=function()return Theme.Scale()end,CardConfig={Settings=Settings,Preferences=Preferences,Nav=Nav,Context=context,Commit=commit,Scale=function()return Theme.Scale()end}})
+ elseif keys[id] then
   local modeFields=false for _,key in keys[id] do if Settings.Rules[key].ModeOverride then modeFields=true end end
   if modeFields then
    action("Scope","Escopo: "..(editScope=="Global" and "Global" or editScope:sub(6):upper()).."  ›",function()
@@ -131,7 +136,10 @@ render=function(id)
   resize(true) return
  elseif id=="HUDSettings" then
   action("EditHUD","EDITAR POSIÇÃO, TAMANHO E OPACIDADE",function() show(false) Nav:OpenMenu("MobileHUD") end).Size=UDim2.new(1,-4,0,64)
-  info("Todos os botões ficam expostos no editor, inclusive os específicos de CTF. Arraste um botão, ajuste os valores e toque SALVAR.")
+  info("Arraste os controles no editor. Botões opcionais podem ser ocultados e recuperados; controles essenciais permanecem disponíveis.")
+  for _,key in {'MobileMenuScale','TouchSafeX','TouchSafeY'}do settingRow(key)end
+  local touchLayout=require(root.Crossgrounds.MobileLayout)
+  for _,actionId in touchLayout.Order do local data=touchLayout.Buttons[actionId] if data.Optional and (not data.AdminOnly or player:GetAttribute('CrossgroundsAdmin'))then settingRow(touchLayout.Key(actionId,'Visible'))end end
  elseif id=="Bindings" then
   if bindingDevice=="Touch" then
    info("Personalize a posição, o tamanho e a opacidade dos comandos de toque. Na captura limpa admin, toque com três dedos para restaurar a interface.")
@@ -220,12 +228,13 @@ local function chooseCategory(id)
  remember() category=id page=id if id~="Options" then navSelection.Options=id end buildCategories(id) resize(true)
 end
 resize=function(animate)
- if activeLoadoutView and (activeLoadoutView.Root.Name=="ArenaLoadout" or activeLoadoutView.Root.Name=="Gunsmith") and (page~="Loadout" or not shade.Visible) then cleanDetail() end
+ if activeLoadoutView and ((activeLoadoutView.Root.Name=="ArenaLoadout" or activeLoadoutView.Root.Name=="Gunsmith") and (page~="Loadout" or not shade.Visible) or activeLoadoutView.Root.Name=="ThemeSelection" and (page~="Themes" or not shade.Visible)) then cleanDetail() end
  bindingTabs.Visible=page=="Bindings"
  lists.Detail.Position=UDim2.fromOffset(8,page=="Bindings" and 86 or 52) lists.Detail.Size=UDim2.new(1,-16,1,page=="Bindings" and -94 or -60)
  for device,b in tabButtons do b.BackgroundColor3=device==bindingDevice and Theme.Colors.Selected or Theme.Colors.Button b:SetAttribute("MenuSelected",device==bindingDevice) end
  local v=shade.AbsoluteSize if v.X<200 or v.Y<150 then v=workspace.CurrentCamera.ViewportSize end
- local scale=get("MenuScale") local modifier=panel:FindFirstChild("PreferenceScale") or Instance.new("UIScale") modifier.Name="PreferenceScale" modifier.Scale=scale modifier.Parent=panel
+ v=Theme.MenuBounds(v)
+ local scale=get("MenuScale") local modifier=panel:FindFirstChild("PreferenceScale") or Instance.new("UIScale") modifier.Name="PreferenceScale" modifier.Scale=scale*Theme.MobileFactor() modifier.Parent=panel
  local ctfLoadout=page=="Loadout" and player:GetAttribute("CrossgroundsMode")=="ctf"
  local w=math.min(ctfLoadout and 1560 or 1280,(v.X-24)/scale) local h=math.min(720,(v.Y-20)/scale) panel.Size=UDim2.fromOffset(w,h)
  for f,t in paneTweens do t:Cancel() paneTweens[f]=nil end
@@ -234,6 +243,9 @@ resize=function(animate)
  for _,f in panes do f:SetAttribute("SettingsOverhaul",configActive) end
  siblingTabs.Visible=configActive subtitle.Visible=configActive
  if configActive then
+  local adaptive=Adaptive.Settings(w,h,page=="Bindings")
+  local compact=adaptive.Compact
+  subtitle.Visible=adaptive.DescriptionVisible
   local stack={"Main","Options"}
   if page=="Controls" or page=="Camera" or leafParent[page] then table.insert(stack,"Categories") end
   if not categories[page] then table.insert(stack,"Detail") end
@@ -245,14 +257,15 @@ resize=function(animate)
   local used=0 panel:SetAttribute("CascadeDepth",#stack)
   for _,f in panes do f.Visible=false end
   for i,id in stack do
-   local f=panes[id] f.Visible=true f.ZIndex=i f.Active=true
+   local f=panes[id] f.Visible=not compact or i==content f.ZIndex=i f.Active=true
    local collapsed=i<contextIndex or w<620 and i==contextIndex and i<content
-   local width=i==content and w-used or collapsed and rail or contextWidth
-   local target=UDim2.fromOffset(used,40) local size=UDim2.fromOffset(width,h-78)
+   local width=compact and w or i==content and w-used or collapsed and rail or contextWidth
+   local target=UDim2.fromOffset(compact and 0 or used,adaptive.Top) local size=UDim2.fromOffset(width,adaptive.Height)
    if paneTweens[f] then paneTweens[f]:Cancel() paneTweens[f]=nil end
    Theme.CascadeDepth(f,0,false)
    if animate and not Theme.ReducedMotion() then local t=Tween:Create(f,TweenInfo.new(.22,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{Position=target,Size=size}) paneTweens[f]=t t:Play() else f.Position=target f.Size=size end
-   local back=f.Back back.Visible=id~="Main" back.Text=collapsed and "<" or "<  "..(id=="Detail" and titles[page] or id=="Categories" and titles[leafParent[page] or page] or "CONFIGURAÇÕES") back.TextSize=id=="Detail" and 20 or 15
+   local back=f.Back back.Visible=id~="Main" back.Text=collapsed and "<" or "<  "..(id=="Detail" and titles[page] or id=="Categories" and titles[leafParent[page] or page] or "CONFIGURAÇÕES") back.TextSize=compact and 16 or id=="Detail" and 20 or 15
+   back.TextWrapped=false back.TextTruncate=Enum.TextTruncate.AtEnd
    back.Position=UDim2.fromOffset(4,8) back.Size=UDim2.new(1,-8,0,36)
    lists[id].Position=UDim2.fromOffset(collapsed and 2 or 6,id=="Main" and 8 or 52) lists[id].Size=UDim2.new(1,collapsed and -4 or -12,1,id=="Main" and -16 or -60)
    for _,button in lists[id]:GetChildren() do if button:IsA("TextButton") then
@@ -270,32 +283,24 @@ resize=function(animate)
    used+=width+gap
   end
   subtitle.Text=Visual.Descriptions[page] or "Personalize suas preferências."
-  local detail=panes.Detail
-  siblingTabs.Position=UDim2.fromOffset(10,78) siblingTabs.Size=UDim2.new(1,-20,0,34)
-  for _,child in siblingTabs:GetChildren() do child:Destroy() end
-  local group=leafParent[page] or "Options" local siblings={}
-  for _,entry in categories[group] or {} do if entry[1]~="Progress" and (entry[1]~="Development" or workspace:GetAttribute("DevelopmentToolsAvailable")) and (entry[1]~="AdminMaps" or player:GetAttribute("CrossgroundsAdmin")==true) then table.insert(siblings,entry) end end
-  local previous=btn(siblingTabs,"Previous","LB") previous.Size=UDim2.fromOffset(34,34) previous.TextSize=11 previous.UIPadding.PaddingLeft=UDim.new() previous.UIPadding.PaddingRight=UDim.new()
-  Nav:Connect(previous,function() switchCategory(-1) end)
-  local nextButton=btn(siblingTabs,"Next","RB") nextButton.AnchorPoint=Vector2.new(1,0) nextButton.Position=UDim2.fromScale(1,0) nextButton.Size=UDim2.fromOffset(34,34) nextButton.TextSize=11 nextButton.UIPadding.PaddingLeft=UDim.new() nextButton.UIPadding.PaddingRight=UDim.new()
-  Nav:Connect(nextButton,function() switchCategory(1) end)
-  local tabList=Instance.new("ScrollingFrame") tabList.Name="Tabs" tabList.BackgroundTransparency=1 tabList.BorderSizePixel=0 tabList.Position=UDim2.fromOffset(40,0) tabList.Size=UDim2.new(1,-80,1,0) tabList.AutomaticCanvasSize=Enum.AutomaticSize.X tabList.CanvasSize=UDim2.new() tabList.ScrollBarThickness=2 tabList.Parent=siblingTabs
-  for i,entry in siblings do
-   local id=entry[1] local b=btn(tabList,id,entry[2]) b.TextSize=11 b.TextTruncate=Enum.TextTruncate.AtEnd b.TextWrapped=false b.Size=#siblings<=3 and UDim2.new(1/#siblings,-3,1,0) or UDim2.fromOffset(145,32) b.Position=#siblings<=3 and UDim2.fromScale((i-1)/#siblings,0) or UDim2.fromOffset((i-1)*148,0)
-   b.TextColor3=id==page and Palette.Accent or Palette.Muted
-   Nav:Connect(b,function() if categories[id] then chooseCategory(id) else category=group render(id) end end)
-  end
-  siblingTabs.Visible=stack[content]=="Detail"
-  local top=siblingTabs.Visible and 120 or 78
-  bindingTabs.Position=UDim2.fromOffset(8,top)
-  lists.Detail.Position=UDim2.fromOffset(8,top+(page=="Bindings" and 36 or 0)) lists.Detail.Size=UDim2.new(1,-16,1,-top-(page=="Bindings" and 44 or 8))
+  -- The sidebar already lists categories. Keep one navigation system and leave
+  -- the active page its full height, especially on short landscape screens.
+  siblingTabs.Visible=false
+  for _,child in siblingTabs:GetChildren()do child:Destroy()end
+  bindingTabs.Position=UDim2.fromOffset(8,adaptive.InputY)
+  lists.Detail.Position=UDim2.fromOffset(8,adaptive.ContentY)
+  lists.Detail.Size=UDim2.new(1,-16,0,adaptive.ContentHeight)
+
  else
   for id,list in lists do for _,button in list:GetChildren() do if button:IsA("TextButton") then
    if button:GetAttribute("CompactRail") then button.Text=button:GetAttribute("ExpandedText") or button.Name end
    button:SetAttribute("CompactRail",false)
-   local icon=button:FindFirstChild("CategoryIcon") if icon then icon.Visible=false end
-   local pad=button:FindFirstChildOfClass("UIPadding") if pad then pad.PaddingLeft=UDim.new(0,12) end
-   local edge=button:FindFirstChild("AcrylicEdge") if edge then edge.Color=Color3.new(1,1,1) edge.Transparency=.85 edge.Thickness=1 end
+   local icon=button:FindFirstChild('CategoryIcon')
+   if id=='Main' then
+    icon=icon or Visual.Icon(button,button.Name,22) icon.Visible=true icon.Position=UDim2.new(0,-28,.5,-11) icon.Size=UDim2.fromOffset(22,22)
+   elseif icon then icon.Visible=false end
+   local pad=button:FindFirstChildOfClass("UIPadding") if pad then pad.PaddingLeft=UDim.new(0,id=="Main" and 42 or 12) end
+   button:SetAttribute("MenuSelected",false)
   end end end
  local narrow=w<760
  local controlLeaf=leafParent[page]~=nil
@@ -339,18 +344,31 @@ resize=function(animate)
   for _,child in activeList:GetChildren() do if child:IsA("GuiButton") or child:IsA("Frame") and Settings.Rules[child.Name] then target=child break end end
   local saved=pageState[page] if saved and saved.focus and panes.Detail.Visible then target=lists.Detail:FindFirstChild(saved.focus) or target
   elseif categories[page] and navSelection[page] then target=activeList:FindFirstChild(navSelection[page]) or target end
-  if page=="Loadout" and activeLoadoutView then
+  if (page=="Loadout" or page=="Themes") and activeLoadoutView then
    target=activeLoadoutView:DefaultFocus()
-   task.delay(.08,function() if page=="Loadout" and shade.Visible and target.Parent then Nav:Focus(target) end end)
+   task.delay(.08,function() if (page=="Loadout" or page=="Themes") and shade.Visible and target.Parent then Nav:Focus(target) end end)
   else task.defer(function() if shade.Visible and target.Parent then Nav:Focus(target) end end) end
  end
  local nativeMenu=workspace:FindFirstChild("TopbarPlus") and player.PlayerGui:FindFirstChild("TopbarStandard")
  launch.Visible=not nativeMenu and not shade.Visible and not player:GetAttribute("HUDLayoutEditing")
+ if hints then hints()end
+end
+hints=function()
+ if player:GetAttribute('Rebinding')then return end
+ local input=Mode:Get()
+ if input==Enum.PreferredInput.Touch then
+  status.Text=page=='Loadout' and 'Toque para inspecionar e selecionar · Deslize para ver mais' or 'Toque para escolher ou ajustar · Deslize para ver mais'
+ elseif input==Enum.PreferredInput.Gamepad then
+  status.Text=page=='Loadout' and 'D-pad: navegar · A: escolher · X: editar · B: voltar' or 'D-pad: navegar · A: confirmar · B: voltar · LB/RB: categorias'
+ else
+  status.Text=page=='Loadout' and 'Clique: escolher · X: editar · Esc: voltar' or 'Mouse: escolher e ajustar · Enter: confirmar · Esc: voltar'
+ end
 end
 show=function(on,id)
+ if not on and activeDialog then activeDialog:Destroy()end
  shade.Visible=on player:SetAttribute("ExperienceMenuOpen",on)
  if not on then remember() end
- if on then status.Text="Analógico: cursor · D-pad: navegar / ajustar · X: valor · Y: padrão"
+ if on then hints()
   local target=id or "Main"
   if target=="Main" then page="Main" resize(true)
   elseif categories[target] then chooseCategory(target)
@@ -358,7 +376,7 @@ show=function(on,id)
  else resize(false) end
 end
 panes.Main.Back.Text="MENU"
-for index,a in {{"Resume","Continuar"},{"Loadout","Loadout"},{"Progress","Progressão"},{"Options","Opções"},{"Surrender","Render-se"},{"Exit","Sair"}} do
+for index,a in {{"Resume","Continuar"},{"Loadout","Loadout"},{"Progress","Progressão"},{"Options","Configurações"},{"Surrender","Render-se"},{"Exit","Sair"}} do
  local b=btn(lists.Main,a[1],a[2]) b.LayoutOrder=index mainButtons[a[1]]=b
  Nav:Connect(b,function() if a[1]=="Resume" then show(false) if Scope:IsHub() then Nav:OpenMenu("Resume") end elseif a[1]=="Progress" then show(false) player:SetAttribute("ProgressionMenuOpen",true) elseif a[1]=="Options" then chooseCategory("Options") elseif a[1]=="Loadout" and Scope:IsHub() then show(false) Nav:OpenMenu("Hub") else category="Main" render(a[1]) end end)
 end
@@ -405,15 +423,19 @@ local function scopeLabels()
  mainButtons.Options.LayoutOrder=Scope:IsHub() and 5 or 4
  mainButtons.Surrender.LayoutOrder=6
  mainButtons.Exit.LayoutOrder=7
- mainButtons.Loadout.Text=Scope:IsHub() and "Jogar" or Scope:IsCTF() and "Armeiro" or "Loadout"
+ mainButtons.Loadout.Text=Scope:IsHub() and "Jogar" or "Armamentos"
  if Scope:IsGetOut() then mainButtons.Loadout.Text="Papéis do Get Out" end
+ for _,b in mainButtons do b:SetAttribute('ExpandedText',b.Text)end
 end
 Scope.Changed:Connect(function() scopeLabels() show(false) end) scopeLabels()
 player:GetAttributeChangedSignal("CTFPracticeRange"):Connect(scopeLabels)
 player:GetAttributeChangedSignal("CTFPracticeRange"):Connect(scopeLabels)
 workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(function() resize(false) end)
 player:GetAttributeChangedSignal("SettingMenuScale"):Connect(function() resize(false) end)
+Theme.ObserveMobile(function() resize(false) end)
 player:GetAttributeChangedSignal('ArsenalFocused'):Connect(function() resize(false) end)
 shade:GetPropertyChangedSignal("AbsoluteSize"):Connect(function() resize(false) end)
 player:GetAttributeChangedSignal("HUDLayoutEditing"):Connect(function() resize(false) end)
+Mode.Changed:Connect(hints)
 player:SetAttribute("ExperienceMenuOpen",false) resize(false)
+hints()

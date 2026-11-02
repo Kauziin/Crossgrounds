@@ -20,6 +20,7 @@ function Sight.new(player)
   local outline=Instance.new('UIStroke',line) outline.Thickness=1 outline.Transparency=.45 outline.Color=Color3.new()
  end
  self.dots={}
+ local red=rectangle(reticle,"ReflexDot") red.Size=UDim2.fromOffset(4,4) red.AnchorPoint=Vector2.new(.5,.5) red.BackgroundColor3=Color3.fromRGB(255,45,35) red.Visible=false Instance.new("UICorner",red).CornerRadius=UDim.new(1,0) self.red=red
  for i=-4,4 do if i~=0 then for _,axis in {0,1} do
   local dot=rectangle(reticle,"MilDot") dot.AnchorPoint=Vector2.new(.5,.5) dot.Size=UDim2.fromOffset(3,3)
   Instance.new("UICorner",dot).CornerRadius=UDim.new(1,0)
@@ -27,15 +28,25 @@ function Sight.new(player)
  end end end
  return self
 end
-function Sight:Update(profile,viewport,point,progress,aperture)
+function Sight:Update(profile,viewport,point,progress,aperture,active)
  self.gui.Enabled=profile~=nil self.reticle.Enabled=profile~=nil
  if not profile then return end
+ local reflex=profile.reticle=="RedDot"
+ self.red.Visible=reflex and active~=false
+ for _,p in {self.horizontal,self.vertical} do p.Visible=not reflex end
+ for _,dot in self.dots do dot.part.Visible=not reflex end
+ if reflex then
+  self.gui.Enabled=false self.ring.Visible=false
+  self.red.Position=UDim2.fromOffset(point.X,point.Y)
+  return
+ end
  local transition=ADS.Sample(progress==nil and 1 or progress,profile)
+ transition.reticle=active==false and 0 or 1 transition.peripheral=transition.reticle
  self.ring.Visible=not aperture
  self.gui.Enabled=profile~=nil and not aperture
  self.edge.Transparency=1-transition.reticle
  if not aperture then for _,row in self.rows do for _,part in row do part.BackgroundTransparency=1-transition.peripheral end end end
- local opacity=aperture and aperture.visible or transition.reticle
+ local opacity=active==false and 0 or (aperture and aperture.visible or transition.reticle)
  for _,part in {self.horizontal,self.vertical} do part.BackgroundTransparency=1-opacity part.BackgroundColor3=aperture and Color3.fromRGB(20,24,23) or Color3.fromRGB(205,215,208) end
  for _,dot in self.dots do dot.part.BackgroundTransparency=1-opacity end
  local radius=aperture and aperture.radius or math.min(viewport.X,viewport.Y)*.36

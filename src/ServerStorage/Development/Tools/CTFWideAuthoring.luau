@@ -60,7 +60,7 @@ function Author.Build()
  assert(not Storage.CTFMaps:FindFirstChild(ID),"Versão ampliada já existe; preserve suas edições.")
  local sources=Storage.Development.Assets.CTFExpansionSources
  local kit=sources["Modular Building Kit - Modern City"].PrefabBuildings
- local model=Instance.new("Model") model.Name=ID model:SetAttribute("Enabled",true)
+ local model=Instance.new("Model") model.Name=ID model:SetAttribute("Enabled",false)
  model:SetAttribute("DisplayName","Travessia Ampliada") model:SetAttribute("Description","Trincheiras, fábrica e distrito urbano · três rotas espaçadas")
  model:SetAttribute("LayoutVersion",2) model:SetAttribute("TerrainUnchanged",true)
  local geometry=folder(model,"Geometry") local world=folder(geometry,"CTFWideWorld")
@@ -178,7 +178,7 @@ function Author.Activate()
  for _,obj in workspace:GetChildren() do if obj:GetAttribute("CTFMapGeometry")==true then dispose(obj) end end
  publish(source.CTFInfrastructure:Clone(),workspace)
  for _,obj in source.Geometry:GetChildren() do local copy=obj:Clone() copy:SetAttribute("CTFMapGeometry",true) publish(copy,workspace) end
- source:SetAttribute("Enabled",true) workspace:SetAttribute("CurrentMapId",ID) workspace:SetAttribute("CurrentMapName",source:GetAttribute("DisplayName"))
+ source:SetAttribute("Enabled",false) workspace:SetAttribute("CurrentMapId",ID) workspace:SetAttribute("CurrentMapName",source:GetAttribute("DisplayName"))
  game.ChangeHistoryService:SetWaypoint("Wide CTF layout active")
  return {id=ID,active=true}
 end

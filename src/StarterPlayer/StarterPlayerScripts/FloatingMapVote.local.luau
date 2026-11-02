@@ -42,9 +42,12 @@ Nav.MenuRequested:Connect(function(id)
  elseif id~="Resume" then interact(false) end
 end)
 local function resize()
- local v=workspace.CurrentCamera.ViewportSize local w=math.min(660,v.X-24)
- panel.Size=UDim2.fromOffset(w,math.min(v.Y-130,w<430 and 330 or 230))
+ local v=Theme.MenuBounds(workspace.CurrentCamera.ViewportSize) local w=math.min(660,v.X-24)
+ panel.Size=UDim2.fromOffset(w,math.max(70,math.min(v.Y-130,w<430 and 330 or 230)))
+ local scale=panel:FindFirstChildOfClass('UIScale')or Instance.new('UIScale',panel)scale.Scale=Theme.MobileFactor()
+ panel.Position=UDim2.new(.5,0,1,-70-(workspace.CurrentCamera.ViewportSize.Y-v.Y)*.5)
 end
+Theme.ObserveMobile(resize)
 workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(resize)
 for _,key in {"ExperienceMenuOpen","ProgressionMenuOpen","LobbyMusicMenuOpen","HUDLayoutEditing"} do p:GetAttributeChangedSignal(key):Connect(refresh) end
 local elapsed=0 game:GetService("RunService").Heartbeat:Connect(function(dt) elapsed+=dt if elapsed>=1 then elapsed=0 refresh() end end)

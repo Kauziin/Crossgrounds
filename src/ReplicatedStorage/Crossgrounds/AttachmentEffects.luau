@@ -1,9 +1,12 @@
 local Config=require(script.Parent.WeaponVisualConfiguration)
+local Attachments=require(script.Parent.AttachmentCatalog)
 local Effects={}
 function Effects.Configuration(id,configuration)
  local clean,err=Config.Validate(id,configuration or {},true)
  if not clean then return nil,err end
- return {spread=clean.underbarrel=="foregrips_commando_foregrip" and .6 or 1,horizontal=clean.underbarrel=="foregrips_commando_foregrip" and .85 or 1,suppressed=clean.muzzle=="suppressors_monolithic_suppressor"}
+ local suppressed=false local noise=1
+ for _,attachmentId in clean do local a=Attachments[attachmentId] if a.suppressed then suppressed=true noise=math.min(noise,a.noiseMultiplier or 1) end end
+ return {noise=noise,spread=clean.underbarrel=="foregrips_commando_foregrip" and .6 or 1,horizontal=clean.underbarrel=="foregrips_commando_foregrip" and .85 or 1,suppressed=suppressed}
 end
 -- Combat data is already resolved once by WeaponStats on both peers.
 function Effects.Spread(data,tool) return data.Spread or 0 end
@@ -13,6 +16,7 @@ function Effects.Recoil(data,tool)
 end
 function Effects.Apply(tool,id,configuration)
  local m,err=Effects.Configuration(id,configuration) if not m then return nil,err end
+ tool:SetAttribute("Suppressed",m.suppressed) tool:SetAttribute("ShotNoiseMultiplier",m.noise)
  tool:SetAttribute("AttachmentSpreadMultiplier",m.spread) tool:SetAttribute("AttachmentHorizontalMultiplier",m.horizontal)
  local sound=tool:FindFirstChild("Handle") and tool.Handle:FindFirstChild("FireSound")
  if sound then

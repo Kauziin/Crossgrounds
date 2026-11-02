@@ -87,7 +87,7 @@ function Grid:Update(counts,choice,enabled)
  self.Enabled=enabled==true
  for id,card in self.Cards do
   local votes=counts[id] or 0 card.Votes.Text=tostring(votes)..(votes==1 and " voto" or " votos")
-  card:FindFirstChild("SelectionMarker").Visible=id==choice card.BackgroundColor3=id==choice and Theme.Colors.Selected or Theme.Colors.Button
+  card:SetAttribute("MenuSelected",id==choice) card:FindFirstChild("SelectionMarker").Visible=id==choice card.BackgroundColor3=id==choice and Theme.Colors.Selected or Theme.Colors.Button
   card:FindFirstChild("SelectionOutline").Enabled=id==choice
   card.AutoButtonColor=false card:SetAttribute("SelectedMap",id==choice)
  end

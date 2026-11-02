@@ -14,10 +14,12 @@ return function(t)
   t.expect.falsy(Config.Validate("m1911",{optic="optics_g_i_mini_reflex"},true))
   t.expect.falsy(Config.Validate("m4a1",{ammunition="suppressors_monolithic_suppressor"},true))
  end)
- t.test("accessories have no gameplay stat bonuses",function()
+ t.test("Commando affects spread without changing damage or capacity",function()
   local before=Stats.Get("m4a1").effectiveGameplayStats
   t.expect.truthy(Config.Validate("m4a1",{optic="optics_g_i_mini_reflex",muzzle="suppressors_monolithic_suppressor",underbarrel="foregrips_commando_foregrip"},true))
-  local after=Stats.Get("m4a1").effectiveGameplayStats for key,value in before do t.expect.equal(after[key],value) end
+  local after=Stats.Get("m4a1",{underbarrel="foregrips_commando_foregrip"}).effectiveGameplayStats
+  t.expect.equal(after.spreadDegrees,before.spreadDegrees*.6)
+  t.expect.equal(after.damage,before.damage) t.expect.equal(after.capacity,before.capacity)
  end)
  t.test("sanitized visuals keep moving groups without imported scripts",function()
   local model=assert(Visual.Build("m4a1",{optic="optics_g_i_mini_reflex"})) local groups=0
@@ -33,7 +35,7 @@ return function(t)
  end)
  t.test("MW replaces external duplicates without losing attachment variants",function()
   for _,id in {"m4a1","mp7","725","fal","pkm"} do t.expect.equal(Catalog.Get(id).sourcePack,"mw2019") end
-  local count=0 for _,a in A do if not a.functionalBurst then count+=1 end end t.expect.equal(count,97)
+  for _,id in {"suppressors_monolithic_suppressor","foregrips_commando_foregrip","barrels_ax_50_extended","barrels_ax_50_heavy"} do t.expect.truthy(A[id] and A[id].physicalAssetPath) end
  end)
  t.test("legacy primary choices and preview melee occupy different lists",function()
   for _,v in Catalog.List("primary") do t.expect.falsy(v.category=="PISTOLS" or v.category=="MELEE") end

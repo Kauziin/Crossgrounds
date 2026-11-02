@@ -44,6 +44,7 @@ function Preview:Show(asset,id,configuration)
 		local changed={}
 		for slot,value in previous do if clean[slot]~=value then changed[slot]=true end end
 		for slot,value in clean do if previous[slot]~=value then changed[slot]=true end end
+		if changed.barrel then changed.muzzle=true end
 		for _,v in self.model:GetChildren() do if changed[v:GetAttribute('VisualAttachmentSlot')] then v:Destroy() end end
 		for _,v in asset:GetChildren() do
 			if changed[v:GetAttribute('VisualAttachmentSlot')] then v:Clone().Parent=self.model end

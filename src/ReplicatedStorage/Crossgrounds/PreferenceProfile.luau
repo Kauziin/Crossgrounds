@@ -31,6 +31,11 @@ function Profile.Migrate(saved)
    if typeof(container)=="table" then local count=0 for key,value in container do count+=1 if count>256 then break end if typeof(key)=="string" then Profile.Set(profile,scope,key,value) end end end
   end
  end
+ -- Preserve legacy accent choices as the nearest free preset.
+ local legacy=saved.Version==nil and saved or typeof(saved.Global)=='table' and saved.Global
+ if legacy and legacy.ThemePreset==nil and typeof(legacy.AccentHue)=='number' and legacy.AccentHue==legacy.AccentHue and math.abs(legacy.AccentHue)<math.huge then
+  Profile.Set(profile,'Global','ThemePreset',require(game.ReplicatedStorage.Crossgrounds.ThemeCatalog).NearestHue(legacy.AccentHue))
+ end
  -- One-time recovery from the old collision normalizer. Later custom choices
  -- retain this marker and are preserved, including shared keys.
  if saved.ControlBindingVersion~=1 then Profile.Set(profile,'Device:Gamepad','BindSwitchWeaponGamepad',Definition.Rules.BindSwitchWeaponGamepad.Default) end

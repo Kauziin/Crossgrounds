@@ -1,5 +1,6 @@
 local Navigation={}
 local UIS=game:GetService("UserInputService") local CAS=game:GetService("ContextActionService")
+local MenuTheme=require(script.Parent:WaitForChild('MenuTheme'))
 local Run=game:GetService("RunService") local Gui=game:GetService("GuiService") local Gamepad=game:GetService("GamepadService")
 local Filter=require(game.ReplicatedStorage.Crossgrounds.AnalogFilter)
 local Settings=require(game.ReplicatedStorage.ExperienceSettings)
@@ -63,6 +64,7 @@ function Navigation:SetFloatingRoot(object,callback,default)
  floatingRoot=object
  if object then back[object]=callback defaults[object]=default object.Destroying:Once(function() if floatingRoot==object then floatingRoot=nil end back[object]=nil defaults[object]=nil end) end
 end
+local hoverTarget
 local focused local root local point=Vector2.zero local stick=Vector2.zero local scrollStick=0 local keyboardStick=Vector2.zero
 local keyboardNavigation=false
 local dragging=false local repeatAt=0 local heldDirection local analog=false
@@ -174,7 +176,10 @@ function Navigation:Register(object,callback,adjust)
   callback()
  end,adjust=adjust}
  object.Destroying:Connect(function() registered[object]=nil if focused==object then Navigation:Focus(nil,false) end end)
- object.MouseEnter:Connect(function() if root and Mode:Get()~=Enum.PreferredInput.Gamepad then self:Focus(object,false) end end)
+ object.MouseEnter:Connect(function()
+  if root and Mode:Get()~=Enum.PreferredInput.Gamepad and (object:IsA('GuiButton') or object:IsA('TextBox') or adjust) then hoverTarget=object self:Focus(object,false) end
+ end)
+ object.MouseLeave:Connect(function() if hoverTarget==object then hoverTarget=nil end end)
  return object
 end
 function Navigation:Connect(object,callback)
@@ -308,12 +313,11 @@ Run:BindToRenderStep("CTFMenuCursor",Enum.RenderPriority.Last.Value,function(dt)
  if controls and movementDisabled~=disableMovement then movementDisabled=disableMovement if movementDisabled then controls:Disable() else controls:Enable() end end
  local hasCategories=root~=nil and categoryHandlers[root]~=nil
  local settingsRoot=root and root:GetAttribute("SettingsOverhaul")==true
- local tokens=settingsRoot and require(script.Parent.MenuTheme).Settings
- if tokens then focusStroke.Color=tokens.Focus glowStroke.Color=tokens.Accent else focusStroke.Color=Color3.fromRGB(220,243,255) glowStroke.Color=Color3.fromRGB(116,193,255) end
- local arsenalFocus=focused and focused:GetAttribute('ArsenalFocus')==true
- if arsenalFocus then focusStroke.Color=require(script.Parent.AccentTheme).Color() glowStroke.Color=focusStroke.Color end
- focusStroke.Thickness=arsenalFocus and (player:GetAttribute('SettingHighContrast') and 3 or 2) or 4
- glowStroke.Thickness=arsenalFocus and 6 or 10 glowStroke.Transparency=arsenalFocus and .92 or .82
+ local outlineTarget=(gamepad or keyboardNavigation) and focused or hoverTarget
+ local tokens=MenuTheme.Settings
+ focusStroke.Color=tokens.Focus glowStroke.Color=tokens.Accent
+ focusStroke.Thickness=player:GetAttribute('SettingHighContrast') and 3 or 2
+ glowStroke.Thickness=6 glowStroke.Transparency=.92
  settingHelp.Visible=settingsRoot==true
  settingHelp.Text="← → AJUSTAR  ·  "..Icons:Name("ButtonX").." VALOR  ·  "..Icons:Name("ButtonY").." PADRÃO"
  local footerWidth=settingsRoot and 890 or hasCategories and 530 or 340
@@ -321,15 +325,15 @@ Run:BindToRenderStep("CTFMenuCursor",Enum.RenderPriority.Last.Value,function(dt)
  local footerScale=footer:FindFirstChild("Fit") or Instance.new("UIScale") footerScale.Name="Fit" footerScale.Scale=math.min(1,(workspace.CurrentCamera.ViewportSize.X-24)/footerWidth) footerScale.Parent=footer
  previousGlyph.Visible=hasCategories nextGlyph.Visible=hasCategories categoryHelp.Visible=hasCategories
  cursor.Visible=gamepad and root~=nil and not Gui.MenuIsOpen footer.Visible=cursor.Visible and not player:GetAttribute("Rebinding")
- focusStroke.Enabled=(cursor.Visible or root~=nil and keyboardNavigation) and not Gui.MenuIsOpen
- focusFrame.Visible=focusStroke.Enabled and focused~=nil and visible(focused,true)
+ focusStroke.Enabled=root~=nil and outlineTarget~=nil and not Gui.MenuIsOpen
+ focusFrame.Visible=focusStroke.Enabled and visible(outlineTarget,true)
  focusGlow.Visible=focusFrame.Visible
  if focusFrame.Visible then
-  local position=focused.AbsolutePosition-screen.AbsolutePosition
+  local position=outlineTarget.AbsolutePosition-screen.AbsolutePosition
   focusFrame.Position=UDim2.fromOffset(position.X-3,position.Y-3)
-  focusFrame.Size=UDim2.fromOffset(focused.AbsoluteSize.X+6,focused.AbsoluteSize.Y+6)
+  focusFrame.Size=UDim2.fromOffset(outlineTarget.AbsoluteSize.X+6,outlineTarget.AbsoluteSize.Y+6)
   focusGlow.Position=focusFrame.Position-UDim2.fromOffset(2,2) focusGlow.Size=focusFrame.Size+UDim2.fromOffset(4,4)
-  local rounding=focused:FindFirstChildOfClass("UICorner")
+  local rounding=outlineTarget:FindFirstChildOfClass("UICorner")
   local radius=rounding and rounding.CornerRadius or UDim.new(0,10)
   focusCorner.CornerRadius=UDim.new(radius.Scale,radius.Offset+3)
   glowCorner.CornerRadius=UDim.new(radius.Scale,radius.Offset+5)
