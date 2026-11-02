@@ -1,4 +1,5 @@
 local Service = {}
+local Career=require(script.Parent.CareerService)
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local Balance = require(script.Parent.ProgressionBalance)
@@ -34,12 +35,14 @@ end
 local function publish(player, record)
  if not player.Parent then return end
  for _, key in fields do player:SetAttribute("Progress"..key, record.base[key] + record.pending[key]) end
- player:SetAttribute("ProgressLevel", level(record.base.XP + record.pending.XP))
+ local career=Career.Get(player)
+ player:SetAttribute("ProgressLevel", career and require(game.ReplicatedStorage.Crossgrounds.CareerPolicy).Level(career.cycleXP,career.phase) or level(record.base.XP + record.pending.XP))
  player:SetAttribute("ProgressionReady", record.loaded)
 end
-local function award(player, amounts, mode)
+local function award(player, amounts, mode, weapon)
  local record = state[player]
  if not record then return end
+ if Career.Enabled() and record.loaded then Career.Award(player,amounts,mode,weapon,amounts.XP) end
  for key, value in pairs(amounts) do
   if record.pending[key] and type(value) == "number" and value > 0 then
    record.pending[key] += math.floor(value)
@@ -56,17 +59,29 @@ local function tick(player)
  if elapsed>0 then award(player,{PlaySeconds=elapsed},record.mode) end
  record.mode=player:GetAttribute("CrossgroundsMode")
 end
-function Service.Kill(player,kind,headshot)
+function Service.Kill(player,kind,headshot,weapon)
  local amounts=Policy.Reward(kind,headshot)
- award(player,amounts,(kind=="arena" or kind=="training") and "arena" or (kind=="ctf" or kind=="bot") and "ctf" or nil)
+ award(player,amounts,(kind=="arena" or kind=="training") and "arena" or (kind=="ctf" or kind=="bot") and "ctf" or nil,weapon)
  return amounts.XP
 end
 function Service.ArenaDeath(player) award(player,{Deaths=1},"arena") end
 function Service.ArenaKill(player,headshot) return Service.Kill(player,"arena",headshot) end
-function Service.CTFKill(player,isBot) return Service.Kill(player,isBot and "bot" or "ctf",false) end
+function Service.CTFKill(player,isBot,weapon) return Service.Kill(player,isBot and "bot" or "ctf",false,weapon) end
 local function save(player)
  local record = state[player]
- if not record or not record.loaded or record.saving or RunService:IsStudio() or player.UserId <= 0 then return end
+ if not record or not record.loaded or record.saving then return end
+ if Career.Enabled() then
+  record.saving=true
+  local ok,saved=Career.Flush(player)
+  if ok then
+   record.base=clean(saved.stats)
+   local current=Career.Get(player)
+   for _,key in fields do record.pending[key]=math.max(0,(current.stats[key] or 0)-record.base[key]) end
+   publish(player,record)
+  end
+  record.saving=false return
+ end
+ if RunService:IsStudio() or player.UserId<=0 then return end
  local delta = {}
  local dirty = false
  for _, key in fields do delta[key] = record.pending[key] if delta[key] > 0 then dirty = true end end
@@ -126,7 +141,12 @@ local function added(player)
  end))
  watchStats(player, record, player:FindFirstChild("leaderstats"))
  task.spawn(function()
-  if not RunService:IsStudio() and player.UserId > 0 then
+  if Career.Enabled() then
+   local data,err=Career.Open(player)
+   if not data then player:SetAttribute("ProgressionLoadError",true) return end
+   record.base=clean(data.stats) record.visitSaved=true
+   Career.Award(player,record.pending)
+  elseif not RunService:IsStudio() and player.UserId > 0 then
    local ok, data = pcall(function() return store:GetAsync("u" .. player.UserId) end)
    if ok then record.base = clean(data) record.visitSaved=Policy.HasPlayed(data)
    else
@@ -142,7 +162,9 @@ function Service.Snapshot(player)
  local record=state[player] if not record then return nil end
  local data={userId=player.UserId,name=player.DisplayName,ready=record.loaded}
  for _,key in fields do data[key]=record.base[key]+record.pending[key] end
- data.Level=level(data.XP) return data
+ local career=Career.Get(player)
+ if career then for key,value in Career.Stats(career) do if key:sub(1,6)=="Career" then data[key]=value end end end
+ data.Level=career and require(game.ReplicatedStorage.Crossgrounds.CareerPolicy).Level(career.cycleXP,career.phase) or level(data.XP) return data
 end
 function Service.Result(player,mode,won,extra)
  if not Schema.Primary[mode] then return end
@@ -167,7 +189,9 @@ local function friends(player)
  if cached and os.clock()-cached.at<120 then return cached.rows,cached.message end
  local rows={}
  local function row(userId,name,data,isSelf)
+  local source=data
   data=clean(data)
+  for key,value in source do if key:sub(1,6)=="Career" then data[key]=value end end
   data.userId=userId data.name=name data.self=isSelf==true data.Level=level(data.XP)
   table.insert(rows,data)
  end
@@ -176,7 +200,7 @@ local function friends(player)
   for _,key in fields do data[key]=record.base[key]+record.pending[key] end
   return data
  end
- if state[player] and state[player].loaded then row(player.UserId,player.DisplayName,live(state[player]),true) end
+ if state[player] and state[player].loaded then local p=Career.Get(player) row(player.UserId,player.DisplayName,p and Career.Stats(p) or live(state[player]),true) end
  local ok,pages=pcall(function() return Players:GetFriendsAsync(player.UserId) end)
  local candidates={}
  if ok then
@@ -190,6 +214,7 @@ local function friends(player)
   until false
  end
  local function resolve(id)
+  if Career.Enabled() then return Career.ReadStats(id) end
   local online=Players:GetPlayerByUserId(id)
   if online and state[online] and state[online].loaded then return live(state[online]) end
   if RunService:IsStudio() then return nil end
@@ -216,6 +241,8 @@ end
 function Service:Start()
  if self.started then return end
  self.started = true
+ Career.Start()
+ Career.Changed:Connect(function(player) local r=state[player] if r then publish(player,r) end end)
  local remotes = game.ReplicatedStorage.Crossgrounds.Remotes
  Ranking.Start(Service.Snapshot,friends)
  local profile=remotes:FindFirstChild("GetProgressProfile") or Instance.new("RemoteFunction")
@@ -233,6 +260,7 @@ function Service:Start()
  Players.PlayerAdded:Connect(added)
  Players.PlayerRemoving:Connect(function(player)
   tick(player) save(player)
+  if Career.Enabled() then Career.Close(player) end
   local record = state[player]
   if record then for _, connection in ipairs(record.connections) do connection:Disconnect() end end
   state[player] = nil friendRate[player] = nil friendResults[player]=nil

@@ -168,7 +168,7 @@ function Grid:Update(catalog)
         local item = self.Catalog[id]
         local enabled = item and item.canEnter == true
         local cfg = Presentation.Cards[id]
-        card.Name.Text = item and item.name or ({arena="Arena",ctf="Capture a Bandeira",duels="Duels",get_out="Get Out"})[id]
+        card.Name.Text = item and item.name or ({arena="Arena",ctf="Conflict",duels="Duels",get_out="Get Out"})[id]
         card.Badge.Text = enabled and "DISPONÍVEL" or cfg.UnavailableLabel and (cfg.UnavailableLabel.." · INDISPONÍVEL") or
             (item and item.status == "planned" and "EM BREVE" or "INDISPONÍVEL")
         card.Badge.TextColor3 = enabled and Color3.fromRGB(130, 235, 175) or MUTED

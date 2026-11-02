@@ -40,7 +40,8 @@ local function modeOptions()
 end
 local function readLocal()
  local d={userId=player.UserId,name=player.DisplayName}
- for _,m in S.Modes do for _,k in S.Fields do local key=S.Key(m,k) d[key]=player:GetAttribute("Progress"..key) or 0 end end return d
+ for _,m in S.Modes do for _,k in S.Fields do local key=S.Key(m,k) d[key]=player:GetAttribute("Progress"..key) or 0 end end
+ d.CareerLevel=player:GetAttribute("CareerLevel") d.CareerCycleXP=player:GetAttribute("CareerCycleXP") d.CareerPhase=player:GetAttribute("CareerPhase") d.CareerPrestige=player:GetAttribute("CareerPrestige") return d
 end
 local profileMode,compareMode,rankMode,metric,scope="general","general","general","XP","global"
 local profileList=view.Panes.Profile.List
@@ -187,6 +188,6 @@ local function show()
  if on then view:Resize() selectPage("Profile") profileList.CanvasPosition=Vector2.zero task.delay(.05,function() if gui.Enabled then Nav:Focus(view.Buttons.Profile) end end) end
 end
 player:GetAttributeChangedSignal("ProgressionMenuOpen"):Connect(show)
-Nav.MenuRequested:Connect(function(id) if table.find({"Main","Hub","Settings","Resume","Playlist","Pause"},id) then player:SetAttribute("ProgressionMenuOpen",false) end end)
+Nav.MenuRequested:Connect(function(id) if table.find({"Career","Main","Hub","Settings","Resume","Playlist","Pause"},id) then player:SetAttribute("ProgressionMenuOpen",false) end end)
 gui.Parent=player.PlayerGui
 script:SetAttribute("Initialized",true) show()

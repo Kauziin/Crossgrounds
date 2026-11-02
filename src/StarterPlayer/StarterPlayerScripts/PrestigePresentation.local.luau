@@ -8,7 +8,7 @@ local function update(p)
  if record.gui then record.gui:Destroy() record.gui=nil end
  if record.humanoid and record.previous then record.humanoid.DisplayDistanceType=record.previous record.previous=nil end
  local mode=localPlayer:GetAttribute("CrossgroundsMode")
- local rank=mode and p:GetAttribute("Prestige_"..mode)
+ local rank=mode and p:GetAttribute("Podium_"..mode)
  if not rank and not p:GetAttribute('CrossgroundsTester') or p:GetAttribute("CrossgroundsMode")~=mode then return end
  local char=p.Character local head=char and char:FindFirstChild("Head") local hum=char and char:FindFirstChildOfClass("Humanoid")
  if not head or not hum then return end
@@ -23,7 +23,7 @@ local function add(p)
  if records[p] then return end
  local r={connections={}} records[p]=r
  table.insert(r.connections,p.CharacterAdded:Connect(function(char) char:WaitForChild("Head",10) update(p) end))
- table.insert(r.connections,p.AttributeChanged:Connect(function(key) if key=="CrossgroundsMode" or key=='CrossgroundsTester' or key:sub(1,9)=="Prestige_" then update(p) end end))
+ table.insert(r.connections,p.AttributeChanged:Connect(function(key) if key=="CrossgroundsMode" or key=='CrossgroundsTester' or key:sub(1,7)=="Podium_" then update(p) end end))
  update(p)
 end
 Players.PlayerAdded:Connect(add)

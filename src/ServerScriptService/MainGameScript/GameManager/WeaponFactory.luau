@@ -247,12 +247,14 @@ local function shotgun(tool,h,id)
  tool:SetAttribute("TwoHanded",true) tool.Grip=CFrame.new(0,-.15,-.2)
 end
 function Factory:Create(id,visual)
+ local conflictId=Kits.ConflictPistolVisuals[id] and id
+ if conflictId then visual=Kits.ConflictPistolVisuals[id] id="ArenaPistol" end
  if id=="ArenaPistol" then id=Kits.ArenaGunId(visual) end
  if id=="Blaster" or id=="AutoBlaster" then return require(game.ReplicatedStorage.Crossgrounds.BlasterWeapons).Create(id) end
- local data=Kits.Weapons[id] if not data then return end
+ local data=Kits.Weapons[conflictId or id] if not data then return end
  local tool=Instance.new("Tool") tool.Name=data.Name tool.ToolTip=data.Name tool.CanBeDropped=false
  tool:SetAttribute("ShotSeed",Random.new():NextInteger(1,2147483646)) tool:SetAttribute("ShotAmmoVersion",1)
- tool:SetAttribute("WeaponId",id) tool:SetAttribute("WeaponKind",data.Kind) tool:SetAttribute("ModelVersion",5)
+ tool:SetAttribute("WeaponId",conflictId or id) tool:SetAttribute("WeaponKind",data.Kind) tool:SetAttribute("ModelVersion",5)
  local handle=Instance.new("Part") handle.Name="Handle" handle.Size=Vector3.new(.25,.65,.35) handle.Transparency=1
  handle.CanCollide=false handle.CanTouch=false handle.CanQuery=false handle.Massless=true handle.Parent=tool
  if id=="ArenaPistol" then
@@ -449,6 +451,13 @@ function Factory:Create(id,visual)
   local compressor=Instance.new("CompressorSoundEffect") compressor.Threshold=-12 compressor.Ratio=3 compressor.Attack=.005 compressor.Release=.1 compressor.Parent=sound
  end
  if data.Kind=="Gun" then local reload=Instance.new("Sound") reload.Name="ReloadSound" reload.SoundId=Kits.ReloadSound reload.Volume=.3 reload.RollOffMaxDistance=35 reload.Parent=handle end
+ if id=="ArenaPistol" and not conflictId then
+  tool:SetAttribute("ArenaWeapon",true)
+  if table.find(Kits.ArenaImportedPistols,visual) then
+   local adapted,err=require(game.ServerScriptService.Crossgrounds.ImportedWeaponVisuals).Apply(tool,visual,{})
+   if not adapted then tool:Destroy() error(err) end
+  end
+ elseif conflictId then tool.Name=data.Name tool.ToolTip=data.Name.." · Conflict" end
  tool:SetAttribute("RestGrip",tool.Grip) return tool
 end
 return Factory

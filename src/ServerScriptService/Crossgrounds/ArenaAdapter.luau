@@ -21,6 +21,7 @@ function Adapter.new(context,ctfRoot,config)
  end))
  table.insert(self.connections,remote("SelectPistolVisual","RemoteEvent").OnServerEvent:Connect(function(player,id)
   if typeof(id)~="string" or not Kits:IsPistolVisual(id) or not self.members[player] or context:GetMode(player)~="arena" or player:GetAttribute("CrossgroundsTransition") then return end
+  if not require(script.Parent.UnlockService).Allows(player,"arena",id) then return end
   local member=self.members[player] local now=os.clock() if now-(member.lastCosmetic or -10)<.25 then return end
   member.lastCosmetic=now player:SetAttribute("PendingArenaLoadout",id) self:Publish()
  end))

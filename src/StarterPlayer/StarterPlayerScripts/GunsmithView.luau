@@ -2,6 +2,7 @@ local View={}
 local slotNames={optic="Mira",muzzle="Boca",barrel="Cano",underbarrel="Acoplamento",magazine="Carregador",stock="Coronha",laser="Laser",fireControl="Disparo"}
 local Root=game.ReplicatedStorage.Crossgrounds local Catalog=require(Root.WeaponCatalog) local Attachments=require(Root.AttachmentCatalog)
 local Compatibility=require(Root.AttachmentCompatibility)
+local Career=require(script.Parent:WaitForChild("CareerClient"))
 local Config=require(Root.WeaponVisualConfiguration) local Stats=require(Root.WeaponStats)
 local Http=game:GetService("HttpService") local UIS=game:GetService("UserInputService")
 local PreviewStyle=require(script.Parent.ArsenalPreviewStyle)
@@ -214,10 +215,12 @@ table.insert(connections,player:GetAttributeChangedSignal("CTFPracticeRange"):Co
       selectedSlot=key table.insert(entries,{id='none',name='Sem acessório',equipped=not attachments[key],available=true,status=not attachments[key] and 'Equipado na edição' or 'Disponível',description='Usar a configuração padrão deste slot.'})
         for _,result in Compatibility.ForSlot(w,Attachments,key) do local a=result.attachment local compatible=result.available table.insert(entries,{id=a.id,name=a.name,equipped=attachments[key]==a.id,status=attachments[key]==a.id and 'Equipado na edição' or compatible and 'Compatível' or 'Pendente / incompatível',description=compatible and (key=='fireControl' and 'Conversão funcional do modo de disparo.' or a.visualOnly==false and (a.description or 'Acessório com bônus funcionais.') or 'Acessório visual compatível. Não adiciona bônus aos atributos da arma.') or 'Montagem não verificada para esta arma.',available=compatible}) end
      end
+     for _,entry in entries do if entry.id~='none' and entry.available then local allowed,reason=Career.Allows('ctf',entry.id,accessories and candidate or nil) if not allowed then entry.available=false entry.status=reason entry.description=reason..' · A prévia continua disponível.' end end end
      table.sort(entries,function(a,b) if a.id=='none' then return b.id~='none' elseif b.id=='none' then return false end return a.name<b.name end) return entries
     end,
     Inspect=function(entry) if not accessories then showModel(entry.id,entry.equipped and draft[slot..'Attachments'] or {}) end end,
     Select=function(entry)
+      if entry.available==false then notice.Text=entry.status return end
       if not accessories then
        local chosen=Catalog.Get(entry.id)
        if not chosen.combatId then notice.Text='Esta arma está disponível apenas para prévia.' return end
@@ -231,7 +234,7 @@ table.insert(connections,player:GetAttributeChangedSignal("CTFPracticeRange"):Co
        showModel(candidate,attachments) applyDraft(entry.id=='none' and 'Acessório removido.' or entry.name..' equipado.',true)
       else notice.Text='Montagem incompatível ou não verificada.' end
     end,
-    Custom=function(entry) if not accessories then local chosen=Catalog.Get(entry.id) if not chosen or not chosen.combatId then notice.Text='Esta arma está disponível apenas para prévia.' return end draft[slot..'WeaponId']=entry.id draft[slot..'Attachments']={} candidate=entry.id attachments={} showModel(entry.id,{}) applyDraft(chosen.name..' equipado.',true) end end,
+    Custom=function(entry) if entry.available==false then notice.Text=entry.status return end if not accessories then local chosen=Catalog.Get(entry.id) if not chosen or not chosen.combatId then notice.Text='Esta arma está disponível apenas para prévia.' return end draft[slot..'WeaponId']=entry.id draft[slot..'Attachments']={} candidate=entry.id attachments={} showModel(entry.id,{}) applyDraft(chosen.name..' equipado.',true) end end,
     ChangeWeapon=accessories and function() open('weapons') end or nil,
     Apply=nil,
    })
@@ -307,6 +310,7 @@ table.insert(connections,player:GetAttributeChangedSignal("CTFPracticeRange"):Co
  function self:Destroy() if not alive then return end alive=false for _,c in connections do c:Disconnect() end root:Destroy() end
  hook(player:GetAttributeChangedSignal("CTFArsenalState"),function() if page=="loadouts" or page=='focused' then overview:RefreshState(state()) end end)
  root.Destroying:Connect(function() alive=false player:SetAttribute('ArsenalFocused',false) generation+=1 previewModel:Destroy() cacheFolder:Destroy() table.clear(modelCache) for _,c in connections do c:Disconnect() end end)
+ hook(Career.Changed,function() if selectionView then selectionView:Refresh() end end)
  render() reflow() return self
 end
 return View

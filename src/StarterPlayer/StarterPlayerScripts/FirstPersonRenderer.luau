@@ -32,6 +32,7 @@ function Renderer.new(tool)
  for _,p in model:GetChildren() do if p:IsA("BasePart") then table.insert(self.parts,{part=p,rest=p.CFrame,group=p:GetAttribute("ReloadGroup"),reloadOnly=p:GetAttribute("ReloadOnly")}) end end
  self.handle=handle self.scale=model:GetScale() self.reloadMotion=Reload.new()
  self.ax50=tool:GetAttribute("WeaponId")=="ax_50"
+ if self.ax50 then self.cycleEffects=require(script.Parent:WaitForChild("AX50CycleEffects")).new(tool,world) end
  if self.ax50 and not tool:GetAttribute("OpticalAttachmentId") then self.optic=AXOptics.Build(model,self.parts) end
  local skin=Instance.new("Model") skin.Name="BlockyAvatarArms" skin.Parent=world self.skin=skin
  local humanoid=Instance.new("Humanoid") humanoid.RequiresNeck=false humanoid.DisplayDistanceType=Enum.HumanoidDisplayDistanceType.None humanoid.Parent=skin
@@ -90,7 +91,10 @@ function Renderer:Render(dt,camera,character,params)
  local arc=(params.arc or 0)*weight
  local action=params.action or {weapon=CFrame.new(),slide=CFrame.new(),support=Vector3.zero}
  local cf=base*softened(action.weapon)*softened(params.runPose or CFrame.new())*reload.weapon*CFrame.new(-arc*.7,self.wall*.12-arc*.35,self.wall*.45+(params.recoil or 0)*weight)*CFrame.Angles(math.rad((params.pitch or 0)*weight+self.wall*55-arc*65),0,math.rad((params.roll or 0)*weight-arc*55))
- local bolt=self.ax50 and AX50.Bolt(params.firedAgo or 100,params.cooldown,reloading) or nil
+ local shotStamp=self.tool:GetAttribute("PresentationShotAt")
+ local rejected=shotStamp~=nil and self.tool:GetAttribute("AX50RejectedShotStamp")==shotStamp
+ local bolt=self.ax50 and AX50.Bolt(params.firedAgo or 100,params.cooldown,reloading or rejected) or nil
+ local axialKick=self.ax50 and AX50.Kick(params.firedAgo or 100,params.ads,params.recoilStrength) or CFrame.identity
  if params.sight and params.sight.reticle=="RedDot" then
   for _,entry in self.parts do
    if entry.part:GetAttribute("VisualAttachmentSlot")=="optic" and entry.part.Name:find("Lens",1,true) then
@@ -111,6 +115,7 @@ function Renderer:Render(dt,camera,character,params)
   aligned=aligned*CFrame.new(breath,breath*.55,0)*softened(bolt.weapon)*kick
   cf=cf:Lerp(aligned,settle)
  end
+ cf*=softened(axialKick)
  self.opticalAperture=self.optic and params.sight and AXOptics.Project(self.optic,cf,projection,camera.ViewportSize) or nil
  if self.opticalAperture then self.opticalAperture.visible=transition.reticle*(1-reload.active)*(1-bolt.active*.9) end
  if self.optic then for _,p in self.optic.parts do p.part.CFrame=cf*p.rest p.part.Transparency=1-transition.lens end end
@@ -141,6 +146,10 @@ function Renderer:Render(dt,camera,character,params)
   arm.part.CFrame=CFrame.lookAt((a+b)*.5,a)*CFrame.Angles(math.pi/2,0,0)
  end
  local muzzle=self.handle:FindFirstChild("Muzzle")
+ if self.cycleEffects then
+  local ejectFrame=cf*CFrame.new(Vector3.new(.25,.70,-1.1)*self.scale)
+  self.cycleEffects:Update(dt,params.firedAgo or 100,self.tool:GetAttribute("PresentationShotAt"),params.cooldown,reloading,ejectFrame,self.scale)
+ end
  if muzzle then
   self.flash.CFrame=muzzle.WorldCFrame*CFrame.new(0,0,-.2)
   self.flash.Transparency=os.clock()<self.flashUntil and .1 or 1
@@ -156,5 +165,5 @@ function Renderer:ShotOrigin(worldCamera)
  local ray=worldCamera:ViewportPointToRay(x*v.X,y*v.Y)
  return worldCamera.CFrame.Position+ray.Direction*math.min(depth,3)
 end
-function Renderer:Destroy() if self.gui then self.gui:Destroy() end self.gui=nil end
+function Renderer:Destroy() if self.cycleEffects then self.cycleEffects:Destroy() end if self.gui then self.gui:Destroy() end self.gui=nil end
 return Renderer

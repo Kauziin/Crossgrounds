@@ -98,8 +98,9 @@ function V.Identity(parent,data,width,S,compact,peer)
  V.Avatar(f,data,4,8,size,color)
  local name=V.Text(f,"DisplayName",data.name,x,8,width-x-4,36,compact and (width<380 and 19 or 25) or 32) name.Font=Enum.Font.GothamBold name.TextWrapped=false name.TextTruncate=Enum.TextTruncate.AtEnd
  local xp=data.XP or 0 local level=S.Level(xp) local prev=math.floor(250*((level-1)^1.45)) local nextXP=math.floor(250*(level^1.45))
- V.Text(f,"Level","Nível "..level..(not compact and ("  ·  "..V.Format("Wins",data.Wins or 0,S).." vitórias") or ""),x,45,width-x-4,27,20)
- if compact then V.Bar(f,"XP",x,89,width-x-10,12,(xp-prev)/math.max(1,nextXP-prev),color)
+ if data.CareerLevel then xp=data.CareerCycleXP or 0 level,prev,nextXP=require(game.ReplicatedStorage.Crossgrounds.CareerPolicy).Progress(xp,data.CareerPhase) end
+ V.Text(f,"Level",(data.CareerPhase=="legend" and "Lenda · " or data.CareerPhase=="mastery" and "Maestria · " or data.CareerPrestige and "P"..data.CareerPrestige.." · " or "").."Nível "..level..(not compact and ("  ·  "..V.Format("Wins",data.Wins or 0,S).." vitórias") or ""),x,45,width-x-4,27,20)
+ if compact then V.Bar(f,"XP",x,89,width-x-10,12,(nextXP==prev and 1 or (xp-prev)/math.max(1,nextXP-prev)),color)
  else
   if width>=650 then
    name.Size=UDim2.fromOffset(math.min(300,width-x-190),36)
@@ -108,7 +109,7 @@ function V.Identity(parent,data,width,S,compact,peer)
   else V.Text(f,"Coins",V.Format("Coins",data.Coins or 0,S).." moedas",x,74,width-x-4,22,14,C.Muted) end
   V.Text(f,"XPValue",V.Format("XP",xp,S).." XP",x,103,width-x-4,23,14)
   if width>=650 then local t=V.Text(f,"NextLevel",V.Format("XP",math.max(0,nextXP-xp),S).." XP para o próximo nível",x+160,103,width-x-164,23,13,C.Muted) t.TextXAlignment=Enum.TextXAlignment.Right end
-  V.Bar(f,"XP",x,132,width-x-4,12,(xp-prev)/math.max(1,nextXP-prev),color)
+  V.Bar(f,"XP",x,132,width-x-4,12,(nextXP==prev and 1 or (xp-prev)/math.max(1,nextXP-prev)),color)
  end
  return f
 end

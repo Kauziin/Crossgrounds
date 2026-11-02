@@ -28,6 +28,7 @@ function Combat:Strip(player)
 end
 function Combat:Equip(player)
  self:Strip(player) local gun
+ if not require(script.Parent.UnlockService).Allows(player,"arena",player:GetAttribute("ArenaPistolVisual")) then player:SetAttribute("ArenaPistolVisual",Kits.ArenaPistolVisuals[1]) end
  for _,id in Kits.ArenaWeapons do
   local t=self.factory:Create(id,player:GetAttribute("ArenaPistolVisual")) local data=Kits.Weapons[t:GetAttribute("WeaponId")] t:SetAttribute("ArenaWeapon",true)
   if data.Kind=="Gun" then t:SetAttribute("Ammo",data.Magazine) t:SetAttribute("ReserveAmmo",data.Reserve) t:SetAttribute("Reloading",false) gun=t end
@@ -49,11 +50,11 @@ function Combat:Damage(player,part,data,id,distance,multiplier)
  h:TakeDamage(amount)
  
  if h.Health<=0 then
-  local reward=Rewards.Apply(player,target,headshot)
+  local reward=Rewards.Apply(player,target,headshot,id)
   local tool=player.Character and player.Character:FindFirstChildOfClass("Tool")
   local weaponName=id=="ArenaPistol" and tool and tool.Name or data.Name
   self.feedback:FireClient(player,{kind="Kill",victim=target and target.DisplayName or "Alvo de treino",weapon=weaponName,weaponId=id,headshot=headshot,xp=reward.xp,bonusXP=reward.bonusXP,sessionXP=reward.sessionXP,training=reward.training})
-  if target then self.feedback:FireClient(target,{kind="Eliminated",character=model,killer=player.Character,killerName=player.DisplayName,weapon=weaponName}) end
+  if target then self.feedback:FireClient(target,{kind="Eliminated",character=model,killer=player.Character,killerName=player.DisplayName,weapon=weaponName,identity=require(script.Parent.CareerService).Public(player)}) end
   if target then self.feedback:FireAllClients({kind="ArenaKillFeed",killerUserId=player.UserId,victimUserId=target.UserId,attacker=player.DisplayName,victim=target.DisplayName,weapon=weaponName,headshot=headshot}) end
   self.owner:Publish()
  else self.feedback:FireClient(player,{kind="Hit",headshot=headshot}) end

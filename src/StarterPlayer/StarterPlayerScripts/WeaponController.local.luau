@@ -49,13 +49,14 @@ local function use()
  -- Preserve the schedule across small frame overruns; never send a catch-up burst.
  nextUse=nextUse==0 and now+cooldown or math.max(nextUse+cooldown,now+cooldown-.025)
  local target,cameraOrigin,cameraDirection,hit=Presentation:GetAimWorld(data.Range+12)
+ local shotOrigin=Presentation:GetShotOrigin()
  local request={version=1,time=workspace:GetServerTimeNow(),cameraOrigin=cameraOrigin,cameraDirection=cameraDirection}
  -- Position is an observation hint, never an authoritative hit/damage report.
  local model=hit and require(game.ReplicatedStorage.Crossgrounds.ShotQuery).ModelFromPart(hit.Instance)
  if model then request.view={part=hit.Instance,position=hit.Instance.Position} end
  local shotId
  if data.Kind=="Gun" then shotSequence+=1 shotId=shotSequence prediction:Reserve(shotId,equipped,now) Presentation:PredictShot(shotId,equipped,target,request) end
- action:FireServer(equipped,target,Presentation:GetShotOrigin(),shotId,request)
+ action:FireServer(equipped,target,shotOrigin,shotId,request)
  return true
 end
 local function beginFire()

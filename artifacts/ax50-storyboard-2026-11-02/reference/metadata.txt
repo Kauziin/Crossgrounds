@@ -1,0 +1,34 @@
+Input #0, matroska,webm, from 'instructions\Arsenal\#2a\Polar - AX-50 SNIPER SOUND EFFECT (CALL OF DUTY MODERN WARFARE).mkv':
+  Metadata:
+    title           : AX-50 SNIPER SOUND EFFECT (CALL OF DUTY MODERN WARFARE)
+    ARTIST          : Polar
+    COMPATIBLE_BRANDS: iso6avc1mp41
+    MAJOR_BRAND     : dash
+    MINOR_VERSION   : 0
+    GENRE           : Gaming
+    DATE            : 20200629
+    DESCRIPTION     : AX-50 Sniper Sound Effect for Montages
+                    : 
+                    : Socials:
+                    : https://twitter.com/v2Polar
+                    : https://instagram.com/v2polar
+    SYNOPSIS        : AX-50 Sniper Sound Effect for Montages
+                    : 
+                    : Socials:
+                    : https://twitter.com/v2Polar
+                    : https://instagram.com/v2polar
+    PURL            : https://www.youtube.com/watch?v=sMsxkLG6zTA
+    COMMENT         : https://www.youtube.com/watch?v=sMsxkLG6zTA
+    ENCODER         : Lavf61.1.100
+  Duration: 00:00:04.13, start: 0.000000, bitrate: 2896 kb/s
+  Stream #0:0: Video: h264 (High), yuv420p(tv, bt709, progressive), 1920x1080 [SAR 1:1 DAR 16:9], 30 fps, 30 tbr, 1k tbn (default)
+    Metadata:
+      HANDLER_NAME    : ISO Media file produced by Google Inc.
+      VENDOR_ID       : [0][0][0][0]
+      DURATION        : 00:00:04.100000000
+  Stream #0:1(eng): Audio: opus, 48000 Hz, stereo, fltp, start 0.007000 (default)
+    Metadata:
+      DURATION        : 00:00:04.128000000
+At least one output file must be specified
+
+SHA256 546b06c6de5de649623185cbfe79a305aa6ed7f6e2b2646a95b77c3320ee7c26

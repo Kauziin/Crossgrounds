@@ -1361,7 +1361,7 @@ Kits.Weapons={
 Kits.ArenaWeapons={"Knife","ArenaPistol"}
 Kits.ArenaPistolVisuals={"M1911","Magnum","Glock18","DesertEagle","Luger","Beretta"}
 Kits.ArenaPistolNames={M1911="M1911",Magnum="Magnum",Glock18="Glock 18",DesertEagle="Desert Eagle",Luger="Luger P08",Beretta="Beretta M9"}
-Kits.Weapons.ArenaPistol={Name="Pistola",Kind="Gun",Damage=45,MinDamage=14,FalloffStart=35,FalloffEnd=140,Cooldown=1,Automatic=true,Range=210,Magazine=12,Reserve=120,ReloadTime=.9,Spread=.2,FireSound="rbxassetid://115486270266848",FireVolume=.68,FirePlaybackSpeed=.96,FireRange=160,PunchyAudio=true,VisualRecoil={Push=.22,Pitch=4.5,Roll=.65,Spring=220,Damping=28}}
+Kits.Weapons.ArenaPistol={Name="Pistola",Kind="Gun",Damage=45,MinDamage=14,FalloffStart=35,FalloffEnd=140,Cooldown=1,Automatic=false,Range=210,Magazine=12,Reserve=120,ReloadTime=.9,Spread=.2,FireSound="rbxassetid://115486270266848",FireVolume=.68,FirePlaybackSpeed=.96,FireRange=160,PunchyAudio=true,VisualRecoil={Push=.22,Pitch=4.5,Roll=.65,Spring=220,Damping=28}}
 Kits.Weapons.Sniper.MaxTargets=2
 Kits.Weapons.Sniper.PenetrationLoss=.2
 function Kits:IsPistolVisual(id) return table.find(self.ArenaPistolVisuals,id)~=nil end
@@ -1374,9 +1374,25 @@ Kits.Weapons.AutoBlaster={Name="AutoBlaster",Kind="Gun",SourcePack="ProjectileTe
 for _,id in {"Blaster","AutoBlaster"} do
  table.insert(Kits.Order,id)
  Kits.Profiles[id]={Title=id=="Blaster" and "BLASTER" or "AUTO BLASTER",Description="Projectile Test",WalkSpeed=18,SprintSpeed=25,JumpHeight=7.2,Weapons={"Sword",id}}
- table.insert(Kits.ArenaPistolVisuals,id) Kits.ArenaPistolNames[id]=id
+ -- Projectile Test firearms are Conflict choices, never Arena pistol visuals.
 end
-function Kits.ArenaGunId(visual) return (visual=="Blaster" or visual=="AutoBlaster") and visual or "ArenaPistol" end
+Kits.ArenaImportedPistols={"m1911","magnum_357","x16","m19","desert_eagle","renetti","sykov"}
+for _,id in Kits.ArenaImportedPistols do table.insert(Kits.ArenaPistolVisuals,id) Kits.ArenaPistolNames[id]=Kits.Weapons[id].Name end
+function Kits.ArenaGunId(visual) return "ArenaPistol" end
+-- The procedural models are shared; Conflict combat definitions are independent.
+Kits.ConflictPistolVisuals={Glock18="Glock18",Luger="Luger",Beretta="Beretta"}
+local pistolTuning={
+ Glock18={Name="Glock 18",Damage=23,MinDamage=12,Cooldown=.085,Automatic=true,Magazine=17,Reserve=102,ReloadTime=1.55,Spread=.65,Range=180,Pitch=2.4,Push=.15},
+ Luger={Name="Luger P08",Damage=38,MinDamage=19,Cooldown=.27,Automatic=false,Magazine=8,Reserve=64,ReloadTime=1.85,Spread=.16,Range=230,Pitch=4.4,Push=.28},
+ Beretta={Name="Beretta M9",Damage=29,MinDamage=15,Cooldown=.19,Automatic=false,Magazine=15,Reserve=90,ReloadTime=1.45,Spread=.24,Range=210,Pitch=3.0,Push=.20},
+}
+for id,values in pistolTuning do
+ local data=table.clone(Kits.Weapons.ArenaPistol)
+ for key,value in values do if key~="Pitch" and key~="Push" then data[key]=value end end
+ data.FalloffStart=35 data.FalloffEnd=data.Range*.75
+ data.VisualRecoil={Pitch=values.Pitch,Push=values.Push,Roll=.6,Spring=190,Damping=26}
+ Kits.Weapons[id]=data
+end
 -- All existing guns remain instant hitscan. Simulated travel is opt-in per definition.
 for _,data in Kits.Weapons do if data.Kind=="Gun" then
  data.ShotType=data.ShotType or "hitscan" data.ProjectilesPerShot=data.ProjectilesPerShot or 1
@@ -1405,4 +1421,6 @@ Kits.Weapons.fr_5_56.BurstPause=.3
 Kits.Weapons.an_94.BurstCount=2
 Kits.Weapons.an_94.BurstInterval=.036
 Kits.Weapons.an_94.BurstPause=.22
+require(script.Parent.Crossgrounds.WeaponRecoilProfiles).Apply(Kits.Weapons)
+Kits.Weapons.ax_50.PresentationTimeline=require(script.Parent.Crossgrounds.AX50Motion).Config
 return Kits

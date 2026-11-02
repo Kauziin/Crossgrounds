@@ -1,6 +1,6 @@
 -- Shared pistol classification, including Arena cosmetics and MW catalog tools.
 local Hold = {}
-local pistols = {ArenaPistol=true, Pistol=true, m1911=true, magnum_357=true,
+local pistols = {ArenaPistol=true, Pistol=true, Glock18=true, Luger=true, Beretta=true, m1911=true, magnum_357=true,
 	x16=true, m19=true, desert_eagle=true, renetti=true, sykov=true}
 function Hold.IsPistol(tool)
 	return tool ~= nil and (pistols[tool:GetAttribute("WeaponId")] == true

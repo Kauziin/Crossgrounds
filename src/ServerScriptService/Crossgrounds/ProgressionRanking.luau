@@ -3,10 +3,11 @@ local Players=game:GetService("Players")
 local DSS=game:GetService("DataStoreService")
 local studio=game:GetService("RunService"):IsStudio()
 local S=require(game.ReplicatedStorage.Crossgrounds.ProgressionSchema)
+local Career=require(script.Parent.CareerService)
 local indexed,cache,names,rate,busy={},{},{},{},{}
 local snapshot,friends
 local personalCache={}
-local function store(mode,metric) return DSS:GetOrderedDataStore("CG_Rank_v2_"..mode.."_"..metric) end
+local function store(mode,metric) return DSS:GetOrderedDataStore((mode=="general" and metric=="Level" and Career.Enabled() and "CG_Rank_v3_" or "CG_Rank_v2_")..mode.."_"..metric) end
 local function name(id)
  local online=Players:GetPlayerByUserId(id) if online then return online.DisplayName end
  if names[id] then return names[id] end
@@ -16,6 +17,9 @@ local function name(id)
 end
 local pendingIndexes={}
 function R.Index(id,data)
+ local player=Players:GetPlayerByUserId(id)
+ local p=player and Career.Get(player)
+ if p then data=Career.Stats(p) end
  if studio or id<=0 or type(data)~="table" then return end
  -- Index only snapshots read from persistence, including discovered offline profiles.
  pendingIndexes[id]=table.clone(data)
@@ -98,7 +102,7 @@ local function prestige()
   local ok,data=pcall(global,nil,mode,metric)
   local ranks={}
   if ok and data.verified then for i=1,math.min(3,#data.entries) do ranks[data.entries[i].userId]=i end end
-  for _,p in Players:GetPlayers() do p:SetAttribute("Prestige_"..mode,ranks[p.UserId]) end
+  for _,p in Players:GetPlayers() do p:SetAttribute("Podium_"..mode,ranks[p.UserId]) end
   task.wait(.2)
  end
 end

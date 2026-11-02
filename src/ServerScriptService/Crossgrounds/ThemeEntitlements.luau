@@ -2,13 +2,21 @@ local Entitlements={}
 local Players=game:GetService('Players')
 local Market=game:GetService('MarketplaceService')
 local config=require(game.ServerStorage.ThemePassConfiguration)
+local Access=require(script.Parent.PremiumFeatureAccess)
 local records={} local changed
 local passId=tonumber(config.CustomThemePassId) or 0
 if passId~=passId or passId<1 or passId%1~=0 or passId==math.huge then passId=0 end
-function Entitlements.Owns(player) return records[player] and records[player].owned==true or false end
+function Entitlements.Owns(player) return Access.Allows(player,"CustomColor") or records[player] and records[player].owned==true or false end
 function Entitlements.Refresh(player)
  local r=records[player] if not r or r.busy then return end
  player:SetAttribute('ThemeCustomPassId',passId)
+ if Access.Allows(player,"CustomColor") then
+  r.owned=true r.busy=false
+  player:SetAttribute('PremiumFeaturesAllowed',true)
+  player:SetAttribute('ThemeCustomAllowed',true) player:SetAttribute('ThemeCustomAccess','Tester')
+  if changed then changed(player) end
+  return
+ end
  if passId==0 then player:SetAttribute('ThemeCustomAllowed',false) player:SetAttribute('ThemeCustomAccess','Unavailable') return end
  r.busy=true player:SetAttribute('ThemeCustomAccess','Checking')
  local ok,owned=pcall(function()return Market:UserOwnsGamePassAsync(player.UserId,passId)end)

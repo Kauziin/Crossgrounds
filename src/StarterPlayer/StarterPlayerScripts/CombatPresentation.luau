@@ -73,8 +73,8 @@ local remoteShots=setmetatable({},{__mode="k"})
 local protectionRemote=game.ReplicatedStorage.Events:WaitForChild("BreakSpawnProtection")
 local hidden=setmetatable({},{__mode="k"})
 local spring=require(game.ReplicatedStorage.Crossgrounds.WeaponRecoil).new()
-local AX50=require(game.ReplicatedStorage.Crossgrounds.AX50Motion)
-local axCamera=AX50.new()
+local cameraSpring=require(game.ReplicatedStorage.Crossgrounds.WeaponRecoil).new()
+local cameraRecoilProfile={Spring=170,Damping=26}
 local recoil,recoilPitch,roll=0,0,0
 local swingAt=-100
 local ActionMotion=require(game.ReplicatedStorage.Crossgrounds.WeaponActionMotion)
@@ -201,6 +201,7 @@ function Presentation:ConfirmShot(message)
  local entry=predicted[message.shotId]
  if not entry then return end
  if not message.accepted then
+  if entry.tool and entry.tool:GetAttribute("WeaponId")=="ax_50" then entry.tool:SetAttribute("AX50RejectedShotStamp",entry.stamp) end
   for _,effect in entry.effects do Effects.CancelTrace(effect) end
   predicted[message.shotId]=nil
  elseif Shot.Finite(message.endpoint) then
@@ -245,6 +246,7 @@ function Presentation:PredictShot(shotId,tool,target,request)
  if not origin or (target-origin).Magnitude<.05 then return end
  local entry={at=os.clock(),expires=os.clock()+(config.kind=="projectile" and config.lifetime+1 or 3),effects={},pellets=config.pellets} predicted[shotId]=entry
  self:Kick(tool:GetAttribute("WeaponId"))
+ entry.tool=tool entry.stamp=tool:GetAttribute("PresentationShotAt")
  Effects.PlaySound(tool) if not firstPerson then Effects.Play(tool) end
  for pellet=1,config.pellets do
   local direction=Shot.Direction(target-origin,AttachmentEffects.Spread(data,tool),tool:GetAttribute("ShotSeed"),shotId,pellet,config.pellets)
@@ -274,7 +276,7 @@ end
 local function removeViewmodel()
  if renderer then renderer:Destroy() renderer=nil end viewmodel=nil
  sourceRecoil=Vector2.zero sourceFovKick=0
- spring:Reset() axCamera:Reset() carry:Reset() recoil=0 recoilPitch=0 roll=0
+ spring:Reset() cameraSpring:Reset() carry:Reset() recoil=0 recoilPitch=0 roll=0
 end
 local function buildViewmodel(tool)
  removeViewmodel()
@@ -286,11 +288,16 @@ function Presentation:Kick(id)
   firedAt=os.clock()
   tool:SetAttribute("PresentationShotAt",workspace:GetServerTimeNow())
   if firstPerson and renderer then renderer:Flash() end
-  local profile=id=="ax_50" and AX50.Recoil or AttachmentEffects.Recoil(data,tool)
-  if id=="ax_50" then axCamera:Kick(math.random()<.5 and -1 or 1,aiming) end
+  local profile=AttachmentEffects.Recoil(data,tool)
+  local side=math.random()<.5 and -1 or 1
+  if data.RecoverableRecoil then
+   local base=Kits.Weapons[id].VisualRecoil
+   cameraRecoilProfile={Push=0,Pitch=(profile.CameraRise or 0)*(profile.Pitch/math.max(.01,base.Pitch)),Roll=(profile.CameraSide or 0)*(profile.Roll/math.max(.01,base.Roll)),Spring=profile.Spring,Damping=profile.Damping,ReturnDelay=profile.ReturnDelay,Sustain=profile.Sustain}
+   cameraSpring:Kick(cameraRecoilProfile,side)
+  end
   local low = data.CameraRecoilMin
   local high = data.CameraRecoilMax
-	if id~="ax_50" and typeof(low) == "Vector2" and typeof(high) == "Vector2" then
+	if not data.RecoverableRecoil and typeof(low) == "Vector2" and typeof(high) == "Vector2" then
 		local horizontal = low.X + math.random() * (high.X - low.X)
 		local vertical = low.Y + math.random() * (high.Y - low.Y)
 
@@ -301,7 +308,7 @@ function Presentation:Kick(id)
 
 		sourceFovKick = 1
 	end
-  spring:Kick(profile,math.random()<.5 and -1 or 1)
+  spring:Kick(profile,side)
  else swingAt=os.clock() end
 end
 local function acquire()
@@ -500,9 +507,9 @@ RunService:BindToRenderStep("CTFCombatPresentation",Enum.RenderPriority.Camera.V
  else protectionToken=nil end
  yaw+=sourceRecoil.X*dt pitch=math.clamp(pitch+sourceRecoil.Y*dt,-1.25,1.25)
  sourceRecoil=sourceRecoil:Lerp(Vector2.zero,math.min(dt*10,1))
- local axOffset=axCamera:Update(dt)
- local axWeight=tool:GetAttribute("WeaponId")=="ax_50" and MotionPreferences.WeaponWeight(player) or 0
- local rotation=CFrame.fromEulerAnglesYXZ(pitch+axOffset.Y*axWeight,yaw+axOffset.X*axWeight,0)
+ local _,cameraPitch,cameraYaw=cameraSpring:Update(deltaTime,cameraRecoilProfile)
+ local cameraWeight=data.RecoverableRecoil and MotionPreferences.WeaponWeight(player) or 0
+ local rotation=CFrame.fromEulerAnglesYXZ(pitch+math.rad(cameraPitch)*cameraWeight,yaw+math.rad(cameraYaw)*cameraWeight,0)
 
  local localMove=rotation:VectorToObjectSpace(root.AssemblyLinearVelocity)
  local loco=locomotion:Update(dt,localMove,humanoid.FloorMaterial~=Enum.Material.Air,player:GetAttribute("SlideActive")==true)
@@ -561,14 +568,14 @@ RunService:BindToRenderStep("CTFCombatPresentation",Enum.RenderPriority.Camera.V
   if flat.Magnitude>.1 then humanoid.AutoRotate=false root.CFrame=CFrame.lookAt(root.Position,root.Position+flat) end
  else humanoid.AutoRotate=true end
  hideCharacter(character,firstPerson)
- local recoilProfile=weaponId=="ax_50" and AX50.Recoil or AttachmentEffects.Recoil(data,tool)
+ local recoilProfile=AttachmentEffects.Recoil(data,tool)
  recoil,recoilPitch,roll=spring:Update(deltaTime,recoilProfile)
  if firstPerson and renderer then
 
   local arc=data.Kind~="Gun" and ActionMotion.Melee(os.clock()-swingAt,data) or 0
   local action=ActionMotion.Sample({equippedFor=os.clock()-equippedAt,ads=adsWeight,slide=loco.slide,land=loco.land,vertical=localMove.Y,firedAgo=os.clock()-firedAt})
   action.weapon=loco.weapon*action.weapon
-  renderer:Render(deltaTime,camera,character,{runPose=runPose,runWeight=runWeight,runPhase=runPhase,recoil=recoil,pitch=recoilPitch,roll=roll,arc=arc,action=action,ads=adsWeight,sight=sightProfile,sightActive=aiming,firedAgo=os.clock()-firedAt,cooldown=data.Cooldown})
+  renderer:Render(deltaTime,camera,character,{runPose=runPose,runWeight=runWeight,runPhase=runPhase,recoil=recoil,pitch=recoilPitch,roll=roll,arc=arc,action=action,ads=adsWeight,sight=sightProfile,sightActive=aiming,firedAgo=os.clock()-firedAt,cooldown=data.Cooldown,recoilStrength=data.VisualRecoil and Kits.Weapons[weaponId].VisualRecoil and data.VisualRecoil.Push/math.max(.01,Kits.Weapons[weaponId].VisualRecoil.Push) or 1})
  elseif renderer then renderer:SetVisible(false) end
  opticalSight:Update(sightProfile,camera.ViewportSize,Presentation:GetAimViewport(),adsWeight,firstPerson and renderer and renderer.opticalAperture or nil,aiming)
 

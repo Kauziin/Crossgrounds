@@ -7,7 +7,12 @@ S.Display={general={"Kills","Deaths","Ratio","Wins","Captures","Coins","PlaySeco
 function S.Key(mode,key) return mode=="general" and key or mode.."_"..key end
 function S.Level(xp) return math.floor((xp/250)^(1/1.45))+1 end
 function S.Value(data,mode,key)
- if key=="Level" then return S.Level(data[S.Key(mode,"XP")] or 0) end
+ if key=="Level" then
+  if mode=="general" and data.CareerLevel then
+   return (data.CareerPhase=="legend" and 1605 or data.CareerPhase=="mastery" and 605 or (data.CareerPrestige or 0)*55)+data.CareerLevel
+  end
+  return S.Level(data[S.Key(mode,"XP")] or 0)
+ end
  if key=="Ratio" then return (data[S.Key(mode,"Kills")] or 0)/math.max(1,data[S.Key(mode,"Deaths")] or 0) end
  return data[S.Key(mode,key)] or 0
 end

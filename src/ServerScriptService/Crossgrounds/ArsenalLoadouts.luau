@@ -18,7 +18,7 @@ local function queueSave(p)
 end
 function Service.Get(p) return records[p] end
 function Service.Resolve(p)
- local r=records[p] return r and r.active
+ local r=records[p] return require(script.Parent.UnlockService).Resolve(p,r and r.active)
 end
 function Service.Backends(p)
  local c=Service.Resolve(p) if not c then return end
@@ -56,6 +56,7 @@ function Service.Start()
   if command=="save" then
    if type(payload)~="table" or type(payload.index)~="number" or payload.index%1~=0 or payload.index<1 or payload.index>#r.presets then return false,"Preset inválido." end
    local valid,err=Config.Loadout(payload.loadout) if not valid then return false,err end
+   local allowed,reason=require(script.Parent.UnlockService).Validate(p,valid) if not allowed then return false,reason end
    local kits=require(game.ReplicatedStorage.KitDefinitions) local profile=kits.Profiles[p:GetAttribute("SelectedKit")] or kits.Profiles.Regular
    valid.meleeWeaponId=profile.Weapons[1]
    if not r.loaded then return false,"As preferências não foram carregadas; seleção preservada." end

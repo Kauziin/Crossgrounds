@@ -411,6 +411,7 @@ Nav.MenuRequested:Connect(function(id)
  elseif id=="Settings" then show(true,"Options")
  elseif id=="Controls" then show(true,"Controls")
  elseif id=="HUDSettings" or id=="Maps" or id=="Loadout" then show(true,id)
+ elseif id=="Career" then show(false)
  elseif id=="MobileHUD" or id=="Hub" or id=="ArenaVote" or id=="MapVote" or id=="Progress" or id=="Playlist" then show(false) end
 end)
 Router:Register("Menu",function(s) if s==Enum.UserInputState.Begin then show(not shade.Visible,"Main") end end,{allowMenus=true})

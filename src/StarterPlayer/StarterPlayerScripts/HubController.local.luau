@@ -23,8 +23,10 @@ local function playModes() browser:Push({"RootPane","Modes"}) end
 local function openProgress() player:SetAttribute("ProgressionMenuOpen",true) end
 local function openSettings() Nav:OpenMenu("Settings") end
 local function openMusic() Nav:OpenMenu("Playlist") end
+local function openCareer() Nav:OpenMenu("Career") end
 browser:Button("RootPane","Modes","Jogar  ›",playModes)
 browser:Button("RootPane","Progress","Progressão",openProgress)
+browser:Button("RootPane","Career","Carreira e perfil",openCareer)
 browser:Button("RootPane","Settings","Configurações",openSettings)
 browser:Button("RootPane","Music","Música / Playlist",openMusic)
 
@@ -123,7 +125,7 @@ local function selectHome(button)
  end
  paintHomeFocus()
 end
-for index,entry in {{"Play","Jogar",playModes},{"StayLobby","Permanecer no lobby",stay},{"Progress","Progressão",openProgress},{"Settings","Configurações",openSettings},{"Music","Música / Playlist",openMusic}} do
+for index,entry in {{"Play","Jogar",playModes},{"StayLobby","Permanecer no lobby",stay},{"Progress","Progressão",openProgress},{"Career","Carreira e perfil",openCareer},{"Settings","Configurações",openSettings},{"Music","Música / Playlist",openMusic}} do
  local button=homeObject("TextButton",entry[1],homeList) button.Text="" button.AutoButtonColor=false button.LayoutOrder=index
  button.BackgroundColor3=Color3.fromRGB(2,16,23) button.Size=UDim2.new(1,-2,0,60) button:SetAttribute("AccessibleLabel",entry[2]) homeCorner(button,11)
  local edge=homeStroke(button,1.6,1) local glow=homeStroke(button,7,1)
@@ -252,10 +254,10 @@ local reopen=Instance.new("TextButton") reopen.Name="OpenModes" reopen.Text="Jog
 Nav:Connect(reopen,function() catalogOpen=true browser:Push({"RootPane","Modes"}) refresh() end)
 refresh=function()
  local data=Bridge:Get() local mode=Scope:Get() local q=data and data.queue or {state="idle"}
- local open=mode=="hub" and catalogOpen and not player:GetAttribute("ExperienceMenuOpen") and not player:GetAttribute("ProgressionMenuOpen") and not player:GetAttribute("LobbyMusicMenuOpen") and not player:GetAttribute("HUDLayoutEditing")
+ local open=mode=="hub" and catalogOpen and not player:GetAttribute("CareerMenuOpen") and not player:GetAttribute("ExperienceMenuOpen") and not player:GetAttribute("ProgressionMenuOpen") and not player:GetAttribute("LobbyMusicMenuOpen") and not player:GetAttribute("HUDLayoutEditing")
  if browser.Backdrop.Visible~=open then browser:SetOpen(open) end
  player:SetAttribute("LobbyBrowserOpen",open)
- reopen.Visible=mode=="hub" and not open and not player:GetAttribute("ExperienceMenuOpen") and not player:GetAttribute("ProgressionMenuOpen") and not player:GetAttribute("LobbyMusicMenuOpen") and not player:GetAttribute("HUDLayoutEditing")
+ reopen.Visible=mode=="hub" and not open and not player:GetAttribute("CareerMenuOpen") and not player:GetAttribute("ExperienceMenuOpen") and not player:GetAttribute("ProgressionMenuOpen") and not player:GetAttribute("LobbyMusicMenuOpen") and not player:GetAttribute("HUDLayoutEditing")
  local attention=mode~="hub" and (q.state=="failed" or q.state=="entering" or q.state=="travelling" or data and data.error or Bridge.LocalError)
  overlay.Visible=attention and true or false message.Text=Bridge.LocalError or data and data.error or q.message or ""
  acknowledge.Visible=q.state~="entering" and q.state~="travelling"
@@ -264,7 +266,7 @@ refresh=function()
  local item=definition()
  modeGrid:Update(data.catalog)
  practiceRange.Visible=selected=="ctf"
- description.Text=item and (item.name.."\n\n"..item.description.."\n\n"..(selected=="ctf" and "Practice Range abre o Boot Camp sem entrar na rodada CTF." or "Escolha Jogar para entrar. Você pode permanecer no lobby pelo menu.")) or "Carregando o catálogo..."
+ description.Text=item and (item.name.."\n\n"..item.description.."\n\n"..(selected=="ctf" and "Practice Range abre o Boot Camp sem entrar na rodada de Conflict." or "Escolha Jogar para entrar. Você pode permanecer no lobby pelo menu.")) or "Carregando o catálogo..."
  primary.Text=Bridge.Pending and "Aguarde..." or q.state=="ready" and (q.variant=="practice" and "Confirmar Practice Range" or "Confirmar entrada") or item and item.canEnter and "Jogar "..item.name or "Em desenvolvimento"
  practiceRange.Text=Bridge.Pending and "Aguarde..." or "Practice Range · Boot Camp"
  practiceRange.Active=selected=="ctf" and item~=nil and item.canEnter==true and not Bridge.Pending
@@ -281,6 +283,7 @@ Scope.Changed:Connect(function()
 end)
 Bridge.Changed:Connect(refresh)
 player:GetAttributeChangedSignal("ExperienceMenuOpen"):Connect(refresh)
+player:GetAttributeChangedSignal("CareerMenuOpen"):Connect(refresh)
 player:GetAttributeChangedSignal("ProgressionMenuOpen"):Connect(refresh)
 player:GetAttributeChangedSignal("LobbyMusicMenuOpen"):Connect(refresh)
 player:GetAttributeChangedSignal("HUDLayoutEditing"):Connect(refresh)

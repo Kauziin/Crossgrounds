@@ -70,11 +70,11 @@ function Damage:ResolveDeath(model,h)
   if killer and killerTeam and killerTeam~=team then
    local p=Players:GetPlayerFromCharacter(killer)
    if not p then MatchStats.Add(killer,"Kills") end
-   local xp=p and Progress.CTFKill(p,model:GetAttribute("CTFBot")==true) or 0
+   local xp=p and Progress.CTFKill(p,model:GetAttribute("CTFBot")==true,c.weapon) or 0
    if p and p:FindFirstChild("leaderstats") and p.leaderstats:FindFirstChild("Kills") then p.leaderstats.Kills.Value+=1 end
    local data=Kits.Weapons[c.weapon]
    feed:FireAllClients({killerUserId=p and p.UserId,victimUserId=victimPlayer and victimPlayer.UserId,killer=name(killer),victim=name(model),weapon=data and data.Name or c.weapon,killerTeam=killerTeam.Name,victimTeam=team.Name,headshot=c.headshot})
-   if victimPlayer then feedback:FireClient(victimPlayer,{kind="Eliminated",character=model,killer=killer,killerName=name(killer),weapon=data and data.Name or c.weapon}) end
+   if victimPlayer then feedback:FireClient(victimPlayer,{kind="Eliminated",character=model,killer=killer,killerName=name(killer),weapon=data and data.Name or c.weapon,identity=p and require(game.ServerScriptService.Crossgrounds.CareerService).Public(p)}) end
    if p then feedback:FireClient(p,{kind="Kill",victim=name(model),weapon=data and data.Name or c.weapon,xp=xp,headshot=c.headshot}) end
   else
    feed:FireAllClients({victimUserId=victimPlayer and victimPlayer.UserId,victim=name(model),victimTeam=team.Name,weapon="Eliminado"})

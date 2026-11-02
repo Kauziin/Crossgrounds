@@ -14,7 +14,7 @@ function Service:Start()
     local stats=p:FindFirstChild("leaderstats")
     local function value(name) local v=stats and stats:FindFirstChild(name) return v and v.Value or 0 end
     local kills=mode=="arena" and (p:GetAttribute("ArenaKills") or 0) or value("Kills")
-    table.insert(group,{userId=p.UserId,name=p.DisplayName,prestige=p:GetAttribute("Prestige_"..mode),kills=kills,deaths=mode=="arena" and (p:GetAttribute("ArenaDeaths") or 0) or value("Deaths"),score=mode=="arena" and kills or value("Captures")})
+    table.insert(group,{userId=p.UserId,name=p.DisplayName,prestige=p:GetAttribute("Podium_"..mode),kills=kills,deaths=mode=="arena" and (p:GetAttribute("ArenaDeaths") or 0) or value("Deaths"),score=mode=="arena" and kills or value("Captures")})
    end
   end
   for _,row in MatchStats.Snapshot() do table.insert(groups.ctf,row) end

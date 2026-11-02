@@ -1,5 +1,5 @@
 local Theme={}
-local Catalog=require(game.ReplicatedStorage.Crossgrounds.ThemeCatalog)
+local Catalog=require(game.ReplicatedStorage:WaitForChild('Crossgrounds'):WaitForChild('ThemeCatalog'))
 local player=game.Players.LocalPlayer
 local signal=Instance.new('BindableEvent') Theme.Changed=signal.Event
 local bound=setmetatable({},{__mode='k'}) local records=setmetatable({},{__mode='k'})

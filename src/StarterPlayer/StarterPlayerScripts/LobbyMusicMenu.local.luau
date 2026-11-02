@@ -49,7 +49,7 @@ Nav.MenuRequested:Connect(function(id)
  if id=="Playlist" then
   player:SetAttribute("ProgressionMenuOpen",false) player:SetAttribute("LobbyMusicMenuOpen",true)
   gui.Enabled=true browser:Push({"RootPane"}) browser:SetOpen(true) refresh()
- elseif table.find({"Main","Hub","Settings","Resume","ArenaVote","CTFKits"},id) then
+ elseif table.find({"Career","Main","Hub","Settings","Resume","ArenaVote","CTFKits"},id) then
   gui.Enabled=false browser:SetOpen(false) player:SetAttribute("LobbyMusicMenuOpen",false)
  end
 end)

@@ -10,8 +10,11 @@ local state
 local gui=Instance.new("ScreenGui") gui.Name="EliminatorView" gui.IgnoreGuiInset=true gui.ResetOnSpawn=false gui.DisplayOrder=25 gui.Parent=player:WaitForChild("PlayerGui")
 local caption=Instance.new("TextLabel") caption.Name="Eliminator" caption.AnchorPoint=Vector2.new(.5,1) caption.Position=UDim2.fromScale(.5,.84)
 caption.Size=UDim2.new(.9,0,0,48) caption.BackgroundTransparency=1 caption.Font=Enum.Font.GothamBold caption.TextSize=20 caption.TextColor3=Color3.new(1,1,1) caption.TextStrokeTransparency=.35 caption.TextWrapped=true caption.Visible=false caption.Parent=gui
+local identity=require(script.Parent:WaitForChild("PlayerIdentityView")).new(gui)
+identity.Frame.AnchorPoint=Vector2.new(.5,1) identity.Frame.Position=UDim2.fromScale(.5,.76) identity.Frame.Size=UDim2.new(.9,0,0,126) identity.Frame.Visible=false
+local constraint=Instance.new("UISizeConstraint") constraint.MaxSize=Vector2.new(470,126) constraint.Parent=identity.Frame
 local function stop()
- if not state then return end state=nil caption.Visible=false player:SetAttribute("SpectatingEliminator",false)
+ if not state then return end state=nil caption.Visible=false identity.Frame.Visible=false player:SetAttribute("SpectatingEliminator",false)
  local camera=workspace.CurrentCamera local h=player.Character and player.Character:FindFirstChildOfClass("Humanoid")
  camera.CameraType=Enum.CameraType.Custom if h then camera.CameraSubject=h end
  camera.FieldOfView=player:GetAttribute("SettingFieldOfView") or Settings.Rules.FieldOfView.Default
@@ -21,9 +24,11 @@ game.ReplicatedStorage:WaitForChild("Events"):WaitForChild("CombatFeedback").OnC
  local victimHumanoid=player.Character and player.Character:FindFirstChildOfClass("Humanoid")
  if victimHumanoid and victimHumanoid.Health>0 then return end
  local killer=message.killer
- if typeof(killer)~="Instance" or not killer:IsA("Model") or killer==player.Character or not killer:IsDescendantOf(workspace) then return end
+ if typeof(killer)~="Instance" or not killer:IsA("Model") or killer==player.Character or not killer:IsDescendantOf(workspace) then killer=nil end
+ if not killer and type(message.identity)~="table" then return end
  Nav:OpenMenu("Resume")
- state={victim=message.character,killer=killer,name=tostring(message.killerName or killer.Name),cf=workspace.CurrentCamera.CFrame}
+ state={victim=message.character,killer=killer,name=tostring(message.killerName or killer and killer.Name or "Jogador"),weapon=tostring(message.weapon or ""),cf=workspace.CurrentCamera.CFrame}
+ if type(message.identity)=="table" then identity:Render(message.identity) identity.Frame.Visible=true end
  player:SetAttribute("SpectatingEliminator",true) caption.Visible=true
 end)
 player.CharacterAdded:Connect(stop)
@@ -34,8 +39,8 @@ Run:BindToRenderStep("CrossgroundsEliminatorView",Enum.RenderPriority.Camera.Val
  local victimHumanoid=player.Character and player.Character:FindFirstChildOfClass("Humanoid")
  if player.Character~=view.victim or not Scope:IsCombat() or victimHumanoid and victimHumanoid.Health>0 then stop() return end
  local camera=workspace.CurrentCamera local killer=view.killer
- local h=killer:FindFirstChildOfClass("Humanoid") local root=killer:FindFirstChild("HumanoidRootPart")
- if killer:IsDescendantOf(workspace) and h and h.Health>0 and root then
+ local h=killer and killer:FindFirstChildOfClass("Humanoid") local root=killer and killer:FindFirstChild("HumanoidRootPart")
+ if killer and killer:IsDescendantOf(workspace) and h and h.Health>0 and root then
   local focus=root.Position+Vector3.new(0,1.5,0)
   local desired=focus-root.CFrame.LookVector*7+Vector3.new(0,2.3,0)
   local params=RaycastParams.new() params.FilterType=Enum.RaycastFilterType.Exclude params.FilterDescendantsInstances={killer,view.victim}
@@ -47,7 +52,7 @@ Run:BindToRenderStep("CrossgroundsEliminatorView",Enum.RenderPriority.Camera.Val
  -- If the killer dies/leaves, hold the last view instead of revealing another enemy.
  camera.CameraType=Enum.CameraType.Scriptable camera.CFrame=view.cf
  camera.FieldOfView=player:GetAttribute("SettingFieldOfView") or Settings.Rules.FieldOfView.Default
- caption.Text="ELIMINADO POR "..view.name.."\nAguardando renascimento"
+ caption.Text="ELIMINADO POR "..view.name.." · "..view.weapon.."\nAguardando renascimento"
 end)
 script.Destroying:Connect(function() stop() Run:UnbindFromRenderStep("CrossgroundsEliminatorView") gui:Destroy() end)
 

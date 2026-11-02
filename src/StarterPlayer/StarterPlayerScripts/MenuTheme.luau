@@ -1,6 +1,6 @@
 local Theme={}
 local Tween=game:GetService('TweenService') local Gui=game:GetService('GuiService')
-local player=game.Players.LocalPlayer local Accent=require(script.Parent.AccentTheme)
+local player=game.Players.LocalPlayer local Accent=require(script.Parent:WaitForChild('AccentTheme'))
 Theme.Colors={} Theme.Settings={}
 local function palette()
  for k,v in Accent.Palette() do Theme.Colors[k]=v Theme.Settings[k]=v end

@@ -6,7 +6,7 @@ local Kits=require(game.ReplicatedStorage.KitDefinitions) local events=game.Repl
 local joinResult=events:WaitForChild("JoinMatchResult")
 local joinRemote=events:WaitForChild("JoinMatch") local previewRemote=events:WaitForChild("PreviewKit") local leaveRemote=events:WaitForChild("LeaveMatch")
 local gui=Instance.new("ScreenGui") gui.Name="JoinMenu" gui.ResetOnSpawn=false gui.IgnoreGuiInset=true gui.DisplayOrder=50 gui.Enabled=false gui.Parent=player.PlayerGui
-local browser=Cascade.new(gui,"Backdrop","CAPTURE A BANDEIRA")
+local browser=Cascade.new(gui,"Backdrop","CONFLICT")
 browser:AddPane("Loadouts","ESCOLHER KIT") browser:AddPane("KitDetails","EQUIPAMENTO")
 local selected=player:GetAttribute("SelectedKit") or "Regular" local joining=false
 local show
