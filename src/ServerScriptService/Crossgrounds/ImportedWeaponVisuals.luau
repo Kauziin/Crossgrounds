@@ -6,6 +6,8 @@ local AttachmentEffects=require(Root.AttachmentEffects)
 local IronSights=require(Root.IronSightVisibility)
 local Visuals={}
 local Hold=require(Root.WeaponHold)
+local GripReferences=require(Root.WeaponGripReferences)
+local SMG=require(Root.SMGGunsmith)
 local geometryCache={} local geometryOrder={}
 local function pistolOrigin(source,id)
  local names={m1911="Grips",renetti="Default_Grip",m19="17rnd 9mm Para Magazine",x16="13-Round .45 ACP Magazine"}
@@ -27,6 +29,7 @@ local function geometry(source,origin,rotation)
   copy.CFrame=rotation*(CFrame.new(origin):Inverse()*p.CFrame)
   copy.Anchored=true copy.CanCollide=false copy.CanTouch=false copy.CanQuery=false copy.Massless=true
   copy:SetAttribute('VisualPartKey',partKey)
+  copy:SetAttribute('NativeStock',p.Name:lower():find('stock',1,true)~=nil or p.Parent.Name:lower():find('stock',1,true)~=nil)
   local path=p:GetFullName():lower()
   copy:SetAttribute('IronSightPart',IronSights.IsSourcePart(p,source))
   if source:GetFullName():find(".PISTOLS.",1,true) then
@@ -65,11 +68,23 @@ function Visuals.Build(id,configuration)
  local pistol=weapon and weapon.category=="PISTOLS"
  local grip=pistol and pistolOrigin(source,id) or source:FindFirstChild("Grip",true)
  local origin=grip and grip:IsA("BasePart") and grip.Position or cf.Position
- local model=cachedGeometry(id,source,origin) model.Name=id
+ local gripOrigin,supportPosition=GripReferences.Resolve(source,id)
+ if gripOrigin then origin=gripOrigin end
+ local model=cachedGeometry(gripOrigin and id..":gripReferences1" or id,source,origin) model.Name=id
+ if id=="kar98k" then
+  for _,p in model:GetChildren() do
+   if p.Name=="Clip" or p.Name=="Bullet" then
+    p:SetAttribute("ReloadGroup","Clip") p:SetAttribute("ReloadOnly",true) p.Transparency=1
+   end
+  end
+ end
  if #model:GetChildren()==0 then model:Destroy() return nil,"Modelo vazio." end
  local handle=Instance.new("Part") handle.Name="Handle" handle.Size=Vector3.new(.2,.5,.25) handle.Transparency=1 handle.Anchored=true handle.CanCollide=false handle.CanTouch=false handle.CanQuery=false handle.Parent=model model.PrimaryPart=handle
  attach(handle,"RightHandGrip",CFrame.Angles(-math.pi/2,0,0))
  attach(handle,"SupportGrip",(pistol and CFrame.new(-.22,-.08,-.04) or CFrame.new(-.15,.45,-2.2))*CFrame.Angles(-math.pi/2,0,math.pi/2))
+ if supportPosition then
+  handle.SupportGrip.Position=CFrame.Angles(0,-math.pi/2,0):PointToWorldSpace(supportPosition-origin)
+ end
  attach(handle,"Muzzle",CFrame.new(0,.8,-4.12))
  if pistol then
   local barrel=source:FindFirstChild("Barrel",true)
@@ -117,20 +132,26 @@ function Visuals.Build(id,configuration)
    local shotMuzzle=handle:FindFirstChild("Muzzle") if shotMuzzle then shotMuzzle.CFrame=CFrame.new(0,.79,muzzleZ) end
    attach(handle,"optic",CFrame.new(0,1.45,-1.6)) attach(handle,"muzzle",CFrame.new(0,.79,muzzleZ)) attach(handle,"barrel",CFrame.new(0,.79,-7.29)) attach(handle,"underbarrel",CFrame.new(0,.4,-3.1))
  end
+ SMG.Mount(model,handle,id)
  if weapon then
   local clean,err=Config.Validate(id,configuration or {},false) if not clean then model:Destroy() return nil,err end
   local slots={} for slot in clean do table.insert(slots,slot) end
   table.sort(slots,function(a,b) if a=="barrel" then return b~="barrel" elseif b=="barrel" then return false end return a<b end)
   for _,slot in slots do local attachmentId=clean[slot]
-   if not Attachments[attachmentId].functionalBurst then
+   if not Attachments[attachmentId].functionalBurst and not Attachments[attachmentId].functionalAutomatic then
    local src=resolve(attachmentId) local mount=handle:FindFirstChild(slot)
    if not src or not mount then model:Destroy() return nil,"Ponto de montagem ausente." end
    local bound=src:IsA("Model") and select(1,src:GetBoundingBox()) or src.CFrame
-   local accessory=cachedGeometry(attachmentId,src,slot=="barrel" and origin or bound.Position)
+   local accessory=cachedGeometry(attachmentId,src,slot=="barrel" and id=="ax_50" and origin or bound.Position)
     local visualScale=Attachments[attachmentId].visualScale or 1
     if visualScale~=1 then accessory:ScaleTo(visualScale) end
    local ac,sz=accessory:GetBoundingBox()
    local anchor=slot=="optic" and ac.Position-Vector3.new(0,sz.Y*.5,0) or slot=="underbarrel" and ac.Position+Vector3.new(0,sz.Y*.5,0) or ac.Position+Vector3.new(0,0,sz.Z*.5)
+   local smg=table.find(SMG.Ids,id)~=nil
+   if smg and (slot=="barrel" or slot=="muzzle") then
+    local lo,hi=SMG.Bounds(accessory:GetChildren())
+    anchor=Vector3.new(ac.Position.X,ac.Position.Y,hi.Z)
+   end
    if slot=="magazine" then
     local spec=Attachments[attachmentId]
     if spec.alignmentMode=="Top" then
@@ -141,7 +162,8 @@ function Visuals.Build(id,configuration)
      anchor=alignment.Position
     end
     for _,native in model:GetChildren() do if native:IsA("BasePart") and not native:GetAttribute("VisualAttachmentId") and native:GetAttribute("ReloadGroup")=="Magazine" then native.Transparency=1 end end
-   elseif slot=="stock" then
+    if smg and id=="aug" then local adapter=model:FindFirstChild("Conversion") if adapter then adapter.Transparency=1 end end
+   elseif Attachments[attachmentId].alignmentMode=="Front" then
     -- The source long axis is X, rotated into -Z by normalized geometry.
     local front=math.huge
     for _,p in accessory:GetChildren() do if p:IsA("BasePart") then
@@ -150,9 +172,9 @@ function Visuals.Build(id,configuration)
      end end end
     end end
     anchor=Vector3.new(ac.Position.X,ac.Position.Y,front)
-    local native=model:FindFirstChild("Stock") if native then native.Transparency=1 end
+    for _,native in model:GetChildren() do if native:IsA("BasePart") and not native:GetAttribute("VisualAttachmentId") and (native.Name=="Stock" or native:GetAttribute("NativeStock")) then native.Transparency=1 end end
    elseif slot=="barrel" then
-    for _,native in model:GetChildren() do if native:IsA("BasePart") and not native:GetAttribute("VisualAttachmentId") and (native.Name=="Barrel" or native.Name=="Muzzle" or attachmentId=="barrels_ax_50_heavy" and native.Name=="Rails") then native.Transparency=1 end end
+    for _,native in model:GetChildren() do if native:IsA("BasePart") and not native:GetAttribute("VisualAttachmentId") and (native.Name=="Barrel" or native.Name=="Barrel Main" or native.Name=="Muzzle" or attachmentId=="barrels_ax_50_heavy" and native.Name=="Rails") then native.Transparency=1 end end
     local muzzle=accessory:FindFirstChild("Muzzle")
     if muzzle then
      local minZ=math.huge
@@ -178,7 +200,7 @@ function Visuals.Build(id,configuration)
 					)
 				end
    for _,p in accessory:GetChildren() do if p:IsA("BasePart") then
-						if slot ~= "barrel" then
+						if slot ~= "barrel" or smg then
 							p.CFrame =
 								mount.WorldCFrame
 								* adjustment
@@ -186,6 +208,16 @@ function Visuals.Build(id,configuration)
 								* p.CFrame
 						end
     if slot=="magazine" then p:SetAttribute("ReloadGroup","Magazine") end p.Name="Accessory_"..attachmentId.."_"..p.Name p:SetAttribute("VisualAttachmentId",attachmentId) p:SetAttribute("VisualAttachmentSlot",slot) p.Parent=model end end accessory:Destroy()
+   if smg and slot=="barrel" then
+    local parts={} for _,p in model:GetChildren() do if p:IsA("BasePart") and p:GetAttribute("VisualAttachmentId")==attachmentId then table.insert(parts,p) end end
+    local lo,hi=SMG.Bounds(parts) local front=Vector3.new((lo.X+hi.X)*.5,(lo.Y+hi.Y)*.5,lo.Z)
+    handle.Muzzle.Position=front handle.muzzle.Position=front
+   end
+   if smg and slot=="underbarrel" then
+    local parts={} for _,p in model:GetChildren() do if p:IsA("BasePart") and p:GetAttribute("VisualAttachmentId")==attachmentId then table.insert(parts,p) end end
+    local lo,hi=SMG.Bounds(parts) handle.SupportGrip.Position=(lo+hi)*.5
+    if id=="aug" then local native=model:FindFirstChild("Grip") if native then native.Transparency=1 end end
+   end
    if slot=="optic" then for _,p in model:GetChildren() do if p:IsA('BasePart') and not p:GetAttribute('VisualAttachmentId') and id=="ax_50" and (p.Name:find("Scope",1,true) or p.Name=="Lens" or p.Name=="Stand") then p.Transparency=1 end end end
    end
   end

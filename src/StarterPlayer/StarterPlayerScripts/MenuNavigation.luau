@@ -244,6 +244,11 @@ for action,step in {MenuPrevious=-1,MenuNext=1} do
   if state~=Enum.UserInputState.Begin then return Enum.ContextActionResult.Sink end
   syncRoot()
   local handler=root and categoryHandlers[root]
+  local owner=focused
+  while owner and owner~=root do
+   if root and owner:IsDescendantOf(root) and categoryHandlers[owner] then handler=categoryHandlers[owner] break end
+   owner=owner.Parent
+  end
   if handler then Audio:Play("Focus") handler(step) end
   return Enum.ContextActionResult.Sink
  end,{scope="menu"})
@@ -252,6 +257,10 @@ CAS:BindActionAtPriority("CTFAccessibleMenu",function(_,state,input)
  syncRoot()
  if not root or player:GetAttribute("Rebinding") or Gui.MenuIsOpen or UIS:GetFocusedTextBox() then return Enum.ContextActionResult.Pass end
  local original=input.KeyCode
+ if original==Enum.KeyCode.ButtonL2 or original==Enum.KeyCode.ButtonR2 then
+  local entry=focused and registered[focused]
+  if not (entry and entry.actions and entry.actions.group) then return Enum.ContextActionResult.Pass end
+ end
  if original==Enum.KeyCode.Thumbstick1 then stick=Vector2.new(input.Position.X,input.Position.Y) return Enum.ContextActionResult.Sink end
  if original==Enum.KeyCode.Thumbstick2 then scrollStick=input.Position.Y return Enum.ContextActionResult.Sink end
  local keyboard=original==Enum.KeyCode.Up or original==Enum.KeyCode.Down or original==Enum.KeyCode.Left or original==Enum.KeyCode.Right or original==Enum.KeyCode.Return or original==Enum.KeyCode.KeypadEnter or original==Enum.KeyCode.Escape or original==Enum.KeyCode.Tab
@@ -267,12 +276,15 @@ CAS:BindActionAtPriority("CTFAccessibleMenu",function(_,state,input)
   elseif key==Enum.KeyCode.ButtonA then Navigation:Activate()
   elseif key==Enum.KeyCode.ButtonX or key==Enum.KeyCode.X then if not Navigation:ContextAction("custom") then return Enum.ContextActionResult.Pass end
   elseif key==Enum.KeyCode.ButtonY or key==Enum.KeyCode.Y then if not Navigation:ContextAction("reset") then return Enum.ContextActionResult.Pass end
+  elseif key==Enum.KeyCode.ButtonL2 or key==Enum.KeyCode.ButtonR2 then
+   local entry=focused and registered[focused] local fn=entry and entry.actions and entry.actions.group
+   if not fn then return Enum.ContextActionResult.Pass end fn(key==Enum.KeyCode.ButtonR2 and 1 or -1)
   elseif key==Enum.KeyCode.ButtonL3 then if not Navigation:ContextAction('options') then return Enum.ContextActionResult.Pass end
   elseif key==Enum.KeyCode.ButtonB then local callback=back[root] if callback then Audio:Play("Back") callback() end
   else direction(key) heldDirection=key repeatAt=os.clock()+.4 end
  elseif state==Enum.UserInputState.End or state==Enum.UserInputState.Cancel then heldDirection=nil end
  return Enum.ContextActionResult.Sink
-end,false,6000,Enum.KeyCode.ButtonA,Enum.KeyCode.ButtonB,Enum.KeyCode.ButtonL3,Enum.KeyCode.Thumbstick1,Enum.KeyCode.Thumbstick2,Enum.KeyCode.DPadLeft,Enum.KeyCode.DPadRight,Enum.KeyCode.DPadUp,Enum.KeyCode.DPadDown,Enum.KeyCode.Up,Enum.KeyCode.Down,Enum.KeyCode.Left,Enum.KeyCode.Right,Enum.KeyCode.Return,Enum.KeyCode.KeypadEnter,Enum.KeyCode.Escape,Enum.KeyCode.Tab,Enum.KeyCode.ButtonX,Enum.KeyCode.ButtonY,Enum.KeyCode.X,Enum.KeyCode.Y)
+end,false,6000,Enum.KeyCode.ButtonA,Enum.KeyCode.ButtonB,Enum.KeyCode.ButtonL2,Enum.KeyCode.ButtonR2,Enum.KeyCode.ButtonL3,Enum.KeyCode.Thumbstick1,Enum.KeyCode.Thumbstick2,Enum.KeyCode.DPadLeft,Enum.KeyCode.DPadRight,Enum.KeyCode.DPadUp,Enum.KeyCode.DPadDown,Enum.KeyCode.Up,Enum.KeyCode.Down,Enum.KeyCode.Left,Enum.KeyCode.Right,Enum.KeyCode.Return,Enum.KeyCode.KeypadEnter,Enum.KeyCode.Escape,Enum.KeyCode.Tab,Enum.KeyCode.ButtonX,Enum.KeyCode.ButtonY,Enum.KeyCode.X,Enum.KeyCode.Y)
 local fake={Thumbstick1Right=Vector2.new(1,0),Thumbstick1Left=Vector2.new(-1,0),Thumbstick1Up=Vector2.new(0,1),Thumbstick1Down=Vector2.new(0,-1)}
 local textFocusAt=0
 UIS.TextBoxFocused:Connect(function() textFocusAt=os.clock() end)
@@ -322,9 +334,12 @@ Run:BindToRenderStep("CTFMenuCursor",Enum.RenderPriority.Last.Value,function(dt)
  focusStroke.Color=tokens.Focus glowStroke.Color=tokens.Accent
  focusStroke.Thickness=player:GetAttribute('SettingHighContrast') and 3 or 2
  glowStroke.Thickness=6 glowStroke.Transparency=.92
- settingHelp.Visible=settingsRoot==true
+ local contextObject=focused local contextHelp
+ while contextObject and contextObject~=root do contextHelp=contextObject:GetAttribute('MenuContextHelp') if contextHelp then break end contextObject=contextObject.Parent end
+ settingHelp.Visible=settingsRoot==true or contextHelp~=nil
  settingHelp.Text="← → AJUSTAR  ·  "..Icons:Name("ButtonX").." VALOR  ·  "..Icons:Name("ButtonY").." PADRÃO"
- local footerWidth=settingsRoot and 890 or hasCategories and 530 or 340
+ if contextHelp then settingHelp.Text=contextHelp end
+ local footerWidth=(settingsRoot or contextHelp) and 890 or hasCategories and 530 or 340
  footer.Size=UDim2.fromOffset(footerWidth,32)
  local footerScale=footer:FindFirstChild("Fit") or Instance.new("UIScale") footerScale.Name="Fit" footerScale.Scale=math.min(1,(workspace.CurrentCamera.ViewportSize.X-24)/footerWidth) footerScale.Parent=footer
  previousGlyph.Visible=hasCategories nextGlyph.Visible=hasCategories categoryHelp.Visible=hasCategories

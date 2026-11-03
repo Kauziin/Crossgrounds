@@ -24,9 +24,16 @@ local function update(dt)
  for entry in active do
   entry.age+=dt
   if entry.sim then
-   local before=entry.sim.position entry.sim:Step(dt)
-   draw(entry,before,entry.sim.position)
-   if not entry.sim.active then release(entry) end
+   if entry.finishedAt then
+    entry.part.Transparency=.12+.88*math.clamp((entry.age-entry.finishedAt)/.045,0,1)
+    if entry.age-entry.finishedAt>=.045 then release(entry) end
+   else
+    local before=entry.sim.position entry.sim:Step(dt)
+    local delta=entry.sim.position-before
+    local tail=delta.Magnitude>entry.length and entry.sim.position-delta.Unit*entry.length or before
+    draw(entry,tail,entry.sim.position)
+    if not entry.sim.active then entry.finishedAt=entry.age end
+   end
   else
    local delta=entry.endpoint-entry.origin local distance=delta.Magnitude
    local head=math.min(distance,entry.age*entry.speed) local tail=math.max(0,head-entry.length)
@@ -59,7 +66,8 @@ function Cosmetics.Projectile(actor,id,origin,direction,options)
  local sim=Simulation.new({origin=origin,direction=direction,speed=options.speed,lifetime=options.lifetime,range=options.range,
   acceleration=options.acceleration,radius=options.radius,shooter=options.shooter or actor,
   classify=options.classify or function() return "block" end,maxTargets=options.maxTargets,penetrationLoss=options.penetrationLoss})
- return start({origin=origin,sim=sim,actor=actor,id=id,width=options.visual and options.visual.Width})
+ return start({origin=origin,sim=sim,actor=actor,id=id,width=options.visual and options.visual.Width,
+  length=options.visual and options.visual.Length or 18})
 end
 function Cosmetics.Finish(actor,id,endpoint)
  for entry in active do if entry.actor==actor and entry.id==id then Cosmetics.Correct(entry,endpoint) end end

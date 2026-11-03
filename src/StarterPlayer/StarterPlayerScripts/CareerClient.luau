@@ -16,6 +16,7 @@ function Client.Refresh()
   last=os.clock() busy=false
  end)
 end
+function Client.Get() if player:GetAttribute("CareerReady")==true then return state end end
 function Client.Allows(mode,id,weapon)
  if mode=="ctf"and player:GetAttribute("CTFPracticeRange")==true then return Catalog.Get(mode,id)~=nil,"Somente prévia / indisponível."end
  if player:GetAttribute("CareerReady")==nil then return true end

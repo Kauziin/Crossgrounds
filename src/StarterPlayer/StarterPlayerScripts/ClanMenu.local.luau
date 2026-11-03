@@ -8,6 +8,7 @@ local Catalog=require(game.ReplicatedStorage.Crossgrounds.ClanCatalog)
 local gui=Instance.new("ScreenGui")gui.Name="ClanMenu"gui.ResetOnSpawn=false gui.DisplayOrder=81 gui.Enabled=false gui.Parent=player.PlayerGui
 local browser=Cascade.new(gui,"Backdrop","CLÃS")
 for id,title in {Create="FUNDAR CLÃ",Overview="CLÃ",Members="INTEGRANTES",Member="GERENCIAR INTEGRANTE",Invites="CONVITES RECEBIDOS",Invite="CONVIDAR AMIGOS DO LOBBY",Ranking="RANKING DE CLÃS",Lookup="BUSCAR CLÃ",Confirm="CONFIRMAR AÇÃO"}do browser:AddPane(id,title)end
+browser:Button("RootPane","ProgressionTrack","Progressão da guilda  ›",function() gui.Enabled=false browser:SetOpen(false) player:SetAttribute("ClanMenuOpen",false) Nav:OpenMenu("GuildProgress") end)
 local status=browser:Info("RootPane","Status","",90)
 local overview=browser:Info("Overview","Summary","",134)
 local currentStats=browser:Info("Overview","Current","",114)

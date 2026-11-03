@@ -9,10 +9,10 @@ local PreviewStyle=require(script.Parent.ArsenalPreviewStyle)
 local function copy(v) return Http:JSONDecode(Http:JSONEncode(v)) end
 function View.new(parent,options)
  local player,nav=options.Player,options.Navigation local remote=Root.Remotes:WaitForChild("ArsenalCommand")
- local connections={} local alive=true local generation=0 local page="loadouts" local index=1 local slot="primary" local candidate="m4a1" local selectedSlot
+ local connections={} local alive=true local generation=0 local page="loadouts" local index=1 local slot="primary" local candidate="m4a1" local selectedSlot local inspectedWeapon
  local draft=Config.Default(1) local attachments={} local yaw=-1.4 local pitch=.1 local zoom=1 local dragging local model
  local root=Instance.new("Frame") root.Name="Gunsmith" root.BackgroundTransparency=1 root.Size=UDim2.new(1,-8,0,660) root.Parent=parent
- local self={Root=root} local buttons={} local render,reflow local overview local inspect local selectionView local accessoryPreview=true local popup local openOptions
+ local self={Root=root} local buttons={} local render,reflow local overview local inspect local selectionView local accessoryPreview=true local popup local openOptions local progression local progressionReward
  local modelCache={} local cacheOrder={} local cacheFolder=Instance.new('Folder') local displayedKey local pageTrail={}
  local function hook(signal,fn) local c=signal:Connect(fn) table.insert(connections,c) return c end
  local function label(name,p,size)
@@ -86,7 +86,7 @@ table.insert(connections,player:GetAttributeChangedSignal("CTFPracticeRange"):Co
   local parts={id} for key,value in configuration or {} do table.insert(parts,key..'='..value) end table.sort(parts) local cacheKey=table.concat(parts,'|')
   if displayedKey==cacheKey and model and model.Parent==world then return end
   local function display(asset)
-   model=previewModel:Show(asset,id,configuration) displayedKey=cacheKey positionCamera()
+   model=previewModel:Show(asset,id,configuration) displayedKey=cacheKey require(Root.WeaponFinishVisual).Apply(model,page=='progression' and progressionReward and progressionReward.finish or 'default') positionCamera()
   end
   if modelCache[cacheKey] and previewModel:HasBase(id) then display(modelCache[cacheKey]) return end
   if modelCache[cacheKey] then modelCache[cacheKey]:Destroy() modelCache[cacheKey]=nil local old=table.find(cacheOrder,cacheKey) if old then table.remove(cacheOrder,old) end end
@@ -103,10 +103,10 @@ table.insert(connections,player:GetAttributeChangedSignal("CTFPracticeRange"):Co
  local function action(text,fn)
   local b=Instance.new("TextButton") b.Name="Option"..(#buttons+1) b:SetAttribute("CascadeDecoration",page=="loadouts") b.LayoutOrder=#buttons+1 b.Text=text b.TextWrapped=true b.Size=UDim2.new(1,-8,0,44) b.BackgroundColor3=Color3.fromRGB(25,42,55) b.TextColor3=Color3.fromRGB(230,244,250) b.TextSize=14 b.Font=Enum.Font.GothamMedium b.AutoButtonColor=true b.Parent=list nav:Connect(b,fn) table.insert(buttons,b) return b
  end
- local function clear() if popup then popup:Destroy() popup=nil end if selectionView then selectionView:Destroy() selectionView=nil end for _,b in buttons do b:Destroy() end buttons={} list.CanvasPosition=Vector2.zero end
+ local function clear() if progression then preview.Parent=root progression:Destroy() progression=nil end if popup then popup:Destroy() popup=nil end if selectionView then selectionView:Destroy() selectionView=nil end for _,b in buttons do b:Destroy() end buttons={} list.CanvasPosition=Vector2.zero end
  local function open(nextPage,back)
   if nextPage=='loadouts' then table.clear(pageTrail) elseif not back and nextPage~=page then table.insert(pageTrail,page) end
-  page=nextPage render() if reflow then reflow() end local target=selectionView and selectionView:DefaultFocus() or buttons[1] if page=='focused' then target=overview:DefaultFocus() end if target then nav:Focus(target) task.delay(.06,function() if alive and target.Parent then nav:Focus(target) end end) end end
+  page=nextPage render() if reflow then reflow() end local target=progression and progression:DefaultFocus() or selectionView and selectionView:DefaultFocus() or buttons[1] if page=='focused' then target=overview:DefaultFocus() end if target then nav:Focus(target) task.delay(.06,function() if alive and target.Parent then nav:Focus(target) end end) end end
  local saveRevision=0
  local function applyDraft(successText,stay)
   saveRevision+=1 local revision=saveRevision local payload={index=index,loadout=copy(draft)}
@@ -187,6 +187,45 @@ table.insert(connections,player:GetAttributeChangedSignal("CTFPracticeRange"):Co
   title.Font=Enum.Font.GothamBold title.TextSize=page=="loadouts" and 27 or 20
   notice.Position=UDim2.fromOffset(0,34) notice.Size=UDim2.new(1,0,0,page=="loadouts" and 24 or 42)
   list.Visible=true
+  if page=='progression' then
+   local Track=require(script.Parent.ProgressionTrackView)
+   local Data=require(Root.ProgressionTracks)
+   local weapon=Catalog.Get(candidate)
+   local categories={{id='all',label='Todas as recompensas'},{id='finish',label='Acabamentos'}}
+   for _,key in weapon.slots do table.insert(categories,{id=key,label=Data.Slots[key] or key}) end
+   progression=Track.new(root,{
+    Accent=require(script.Parent.AccentTheme).Color(),Categories=categories,
+    Data=function(category) return Data.Weapon(Career.Get(),candidate,category) end,
+    CanEquip=function(reward) if reward.kind=='finish' then return reward.available==true and player:GetAttribute('CrossgroundsMode')=='hub','Volte ao lobby' end return Career.Allows('ctf',reward.id,candidate) end,
+    Equip=function(reward,done)
+     if reward.kind=='finish' then task.spawn(function()
+      local ok,accepted,message=pcall(function() return Root.Remotes.CareerCommand:InvokeServer('finish',{weapon=require(Root.UnlockCatalog).Canonical(candidate),id=reward.finish,mode='ctf'}) end)
+      if alive then Career.Refresh() done(ok and accepted and 'Acabamento salvo pelo fluxo de carreira.' or tostring(message or 'Não foi possível equipar.')) end
+     end) else
+      local a=Attachments[reward.id] if not a or not Compatibility.Check(weapon,a) then done('Montagem indisponível.') return end
+      attachments[a.slot]=reward.id draft[slot..'Attachments']=copy(attachments) showModel(candidate,attachments) applyDraft('Acessório equipado.',true) done('Seleção enviada ao Armeiro.')
+     end
+    end,
+    Inspect=function(reward)
+     progressionReward=reward
+     if not reward then return end
+     local configuration=copy(attachments)
+     if reward.kind=='attachment' then configuration[reward.slot]=reward.id end
+     showModel(candidate,configuration)
+     if model then require(Root.WeaponFinishVisual).Apply(model,reward.finish or 'default') end
+     if reward.kind=='attachment' then
+      local before=Stats.Get(candidate,attachments).effectiveGameplayStats local after=Stats.Get(candidate,configuration).effectiveGameplayStats
+      local changes={}
+      for _,pair in {{'spreadDegrees','Dispersão'},{'rpm','Cadência'},{'range','Alcance'},{'movementMultiplier','Movimento'}} do local a,b=before[pair[1]],after[pair[1]] if type(a)=='number' and type(b)=='number' and a~=b then table.insert(changes,string.format('%s: %.2f → %.2f',pair[2],a,b)) end end
+      return #changes>0 and table.concat(changes,' · ') or 'Este acessório não altera os atributos efetivos desta arma.'
+     end
+    end,
+   })
+   progression.Root.Position=UDim2.fromOffset(0,66)
+   preview.Parent=progression.PreviewArea preview.Position=UDim2.fromScale(0,0) preview.Size=UDim2.fromScale(1,1) preview.Visible=true preview.BackgroundTransparency=1
+   list.Visible=false rotate.Visible=false details.Visible=false Career.Refresh()
+   return
+  end
   if page=='weapons' or page=='attachments' then
    local accessories=page~='weapons' list.Visible=false
    local w=Catalog.Get(candidate) selectedSlot=selectedSlot or w.slots[1] or 'optic'
@@ -194,7 +233,7 @@ table.insert(connections,player:GetAttributeChangedSignal("CTFPracticeRange"):Co
    if accessories then for _,key in w.slots do if not seen[key] then table.insert(categories,key) seen[key]=true end end for _,key in {'optic','muzzle','underbarrel','magazine','stock','laser'} do if not seen[key] then table.insert(categories,key) end end
    else for _,entry in Catalog.List(slot) do if not seen[entry.category] then seen[entry.category]=true table.insert(categories,entry.category) end end table.sort(categories) end
    local category=accessories and selectedSlot or (Catalog.Get(draft[slot..'WeaponId']).category)
-   local tools={}
+   local tools={{'Progressão da arma','XP, níveis e desbloqueios',function() candidate=accessories and candidate or inspectedWeapon or candidate attachments=candidate==draft[slot..'WeaponId'] and copy(draft[slot..'Attachments']) or {} open('progression') end}}
    if accessories then
     table.insert(tools,{'Restaurar acessórios','Configuração padrão',function() attachments={} draft[slot.."Attachments"]={} showModel(candidate,attachments) applyDraft("Acessórios removidos.",true) end})
     table.insert(tools,{'Salvar visual','Preset visual existente',function() request('visual',{name=draft.name..'/'..slot,weaponId=candidate,attachments=attachments}) end})
@@ -202,7 +241,7 @@ table.insert(connections,player:GetAttributeChangedSignal("CTFPracticeRange"):Co
    end
    title.Text=accessories and 'ACESSÓRIOS' or 'ESCOLHA DE ARMAS'
    selectionView=require(script.Parent.ArsenalSelectionView).new(root,{
-    Player=player,Navigation=nav,Accessories=accessories,Categories=categories,Category=category,WeaponName=w.name,Tools=tools,PreviewEnabled=true,
+    Player=player,Navigation=nav,Accessories=accessories,Categories=categories,Category=category,WeaponName=w.name,WeaponId=candidate,Tools=tools,PreviewEnabled=true,
     Information=function() return player:GetAttribute("CTFPracticeRange")==true and (accessories and "Os acessórios são aplicados imediatamente no Practice Range." or "As armas são equipadas imediatamente no Practice Range.") or "Seleções salvas serão aplicadas no próximo nascimento." end,
     Top=function() return (player:GetAttribute('SettingFontScale') or 1)>1.15 and 104 or 64 end,
     Height=function() local factor=1 local a=parent while a do local scale=a:FindFirstChildOfClass('UIScale') if scale then factor*=scale.Scale end a=a.Parent end return parent.AbsoluteSize.Y/factor-((player:GetAttribute('SettingFontScale') or 1)>1.15 and 212 or 168) end,
@@ -218,7 +257,7 @@ table.insert(connections,player:GetAttributeChangedSignal("CTFPracticeRange"):Co
      for _,entry in entries do if entry.id~='none' and entry.available then local allowed,reason=Career.Allows('ctf',entry.id,accessories and candidate or nil) if not allowed then entry.available=false entry.status=reason entry.description=reason..' · A prévia continua disponível.' end end end
      table.sort(entries,function(a,b) if a.id=='none' then return b.id~='none' elseif b.id=='none' then return false end return a.name<b.name end) return entries
     end,
-    Inspect=function(entry) if not accessories then showModel(entry.id,entry.equipped and draft[slot..'Attachments'] or {}) end end,
+    Inspect=function(entry) if not accessories then inspectedWeapon=entry.id showModel(entry.id,entry.equipped and draft[slot..'Attachments'] or {}) end end,
     Select=function(entry)
       if entry.available==false then notice.Text=entry.status return end
       if not accessories then
@@ -266,6 +305,7 @@ table.insert(connections,player:GetAttributeChangedSignal("CTFPracticeRange"):Co
   local factor=1 local ancestor=parent
   while ancestor do local scale=ancestor:FindFirstChildOfClass("UIScale") if scale then factor*=scale.Scale end ancestor=ancestor.Parent end
   local small=parent.AbsoluteSize.X/factor<620 local height=math.max(170,parent.AbsoluteSize.Y/factor)
+  if progression then root.Size=UDim2.new(1,-8,0,progression:Height()+70) preview.Visible=true rotate.Visible=false details.Visible=false positionCamera() return end
   if selectionView then
    local fontScale=math.clamp(player:GetAttribute('SettingFontScale') or 1,1,1.4)
    title.TextSize=23 notice.TextSize=13 notice.Position=UDim2.fromOffset(0,fontScale>1.15 and 42 or 34) notice.Size=UDim2.new(1,0,0,fontScale>1.15 and 54 or 24)
@@ -306,11 +346,12 @@ table.insert(connections,player:GetAttributeChangedSignal("CTFPracticeRange"):Co
   if state==Enum.UserInputState.Begin then pinchZoom=zoom elseif state==Enum.UserInputState.Change then zoom=math.clamp(pinchZoom/math.max(.01,scale),.6,2.5) positionCamera() end
  end)
  hook(game:GetService("RunService").RenderStepped,function(dt) if nav:GetFocus()==rotate and UIS.GamepadEnabled then for _,input in UIS:GetGamepadState(Enum.UserInputType.Gamepad1) do if input.KeyCode==Enum.KeyCode.Thumbstick2 and input.Position.Magnitude>.15 then yaw-=input.Position.X*dt*2 pitch=math.clamp(pitch+input.Position.Y*dt,-.9,.9) positionCamera() end end end end)
- function self:DefaultFocus() if page=='focused' then return overview:DefaultFocus() end return selectionView and selectionView:DefaultFocus() or buttons[index] or buttons[1] end
+ function self:ShowProgression(id) if not Catalog.Get(id) then return false end candidate=id attachments=id==draft[slot..'WeaponId'] and copy(draft[slot..'Attachments'] or {}) or {} open('progression') return true end
+ function self:DefaultFocus() if progression then return progression:DefaultFocus() end if page=='focused' then return overview:DefaultFocus() end return selectionView and selectionView:DefaultFocus() or buttons[index] or buttons[1] end
  function self:Destroy() if not alive then return end alive=false for _,c in connections do c:Disconnect() end root:Destroy() end
  hook(player:GetAttributeChangedSignal("CTFArsenalState"),function() if page=="loadouts" or page=='focused' then overview:RefreshState(state()) end end)
  root.Destroying:Connect(function() alive=false player:SetAttribute('ArsenalFocused',false) generation+=1 previewModel:Destroy() cacheFolder:Destroy() table.clear(modelCache) for _,c in connections do c:Disconnect() end end)
- hook(Career.Changed,function() if selectionView then selectionView:Refresh() end end)
+ hook(Career.Changed,function() if progression then progression:Refresh() end if selectionView then selectionView:Refresh() end end)
  render() reflow() return self
 end
 return View

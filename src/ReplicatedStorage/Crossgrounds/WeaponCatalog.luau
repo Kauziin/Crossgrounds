@@ -1701,4 +1701,7 @@ for id in Kits.ConflictPistolVisuals do
  local entry=Catalog.Weapons["legacy_"..id]
  if entry then entry.category="PISTOLS" entry.name=Kits.Weapons[id].Name end
 end
+require(script.Parent.SMGGunsmith).InstallWeapons(Catalog.Weapons)
+Catalog.Weapons.sykov.mountPoints={fireControl="SykovFireControl"}
+if not table.find(Catalog.Weapons.sykov.slots,"fireControl") then table.insert(Catalog.Weapons.sykov.slots,"fireControl") end
 return Catalog

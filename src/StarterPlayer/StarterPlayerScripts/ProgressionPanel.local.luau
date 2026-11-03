@@ -161,11 +161,25 @@ local function loadFriends()
   renderComparison()
  end)
 end
+local TrackView=require(script.Parent.ProgressionTrackView)
+local TrackData=require(game.ReplicatedStorage.Crossgrounds.ProgressionTracks)
+local Career=require(script.Parent.CareerClient)
+local Clan=require(script.Parent.ClanBridge)
+local accountTrack=TrackView.new(view.Panes.Unlocks.List,{
+ Name=function() return player.DisplayName end,
+ Categories={{id="all",label="Todas as recompensas"},{id="weapon",label="Armas"},{id="appearance",label="Aparências"}},
+ Modes={{id="all",label="Todos os modos"},{id="ctf",label="Conflict"},{id="arena",label="Arena"}},
+ Data=function(category,mode) return TrackData.Account(Career.Get(),mode,category) end,
+})
+local guildTrack=TrackView.new(view.Panes.Guild.List,{Data=function() return TrackData.Guild(Clan:Get(),Career.Get()) end})
+view.Panes.Unlocks.Filters.Visible=false view.Panes.Guild.Filters.Visible=false
+Career.Changed:Connect(function() if gui.Enabled then if view.Selected=="Unlocks" then accountTrack:Refresh() elseif view.Selected=="Guild" then guildTrack:Refresh() end end end)
+Clan.Changed:Connect(function() if gui.Enabled and view.Selected=="Guild" then guildTrack:Refresh() end end)
 local function close() dismiss() player:SetAttribute("ProgressionMenuOpen",false) Nav:OpenMenu("Main") end
 local function selectPage(id)
  dismiss() if id=="Close" then close() return end
  view:Select(id)
- if id=="Profile" then renderProfile() elseif id=="Leaders" then loadRanking() else loadFriends() end
+ if id=="Profile" then renderProfile() elseif id=="Leaders" then loadRanking() elseif id=="Unlocks" then Career.Refresh() accountTrack:Refresh(true) task.spawn(function() game:GetService("RunService").RenderStepped:Wait() game:GetService("RunService").RenderStepped:Wait() if gui.Enabled and view.Selected=="Unlocks" then accountTrack:Focus() end end) elseif id=="Guild" then guildTrack:Refresh(true) task.spawn(function() Clan:Send("get") end) else loadFriends() end
 end
 view.OnSelect=selectPage
 view.OnResize=function()
@@ -176,7 +190,7 @@ view.OnResize=function()
 end
 Nav:SetBack(view.Panel,function() if popup then dismiss() if popupReturn and popupReturn.Parent then Nav:Focus(popupReturn) end else close() end end,view.Buttons.Profile)
 Nav:SetCategories(view.Panel,function(step)
- if popup then return end local ids={"Profile","Leaders","Friends"} local index=table.find(ids,view.Selected) or 1 local id=ids[(index-1+step)%#ids+1] selectPage(id) Nav:Focus(view.Buttons[id])
+ if popup then return end local ids={"Profile","Leaders","Unlocks","Friends","Guild"} local index=table.find(ids,view.Selected) or 1 local id=ids[(index-1+step)%#ids+1] selectPage(id) Nav:Focus(view.Buttons[id])
 end)
 local refreshPending=false
 player.AttributeChanged:Connect(function(key)
@@ -188,6 +202,6 @@ local function show()
  if on then view:Resize() selectPage("Profile") profileList.CanvasPosition=Vector2.zero task.delay(.05,function() if gui.Enabled then Nav:Focus(view.Buttons.Profile) end end) end
 end
 player:GetAttributeChangedSignal("ProgressionMenuOpen"):Connect(show)
-Nav.MenuRequested:Connect(function(id) if table.find({"Clan","Social","Career","Main","Hub","Settings","Resume","Playlist","Pause"},id) then player:SetAttribute("ProgressionMenuOpen",false) end end)
+Nav.MenuRequested:Connect(function(id) if id=="GuildProgress" then player:SetAttribute("ClanMenuOpen",false) player:SetAttribute("ProgressionMenuOpen",true) task.defer(function() selectPage("Guild") end) return end if table.find({"Clan","Social","Career","Main","Hub","Settings","Resume","Playlist","Pause"},id) then player:SetAttribute("ProgressionMenuOpen",false) end end)
 gui.Parent=player.PlayerGui
 script:SetAttribute("Initialized",true) show()

@@ -56,7 +56,7 @@ local function clearRef(player,id,epoch)
 end
 local function grant(player,record)
  local member=record.members[tostring(player.UserId)]local p=account(player)
- if not member or not p or not p.clan or p.clan.epoch~=member.epoch or Catalog.Level(record.totals.XP or 0)<3 or(member.contribution.XP or 0)<1000 or p.cosmetics.cards.clan then return end
+ if not member or not p or not p.clan or p.clan.epoch~=member.epoch or Catalog.Level(record.totals.XP or 0)<Catalog.IdentityReward.Level or(member.contribution.XP or 0)<Catalog.IdentityReward.ContributionXP or p.cosmetics.cards.clan then return end
  Career.Mutate(player,function(nextProfile)
   if not nextProfile.clan or nextProfile.clan.epoch~=member.epoch then return false end
   nextProfile.cosmetics.cards.clan=true nextProfile.cosmetics.frames.clan=true nextProfile.cosmetics.titles.clan=true return true

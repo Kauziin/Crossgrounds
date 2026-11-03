@@ -87,7 +87,7 @@ Router:Register("ReloadInteract",function(state)
   scan() local data=equipped and Stats.ResolveTool(equipped)
   if Interaction:Nearest() then Interaction:Begin()
   elseif canUse() and data and data.Kind=="Gun" and not equipped:GetAttribute("Reloading")
-   and (equipped:GetAttribute("Ammo") or 0)<data.Magazine and (equipped:GetAttribute("ReserveAmmo") or 0)>0 then
+   and (equipped:GetAttribute("Ammo") or 0)<data.Magazine and (data.InfiniteReserve or (equipped:GetAttribute("ReserveAmmo") or 0)>0) then
    reload:FireServer(equipped)
   end
  else Interaction:End() end

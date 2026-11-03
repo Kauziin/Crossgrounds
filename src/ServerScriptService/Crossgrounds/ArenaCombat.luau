@@ -66,7 +66,7 @@ local function rayParams(character)
 end
 function Combat:Reload(player,tool)
  local _,data=self:Valid(player,tool) if not data or data.Kind~="Gun" or tool:GetAttribute("Reloading") then return end
- if (tool:GetAttribute("Ammo") or 0)>=data.Magazine or (tool:GetAttribute("ReserveAmmo") or 0)<=0 then return end
+ if (tool:GetAttribute("Ammo") or 0)>=data.Magazine then return end
  tool:SetAttribute("Reloading",true) tool:SetAttribute("ReloadStartedAt",workspace:GetServerTimeNow()) tool:SetAttribute("ReloadDuration",data.ReloadTime)
  local sound=tool.Handle:FindFirstChild("ReloadSound") if sound then sound:Play() end
  task.delay(data.ReloadTime,function()
@@ -74,8 +74,7 @@ function Combat:Reload(player,tool)
   if not player.Parent or player:GetAttribute("CrossgroundsMode")~="arena" or not h or h.Health<=0 or not tool:IsDescendantOf(player) and tool.Parent~=c then
    if tool.Parent then tool:SetAttribute("Reloading",false) end return
   end
-  local amount=math.min(data.Magazine-(tool:GetAttribute("Ammo") or 0),tool:GetAttribute("ReserveAmmo") or 0)
-  tool:SetAttribute("Ammo",(tool:GetAttribute("Ammo") or 0)+amount) tool:SetAttribute("ReserveAmmo",(tool:GetAttribute("ReserveAmmo") or 0)-amount) tool:SetAttribute("Reloading",false)
+  tool:SetAttribute("Ammo",data.Magazine) tool:SetAttribute("ReserveAmmo",0) tool:SetAttribute("Reloading",false)
   tool:SetAttribute("ShotAmmoVersion",(tool:GetAttribute("ShotAmmoVersion") or 0)+1)
  end)
 end

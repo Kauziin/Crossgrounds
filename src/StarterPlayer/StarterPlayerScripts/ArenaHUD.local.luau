@@ -174,7 +174,7 @@ Run.RenderStepped:Connect(function(dt)
  health.Text="VIDA "..math.ceil(hp).." / "..math.ceil(maxHealth)
  fill.Size=UDim2.fromScale(fill.Size.X.Scale+(math.clamp(hp/math.max(1,maxHealth),0,1)-fill.Size.X.Scale)*.8,1)
  local t=player.Character and player.Character:FindFirstChildOfClass("Tool")
- ammo.Text=t and (t.Name.." · "..(t:GetAttribute("WeaponKind")=="Gun" and (t:GetAttribute("Reloading") and "RECARGA..." or tostring(t:GetAttribute("Ammo") or 0).." / "..tostring(t:GetAttribute("ReserveAmmo") or 0)) or "CORPO A CORPO")) or "Aguardando equipamento"
+ ammo.Text=t and (t.Name.." · "..(t:GetAttribute("WeaponKind")=="Gun" and (t:GetAttribute("Reloading") and "RECARGA..." or tostring(t:GetAttribute("Ammo") or 0).." / ∞") or "CORPO A CORPO")) or "Aguardando equipamento"
  local respawn=math.max(0,math.ceil((player:GetAttribute("ArenaRespawnAt") or 0)-workspace:GetServerTimeNow()))
  stamina.Text=respawn>0 and ("REAPARECENDO EM "..respawn.."s") or "ESTAMINA"
  local energy=math.clamp((player:GetAttribute("Stamina") or 100)/100,0,1)

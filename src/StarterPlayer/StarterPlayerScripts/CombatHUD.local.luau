@@ -205,7 +205,7 @@ RunService.RenderStepped:Connect(function(dt)
  -- Health is updated by Humanoid signals above.
  local stamina=player:GetAttribute("Stamina") or 100 staminaFill.Size=UDim2.fromScale(stamina/100,1)
  weapon.Text=data and data.Name or "—"
- ammo.Text=data and (data.Kind=="Gun" and (t:GetAttribute("Reloading") and "···" or tostring(t:GetAttribute("PredictedAmmo") or t:GetAttribute("Ammo") or 0).." / "..tostring(t:GetAttribute("ReserveAmmo") or 0)) or "MELEE") or ""
+ ammo.Text=data and (data.Kind=="Gun" and (t:GetAttribute("Reloading") and "···" or tostring(t:GetAttribute("PredictedAmmo") or t:GetAttribute("Ammo") or 0).." / "..(data.InfiniteReserve and "∞" or tostring(t:GetAttribute("ReserveAmmo") or 0))) or "MELEE") or ""
  local profile=Kits.Profiles[player:GetAttribute("SelectedKit")]
  local weaponIds=activeWeapons or profile and profile.Weapons
  for i,b in slots do local id=weaponIds and weaponIds[i] b.Visible=id~=nil local d=id and Kits.Weapons[id] b.Text=tostring(i).."  "..(d and d.Name or "—") b.Outline.Color=t and t:GetAttribute("WeaponId")==id and Color3.fromRGB(99,196,255) or Color3.fromRGB(229,239,248) end

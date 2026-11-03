@@ -2,6 +2,9 @@
 local View={}
 local Art=require(game.ReplicatedStorage.Crossgrounds.AttachmentArt)
 local Accent=require(script.Parent:WaitForChild('AccentTheme'))
+local Career=require(script.Parent:WaitForChild('CareerClient'))
+local Policy=require(game.ReplicatedStorage.Crossgrounds.CareerPolicy)
+local Unlocks=require(game.ReplicatedStorage.Crossgrounds.UnlockCatalog)
 local names={['ASSAULT RIFLES']='Fuzis de Assalto',['LIGHT MACHINE GUNS']='Metralhadoras',['MARKSMAN RIFLES']='Atirador',['SNIPER RIFLES']='Precisão',['SUBMACHINE GUNS']='Submetralhadoras',LEGACY='Clássicas',SPECIAL='Especiais',PISTOLS='Pistolas',SHOTGUNS='Escopetas',MELEE='Corpo a corpo',optic='Mira',muzzle='Boca',barrel='Cano',underbarrel='Acoplamento',magazine='Carregador',stock='Coronha',laser='Laser',fireControl='Disparo',ammunition='Munição',mount='Montagem',auxiliary='Auxiliares'}
 local function object(class,name,parent)
  local o=Instance.new(class) o.Name=name o:SetAttribute('CascadeDecoration',true)
@@ -29,6 +32,22 @@ function View.new(parent,options)
  local statsPanel=object('Frame','StatisticsPanel',root) surface(statsPanel)
  local heading=label(center,'Heading','',20) heading.Font=Enum.Font.GothamBold
  local detailName=label(right,'Name',options.WeaponName or '',22) detailName.Font=Enum.Font.GothamBold detailName.Position=UDim2.fromOffset(16,10) detailName.Size=UDim2.new(1,-32,0,44)
+ local xpText=label(right,'WeaponXP','Carregando progresso da arma...',12)
+ xpText.Position=UDim2.fromOffset(16,54) xpText.Size=UDim2.new(1,-32,0,22)
+ local xpBack=object('Frame','WeaponXPBar',right) xpBack.BackgroundTransparency=0 xpBack.BackgroundColor3=Color3.fromRGB(30,52,62)
+ xpBack.Position=UDim2.fromOffset(16,79) xpBack.Size=UDim2.new(1,-32,0,5) xpBack.ClipsDescendants=true
+ local xpFill=object('Frame','Fill',xpBack) xpFill.BackgroundTransparency=0 xpFill.BackgroundColor3=Color3.fromRGB(65,220,229) xpFill.Size=UDim2.fromScale(0,1)
+ local function refreshXP()
+  local id=accessories and options.WeaponId or currentId
+  local profile=Career.Get() local canonical=id and Unlocks.Canonical(id)
+  if not profile or not canonical then xpText.Text='Progresso da arma indisponível' xpFill.Size=UDim2.fromScale(0,1) return end
+  local xp=Policy.Number(profile.weapons[canonical]) local level=Policy.WeaponLevel(xp)
+  local lower=200*(level-1)^2 local upper=200*level^2
+  local fraction=level>=55 and 1 or math.clamp((xp-lower)/(upper-lower),0,1)
+  xpFill.Size=UDim2.fromScale(fraction,1)
+  xpText.Text=level>=55 and 'Nível 55 · MÁXIMO' or string.format('Nível %d · %d / %d XP',level,xp-lower,upper-lower)
+ end
+ table.insert(connections,Career.Changed:Connect(refreshXP))
  local context=label(left,'Context','CATEGORIAS',15) context.Position=UDim2.fromOffset(14,8) context.Size=UDim2.new(1,-28,0,32)
  local categories=scrolling(accessories and center or left,'Slots',accessories)
  local items=scrolling(center,'Items')
@@ -68,7 +87,7 @@ function View.new(parent,options)
  local function inspect(entry)
   if currentId==entry.id then return end currentId=entry.id
   if not accessories then detailName.Text=entry.name end
-  statsTitle.Text=accessories and entry.name or 'ATRIBUTOS EFETIVOS' detailText.Text=entry.description or '' options.Inspect(entry)
+  statsTitle.Text=accessories and entry.name or 'ATRIBUTOS EFETIVOS' detailText.Text=entry.description or '' options.Inspect(entry) refreshXP()
  end
  local function paint(focus)
   local contrast=player and player:GetAttribute('SettingHighContrast')
@@ -107,6 +126,7 @@ function View.new(parent,options)
  if options.ChangeWeapon then table.insert(toolButtons,button(tools,'ChangeWeapon','↔  Trocar arma','',options.ChangeWeapon).Button) end
  for i,t in options.Tools or {} do local b=button(tools,'Tool'..i,t[1],'',t[3]).Button b.LayoutOrder=i table.insert(toolButtons,b) end
  function self:Refresh()
+  refreshXP()
   -- Acknowledgments update rows in place: focus, slot and scroll survive.
   local entries={} for _,e in options.Entries(category) do entries[e.id]=e end
   for _,r in rows do local e=entries[r.Entry.id] if e then r.Entry=e r.Name.Text=e.name r.Status.Text=e.status if e.id==currentId then detailText.Text=e.description or '' end end end paint(nav:GetFocus())
@@ -137,10 +157,10 @@ function View.new(parent,options)
   items.UIListLayout.Padding=UDim.new(0,accessories and 6 or 8)
   local itemY=accessories and stripHeight+22 or 54 items.Position=UDim2.fromOffset(10,itemY) items.Size=UDim2.new(1,-20,1,-itemY-10)
   local rx=rightWidth>0 and width-rightWidth or x local ry=rightWidth>0 and y or y+height+gap local rw=rightWidth>0 and rightWidth or centerWidth
-  local previewHeight=math.max(180,math.floor(height*.43))
+  local previewHeight=math.max(228,math.floor(height*.43))
   right.Position=UDim2.fromOffset(rx,ry) right.Size=UDim2.fromOffset(rw,previewHeight)
   statsPanel.Position=UDim2.fromOffset(rx,ry+previewHeight+gap) statsPanel.Size=UDim2.fromOffset(rw,math.max(210,height-previewHeight-gap))
-  self.PreviewPosition=right.Position+UDim2.fromOffset(12,60) self.PreviewSize=UDim2.fromOffset(rw-24,previewHeight-68)
+  self.PreviewPosition=right.Position+UDim2.fromOffset(12,96) self.PreviewSize=UDim2.fromOffset(rw-24,previewHeight-104)
   local descriptionHeight=math.ceil(30*s)
   description.Position=UDim2.fromOffset(14,42) description.Size=UDim2.new(1,-28,0,descriptionHeight)
   statsList.Position=UDim2.fromOffset(14,46+descriptionHeight) statsList.Size=UDim2.new(1,-28,1,-54-descriptionHeight)

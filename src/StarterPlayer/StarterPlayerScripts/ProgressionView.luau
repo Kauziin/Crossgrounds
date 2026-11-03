@@ -34,7 +34,7 @@ function V.Button(parent,name,value,callback)
 end
 function V.Select(b,on)
  b:SetAttribute("Selected",on) b.BackgroundColor3=on and Color3.fromRGB(15,48,54) or C.Card
- local edge=b:FindFirstChild("Edge") if edge then edge.Color=on and C.Accent or C.Edge edge.Thickness=on and 2 or 1 edge.Transparency=on and 0 or .3 end
+ local edge=b:FindFirstChild("Edge") if edge then edge.Color=on and (b:GetAttribute("TrackNavigation") and Color3.fromRGB(161,120,255) or C.Accent) or C.Edge edge.Thickness=on and 2 or 1 edge.Transparency=on and 0 or .3 end
  local marker=b:FindFirstChild("SelectedMarker") if marker then marker.Visible=on end
 end
 local function line(p,x1,y1,x2,y2,color,thick)
@@ -164,24 +164,37 @@ function V.new(gui)
  local heading=V.Text(content,"Heading","ESTATÍSTICAS PESSOAIS",20,0,500,48,17)
  local separator=make("Frame",content,"Separator") separator.BackgroundColor3=C.Edge separator.BackgroundTransparency=.35 separator.Position=UDim2.fromOffset(18,49) separator.Size=UDim2.new(1,-36,0,1)
  local self={Backdrop=backdrop,Panel=panel,Content=content,Heading=heading,Panes={},Buttons={},Width=1100,Compact=false}
- local titles={Profile="ESTATÍSTICAS PESSOAIS",Leaders="PLACAR DE LÍDERES",Friends="COMPARATIVO COM AMIGOS"}
- for _,id in {"Profile","Leaders","Friends"} do
+ local titles={Profile="ESTATÍSTICAS PESSOAIS",Leaders="PLACAR DE LÍDERES",Friends="COMPARATIVO COM AMIGOS",Unlocks="DESBLOQUEIOS DE NÍVEL",Guild="PROGRESSÃO DA GUILDA"}
+ for _,id in {"Profile","Leaders","Friends","Unlocks","Guild"} do
   local pane=make("Frame",content,id) pane.BackgroundTransparency=1 pane.Size=UDim2.fromScale(1,1) pane.Visible=id=="Profile"
   local filters=make("Frame",pane,"Filters") filters.BackgroundTransparency=1
   local list=make("ScrollingFrame",pane,"List") list.BackgroundTransparency=1 list.ScrollBarThickness=3 list.ScrollBarImageColor3=C.Accent list.CanvasSize=UDim2.new() list.AutomaticCanvasSize=Enum.AutomaticSize.Y list.BorderSizePixel=0
   local layout=make("UIListLayout",list) layout.Padding=UDim.new(0,12) layout.SortOrder=Enum.SortOrder.LayoutOrder
   self.Panes[id]={Frame=pane,List=list,Filters=filters}
  end
- local entries={{"Profile","Estatísticas Pessoais"},{"Leaders","Placar de Líderes"},{"Friends","Comparativo com Amigos"},{"Close","Voltar ao menu"}}
+ local entries={{"Profile","Estatísticas Pessoais"},{"Leaders","Placar de Líderes"},{"Unlocks","Desbloqueios de Nível"},{"Friends","Comparativo com Amigos"},{"Guild","Progresso da Guilda"},{"Close","Voltar ao menu"}}
  for i,entry in entries do
   local id=entry[1] local b=V.Button(side,id,"",function() if self.OnSelect then self.OnSelect(id) end end) b.LayoutOrder=i
-  V.Icon(b,id=="Close" and "Back" or id,18,20,28,C.Text)
+  V.Icon(b,id=="Close" and "Back" or id=="Guild" and "Clan" or id,18,20,28,C.Text)
   local label=V.Text(b,"Label",entry[2],62,0,150,68,15) label.Size=UDim2.new(1,-70,1,0)
+  if id=="Unlocks" or id=="Guild" then b:SetAttribute("TrackNavigation",true) end
   local marker=make("Frame",b,"SelectedMarker") marker.BackgroundColor3=C.Accent marker.Size=UDim2.fromOffset(10,10) marker.Rotation=45 marker.AnchorPoint=Vector2.new(.5,.5) marker.Position=UDim2.fromScale(0,.5) marker.Visible=false
   self.Buttons[id]=b
  end
+ local pageSelector=V.Button(panel,"PageSelector","Selecionar seção",function()
+  local popup=Instance.new("ScreenGui") popup.Name="ProgressionPages" popup.DisplayOrder=92 popup.IgnoreGuiInset=true popup.Parent=gui.Parent
+  local visibility=gui:GetPropertyChangedSignal("Enabled"):Connect(function() if not gui.Enabled then popup:Destroy() end end) popup.Destroying:Once(function() visibility:Disconnect() end)
+  local shade=Instance.new("TextButton") shade.Size=UDim2.fromScale(1,1) shade.BackgroundColor3=Color3.new() shade.BackgroundTransparency=.35 shade.Text="" shade.Parent=popup
+  local choices=V.Box(shade,"Choices",#entries*48+16) choices.AnchorPoint=Vector2.new(.5,.5) choices.Position=UDim2.fromScale(.5,.5) choices.Size=UDim2.fromOffset(310,#entries*48+16)
+  local first
+  local function close(restore) popup:Destroy() if restore~=false then task.delay(.05,function() if gui.Enabled then Nav:Focus(panel.PageSelector) end end) end end
+  Nav:Connect(shade,close)
+  for i,e in entries do local b=V.Button(choices,"Page"..i,e[2],function() close(false) if self.OnSelect then self.OnSelect(e[1]) end end) b.Size=UDim2.new(1,-16,0,44) b.Position=UDim2.fromOffset(8,8+(i-1)*48) first=first or b end
+  Nav:SetFloatingRoot(choices,close,first) task.defer(function() if first.Parent then Nav:Focus(first) end end)
+ end)
+ pageSelector.Visible=false
  function self:Select(id)
-  self.Selected=id self.Heading.Text=titles[id] or "PROGRESSÃO"
+  self.Selected=id self.Heading.Text=titles[id] or "PROGRESSÃO" pageSelector.Text=(titles[id] or "PROGRESSÃO").." · SEÇÕES"
   for key,p in self.Panes do p.Frame.Visible=key==id end
   for key,b in self.Buttons do V.Select(b,key==id) end
  end
@@ -193,19 +206,23 @@ function V.new(gui)
   scale.Scale=desktop and math.min(preference,(viewport.X-32)/1400,(viewport.Y-50)/710) or math.min(preference,math.max(.65,(viewport.X-24)/360))
   local w=math.min(1400,(viewport.X-32)/scale.Scale) local h=math.min(710,(viewport.Y-76)/scale.Scale)
   scale.Scale*=theme.MobileFactor()
+  if w<780 then h=math.max(h,(viewport.Y-56)/scale.Scale) end
   panel.Size=UDim2.fromOffset(w,h) self.Compact=w<780
-  local compact=self.Compact local sidebar=compact and 0 or w<1150 and 218 or 240 local gap=compact and 0 or 12
-  side.Position=UDim2.fromOffset(0,42) side.Size=compact and UDim2.fromOffset(w,60) or UDim2.fromOffset(sidebar,h-42)
-  content.Position=UDim2.fromOffset(sidebar+gap,compact and 114 or 42) content.Size=UDim2.fromOffset(w-sidebar-gap,h-(compact and 114 or 42))
+  local compact=self.Compact local selectorHeight=math.ceil(44/scale.Scale) local compactTop=42+selectorHeight+8
+  side.Visible=not compact pageSelector.Visible=compact pageSelector.Position=UDim2.fromOffset(0,38) pageSelector.Size=UDim2.fromOffset(w,selectorHeight) pageSelector.TextSize=compact and math.ceil(14/scale.Scale) or 15
+  local sidebar=compact and 0 or w<1150 and 218 or 240 local gap=compact and 0 or 12
+  side.Position=UDim2.fromOffset(0,42) side.Size=compact and UDim2.fromOffset(w,112) or UDim2.fromOffset(sidebar,h-42)
+  content.Position=UDim2.fromOffset(sidebar+gap,compact and compactTop or 42) content.Size=UDim2.fromOffset(w-sidebar-gap,h-(compact and compactTop or 42))
   for i,entry in entries do
    local b=self.Buttons[entry[1]] local icon=b:FindFirstChild("Icon") local label=b.Label
    if compact then
-    b.Position=UDim2.fromOffset((i-1)*w/4+4,5) b.Size=UDim2.fromOffset(w/4-8,50) icon.Visible=false label.Position=UDim2.fromOffset(4,0) label.Size=UDim2.new(1,-8,1,0) label.TextSize=w<520 and 11 or 13 label.TextXAlignment=Enum.TextXAlignment.Center
+    b.Position=UDim2.fromOffset(((i-1)%3)*w/3+4,5+math.floor((i-1)/3)*54) b.Size=UDim2.fromOffset(w/3-8,50) icon.Visible=false label.Position=UDim2.fromOffset(4,0) label.Size=UDim2.new(1,-8,1,0) label.TextSize=w<520 and 11 or 13 label.TextXAlignment=Enum.TextXAlignment.Center
    else
-    b.Position=UDim2.fromOffset(12,i==4 and 274 or 18+(i-1)*76) b.Size=UDim2.fromOffset(sidebar-24,i==4 and 56 or 68) icon.Visible=true label.Position=UDim2.fromOffset(62,0) label.Size=UDim2.new(1,-70,1,0) label.TextSize=15 label.TextXAlignment=Enum.TextXAlignment.Left
+    b.Position=UDim2.fromOffset(12,18+(i-1)*76) b.Size=UDim2.fromOffset(sidebar-24,68) icon.Visible=true label.Position=UDim2.fromOffset(62,0) label.Size=UDim2.new(1,-70,1,0) label.TextSize=15 label.TextXAlignment=Enum.TextXAlignment.Left
    end
   end
-  self.Width=w-sidebar-gap-40 self.HeaderHeight=self.Width<970 and 106 or 58
+  self.Width=w-sidebar-gap-40 self.HeaderHeight=compact and math.ceil(44/scale.Scale) or self.Width<970 and 106 or 58
+  heading.TextSize=compact and math.ceil(13/scale.Scale) or 17
   heading.Size=UDim2.fromOffset(self.Width,46)
   separator.Position=UDim2.fromOffset(18,self.HeaderHeight-8)
   for id,p in self.Panes do

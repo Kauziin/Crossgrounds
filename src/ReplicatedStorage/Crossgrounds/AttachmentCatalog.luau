@@ -99,7 +99,13 @@ local hunter=Catalog.model_forge_tac_hunter
 hunter.name="Forge Tac Hunter · adaptada AX-50"
 hunter.status="Available" hunter.auditStatus="Verified" hunter.pendingAudit=false hunter.visualOnly=false
 hunter.compatible={"ax_50"} hunter.compatibleWeapons={"ax_50"} hunter.mountType="AX50Stock"
+hunter.mountName="stock"
+hunter.alignmentMode="Front"
+hunter.rigDependencies={"Handle.stock"}
+hunter.physicalAssetPath=assert(Registry.model_forge_tac_hunter,"Coronha Hunter ausente do registro de assets")
 hunter.statMultipliers={AdsMotionMultiplier=.40,AdsSpeedMultiplier=.90,MovementSpeedMultiplier=.98}
 hunter.description="Adaptação de estabilidade: 60% menos balanço em ADS; velocidade de ADS -10% e movimento -2%. Não reduz recuo de disparo."
+require(script.Parent.SMGGunsmith).InstallAttachments(Catalog)
+Catalog.sykov_auto_725={id="sykov_auto_725",name="Sykov · conversão automática (725 RPM)",slot="fireControl",status="Available",auditStatus="Verified",pendingAudit=false,compatible={"sykov"},compatibleWeapons={"sykov"},compatibilityMode="SpecificWeapon",mountType="SykovFireControl",requiresMount=false,functionalAutomatic=true,visualOnly=false,description="Disparo automático a 725 RPM enquanto segura o gatilho. Sem modelo adicional; dano e capacidade mantidos."}
 return Catalog
 

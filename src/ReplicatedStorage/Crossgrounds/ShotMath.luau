@@ -4,11 +4,13 @@ function Shot.Finite(v)
  return typeof(v)=="Vector3" and v.X==v.X and v.Y==v.Y and v.Z==v.Z and v.Magnitude<100000
 end
 function Shot.Config(data)
+ local visual=table.clone(data.ShotVisual or {Speed=3000,Length=18,Width=.035})
+ visual.Width=math.max(.05,visual.Width or .035)
  return {kind=data.ShotType or "hitscan",range=math.clamp(data.Range or 220,.1,15000),
   speed=math.clamp(data.ProjectileSpeed or 1000,1,20000),lifetime=math.clamp(data.ProjectileLifetime or 5,.01,15),
   acceleration=(data.ProjectileAcceleration or Vector3.zero)+Vector3.new(0,-(data.ProjectileGravity or 0),0),
-  radius=math.clamp(data.ProjectileRadius or 0,0,5),pellets=math.clamp(math.floor(data.ProjectilesPerShot or 1),1,16),
-  visual=data.ShotVisual or {Speed=3000,Length=18,Width=.035}}
+  radius=math.clamp((data.ProjectileRadius or 0)+.10,0,5),pellets=math.clamp(math.floor(data.ProjectilesPerShot or 1),1,16),
+  visual=visual}
 end
 function Shot.Direction(direction,spread,seed,id,pellet,count)
  if not Shot.Finite(direction) or direction.Magnitude<.0001 then return end

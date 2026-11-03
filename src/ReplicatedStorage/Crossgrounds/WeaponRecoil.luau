@@ -4,7 +4,8 @@ function Recoil.new() return setmetatable({push=0,pitch=0,roll=0,pushV=0,pitchV=
 function Recoil:Reset() self.push=0 self.pitch=0 self.roll=0 self.pushV=0 self.pitchV=0 self.rollV=0 self.elapsed=math.huge self.heldPitch=0 end
 function Recoil:Kick(profile,side)
  self.elapsed=0
- self.heldPitch=math.clamp((self.pitch or 0)+(profile.Pitch or 2)*(profile.Sustain or 0),0,7)
+ self.heldPitch=math.clamp((profile.Restart and 0 or self.pitch or 0)+(profile.Pitch or 2)*(profile.Sustain or 0),0,7)
+ if profile.Restart then self.pushV=0 self.pitchV=0 self.rollV=0 end
  self.pushV=math.min(self.pushV+(profile.Push or .1)*18,40)
  self.pitchV=math.min(self.pitchV+(profile.Pitch or 2)*18,220)
  self.rollV=math.clamp(self.rollV+(side or 1)*(profile.Roll or .4)*15,-40,40)

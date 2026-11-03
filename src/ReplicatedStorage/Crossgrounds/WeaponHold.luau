@@ -8,7 +8,8 @@ function Hold.IsPistol(tool)
 end
 function Hold.Mount(tool)
 	if tool:GetAttribute("WeaponKind") == "Gun" then
-		return Hold.IsPistol(tool) and CFrame.new(0,.12,-.7) or CFrame.new(0,.05,-.35)
+		-- Keep the receiver in front of the right shoulder instead of inside the sternum.
+		return Hold.IsPistol(tool) and CFrame.new(.65,.12,-1.1) or CFrame.new(1.25,.05,-1.15)
 	end
 	return CFrame.new(-.25,.1,-.25)*CFrame.Angles(0,math.pi/2,0)
 end

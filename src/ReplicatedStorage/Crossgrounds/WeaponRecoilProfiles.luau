@@ -1,6 +1,6 @@
 -- Weapon-space kick (studs/degrees) and recoverable camera displacement (degrees).
 local Profiles={
- ak_47={Push=.85,Pitch=9,Roll=2.4,Spring=150,Damping=23,ReturnDelay=.16,Sustain=.30,CameraRise=2.0,CameraSide=.38},
+ ak_47={Push=.85,Pitch=3,Roll=.65,Lift=.65,Restart=true,Spring=150,Damping=23,ReturnDelay=.10,Sustain=.15,CameraRise=2.0,CameraSide=.38},
  m13={Push=.20,Pitch=2.1,Roll=.25,Spring=230,Damping=30,ReturnDelay=.08,Sustain=.10,CameraRise=.35,CameraSide=.08},
  cr_56_amax={Push=.35,Pitch=8.2,Roll=.8,Spring=190,Damping=26,ReturnDelay=.13,Sustain=.22,CameraRise=1.5,CameraSide=.16},
  fr_5_56={Push=.28,Pitch=3.4,Roll=.35,Spring=155,Damping=25,ReturnDelay=.18,Sustain=.24,CameraRise=.7,CameraSide=.08},

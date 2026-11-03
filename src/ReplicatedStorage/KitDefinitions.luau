@@ -1423,4 +1423,5 @@ Kits.Weapons.an_94.BurstInterval=.036
 Kits.Weapons.an_94.BurstPause=.22
 require(script.Parent.Crossgrounds.WeaponRecoilProfiles).Apply(Kits.Weapons)
 Kits.Weapons.ax_50.PresentationTimeline=require(script.Parent.Crossgrounds.AX50Motion).Config
+require(script.Parent.Crossgrounds.AmmoReservePolicy).Apply(Kits.Weapons)
 return Kits

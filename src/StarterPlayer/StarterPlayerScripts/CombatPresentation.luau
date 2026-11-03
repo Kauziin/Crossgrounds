@@ -570,12 +570,13 @@ RunService:BindToRenderStep("CTFCombatPresentation",Enum.RenderPriority.Camera.V
  hideCharacter(character,firstPerson)
  local recoilProfile=AttachmentEffects.Recoil(data,tool)
  recoil,recoilPitch,roll=spring:Update(deltaTime,recoilProfile)
+ local recoilLift=(recoilProfile.Lift or 0)*recoilPitch/math.max(.01,recoilProfile.Pitch or 2)
  if firstPerson and renderer then
 
   local arc=data.Kind~="Gun" and ActionMotion.Melee(os.clock()-swingAt,data) or 0
   local action=ActionMotion.Sample({equippedFor=os.clock()-equippedAt,ads=adsWeight,slide=loco.slide,land=loco.land,vertical=localMove.Y,firedAgo=os.clock()-firedAt})
   local adsMotion=1+(math.clamp(data.AdsMotionMultiplier or 1,0,2)-1)*adsWeight
-  action.weapon=CFrame.identity:Lerp(loco.weapon,adsMotion)*action.weapon
+  action.weapon=CFrame.new(0,recoilLift,0)*CFrame.identity:Lerp(loco.weapon,adsMotion)*action.weapon
   renderer:Render(deltaTime,camera,character,{runPose=runPose,runWeight=runWeight,runPhase=runPhase,recoil=recoil,pitch=recoilPitch,roll=roll,arc=arc,action=action,ads=adsWeight,adsMotionMultiplier=data.AdsMotionMultiplier,sight=sightProfile,sightActive=aiming,firedAgo=os.clock()-firedAt,cooldown=data.Cooldown,recoilStrength=data.VisualRecoil and Kits.Weapons[weaponId].VisualRecoil and data.VisualRecoil.Push/math.max(.01,Kits.Weapons[weaponId].VisualRecoil.Push) or 1})
  elseif renderer then renderer:SetVisible(false) end
  opticalSight:Update(sightProfile,camera.ViewportSize,Presentation:GetAimViewport(),adsWeight,firstPerson and renderer and renderer.opticalAperture or nil,aiming)

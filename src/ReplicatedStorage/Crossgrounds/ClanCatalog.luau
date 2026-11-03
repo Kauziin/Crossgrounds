@@ -1,5 +1,6 @@
 -- Version 1 curve; changing it requires an explicit progression migration.
 local C={Version=1}
+C.IdentityReward={Level=3,ContributionXP=1000,Name="Identidade do clã"}
 C.Emblems={star={name="Estrela",glyph="★"},diamond={name="Diamante",glyph="◆"},spark={name="Centelha",glyph="✦"}}
 C.Colors={teal={name="Turquesa",rgb={48,205,195}},violet={name="Violeta",rgb={165,112,224}},gold={name="Ouro",rgb={239,193,75}},red={name="Carmim",rgb={224,94,107}}}
 C.Fields={"XP","Kills","Deaths","Captures","Wins","BotKills"}

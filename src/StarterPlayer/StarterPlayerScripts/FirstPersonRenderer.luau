@@ -142,6 +142,9 @@ function Renderer:Render(dt,camera,character,params)
   local elbow=Vector3.new(side*(.9+(.18+.36*math.sin(params.runPhase or 0))*(params.runWeight or 0)*weight),-.65,1.25)
 
   local a=cf:PointToWorldSpace(hand) local b=cf:PointToWorldSpace(elbow*self.scale)
+  -- Keep a forearm-length sleeve instead of stretching it across a long rifle.
+  local reach=b-a
+  if reach.Magnitude>1.5 then b=a+reach.Unit*1.5 end
   arm.part.Size=Vector3.new(.43,(a-b).Magnitude,.46)
   arm.part.CFrame=CFrame.lookAt((a+b)*.5,a)*CFrame.Angles(math.pi/2,0,0)
  end

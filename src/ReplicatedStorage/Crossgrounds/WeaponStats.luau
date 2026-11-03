@@ -107,6 +107,9 @@ function Stats.Resolve(weaponId, configuration)
 		end
 	end
 
+ if weaponId=="sykov" and clean.fireControl=="sykov_auto_725" then
+  data.Automatic=true data.Cooldown=60/725
+ end
  -- Exact capacity overrides are restricted to integer magazine capacities.
  for _,attachment in selected do
   for field,value in attachment.statOverrides or {} do
