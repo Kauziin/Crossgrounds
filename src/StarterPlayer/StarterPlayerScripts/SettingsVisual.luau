@@ -14,7 +14,7 @@ function V.Icon(parent,id,size)
 end
 V.Descriptions={Themes="Escolha a identidade visual dos seus menus.",Analog="Ajuste o comportamento dos analógicos do seu controle.",Bindings="Personalize os comandos de cada dispositivo.",HUDSettings="Organize os controles de toque e o HUD.",Aim="Ajuste a sensibilidade e a assistência de mira.",CameraCore="Personalize a perspectiva e o campo de visão.",Interface="Ajuste a escala e a apresentação da interface.",Audio="Equilibre música e efeitos sonoros.",Accessibility="Ajuste a leitura e o conforto visual.",Graphics="Escolha a apresentação gráfica.",Reticle="Personalize seu retículo de mira."}
 V.Help={LeftStickDeadzone="Ignora pequenos movimentos do analógico esquerdo.",RightStickDeadzone="Ignora pequenos movimentos do analógico direito.",StickCurve="Define a curva de resposta da mira.",StickCurveStrength="Define a força da curva S aplicada.",FieldOfView="Ajusta a amplitude da visão da câmera.",LookSensitivity="Controla a velocidade do movimento da câmera.",AimSensitivity="Controla a velocidade ao mirar.",ReducedMenuMotion="Simplifica as transições da interface."}
-V.Help.InterfaceStyle='Atual preserva o visual original. Geral reduz molduras e prioriza o cenário. Completo amplia a área útil de listas e prévias. A paleta de cores permanece independente.'
+V.Help.InterfaceStyle='Clássica mantém a interface original. Neo oferece a nova navegação. A paleta de cores é independente do estilo.'
 V.Help.AccentHue='Escolha a cor no círculo cromático, de 0 a 359 graus.'
 V.Help.AccentSaturation='Controle a intensidade da cor, do cinza à cor plena.'
 V.Help.AccentValue='Ajuste o brilho da cor. O foco mantém contraste para continuar legível.'

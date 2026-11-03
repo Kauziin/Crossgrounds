@@ -74,6 +74,7 @@ task.spawn(function() local module=player:WaitForChild("PlayerScripts"):WaitForC
 local menuRequested=Instance.new("BindableEvent") Navigation.MenuRequested=menuRequested.Event
 function Navigation:OpenMenu(id) menuRequested:Fire(id) end
 local changed=Instance.new("BindableEvent") Navigation.FocusChanged=changed.Event
+local hintChanged=Instance.new('BindableEvent') Navigation.HintContextChanged=hintChanged.Event
 local screen=Instance.new("ScreenGui") screen.Name="AccessibleMenuCursor" screen.IgnoreGuiInset=true screen.ResetOnSpawn=false screen.DisplayOrder=95 screen.Parent=player:WaitForChild("PlayerGui")
 local cursor=Instance.new("Frame") cursor.Name="Cursor" cursor.Size=UDim2.fromOffset(12,12) cursor.AnchorPoint=Vector2.new(.5,.5) cursor.Rotation=45 cursor.BackgroundColor3=Color3.fromRGB(235,247,255) cursor.BorderSizePixel=0 cursor.Visible=false cursor.Active=false cursor.ZIndex=4 cursor.Parent=screen
 local stroke=Instance.new("UIStroke") stroke.Thickness=2 stroke.Color=Color3.fromRGB(27,90,135) stroke.Parent=cursor
@@ -130,8 +131,10 @@ local function modal()
  local hub=p:FindFirstChild("CrossgroundsHub")
  if hub and hub.Enabled and hub.StatusPanel.Visible then return hub.StatusPanel end
  if experience and experience.Enabled and experience.Shade.Visible then return experience.Shade.Panel end
+ local nova=p:FindFirstChild('NovaHub')
+ if nova and nova.Enabled then return nova.Panel end
  local hubBackdrop=hub and hub:FindFirstChild("BrowserBackdrop")
- if hubBackdrop and hubBackdrop.Visible then return hubBackdrop.Panel end
+ if hubBackdrop and hub.Enabled and hubBackdrop.Visible then return hubBackdrop.Panel end
  local hubPanel=hub and hub:FindFirstChild("Panel")
  if hubPanel and hub.Enabled and hubPanel.Visible then return hubPanel end
  local arena=p:FindFirstChild("ArenaHUD")
@@ -171,9 +174,10 @@ end
 function Navigation:GetFocus() return focused end
 function Navigation:SetCategories(container,callback)
  categoryHandlers[container]=callback
+ hintChanged:Fire()
  container.Destroying:Connect(function() categoryHandlers[container]=nil end)
 end
-function Navigation:SetBack(container,callback,default) back[container]=callback defaults[container]=default end
+function Navigation:SetBack(container,callback,default) back[container]=callback defaults[container]=default hintChanged:Fire() end
 function Navigation:Register(object,callback,adjust)
  registered[object]={activate=callback and function()
   if not object:GetAttribute("MenuAudioConnected") then Audio:Play(adjust and "Step" or "Confirm") end
@@ -198,6 +202,26 @@ function Navigation:Connect(object,callback)
 end
 function Navigation:SetActions(object,actions)
  local entry=registered[object] if entry then entry.actions=actions end
+ if object==focused then hintChanged:Fire()end
+end
+-- Describe the callbacks used by the dispatcher, not the name of the page.
+function Navigation:GetHintContext(owner)
+ local active=root==owner and not Gui.MenuIsOpen and not player:GetAttribute('Rebinding') and UIS:GetFocusedTextBox()==nil
+ local object=active and focused or nil
+ local entry=object and visible(object,false)and registered[object]or nil
+ if object and object:IsA('GuiButton')and not object.Active then entry=nil end
+ local actions=entry and entry.actions or {}
+ local categories=root and categoryHandlers[root]
+ local ancestor=object
+ while ancestor and ancestor~=root do
+  if categoryHandlers[ancestor]then categories=categoryHandlers[ancestor]break end
+  ancestor=ancestor.Parent
+ end
+ return {Active=active,Navigate=active,Confirm=entry and entry.activate~=nil or false,Back=active and back[root]~=nil,
+  Categories=active and categories~=nil,Adjust=entry and entry.adjust~=nil or false,
+  Custom=type(actions.custom)=='function',Reset=type(actions.reset)=='function',
+  Options=type(actions.options)=='function',Group=type(actions.group)=='function',
+  CustomLabel=object and object:GetAttribute('SettingsCard')and 'Valor personalizado'or 'Ação contextual'}
 end
 function Navigation:ContextAction(action)
  local entry=focused and registered[focused] local callback=entry and entry.actions and entry.actions[action]
@@ -233,7 +257,11 @@ local function direction(key)
    local delta=object.AbsolutePosition+object.AbsoluteSize*.5-from local forward=delta:Dot(axis)
    local side=math.abs(delta.X*axis.Y-delta.Y*axis.X)
    local pos,size=object.AbsolutePosition,object.AbsoluteSize
-   local overlap=axis.Y~=0 and from.X>=pos.X and from.X<=pos.X+size.X or axis.X~=0 and from.Y>=pos.Y and from.Y<=pos.Y+size.Y
+   -- Wide section headings and narrow lists share a navigation lane even
+   -- when the heading's center lies outside the destination button.
+   local origin,extent=focused.AbsolutePosition,focused.AbsoluteSize
+   local overlap=axis.Y~=0 and origin.X<pos.X+size.X and origin.X+extent.X>pos.X
+    or axis.X~=0 and origin.Y<pos.Y+size.Y and origin.Y+extent.Y>pos.Y
    if overlap then side=0 end
    if forward>5 and (overlap or side<=forward*.85) then local value=forward+side*3 if value<score then score=value best=object end end
   end
@@ -242,7 +270,7 @@ local function direction(key)
 end
 local function syncRoot()
  local nextRoot=modal()
- if nextRoot~=root then root=nextRoot Navigation:Focus(nil) heldDirection=nil if root then Navigation:Focus(first()) end end
+ if nextRoot~=root then root=nextRoot Navigation:Focus(nil) heldDirection=nil if root then Navigation:Focus(first()) end hintChanged:Fire()end
 end
 for action,step in {MenuPrevious=-1,MenuNext=1} do
  Router:Register(action,function(state)
@@ -348,7 +376,7 @@ Run:BindToRenderStep("CTFMenuCursor",Enum.RenderPriority.Last.Value,function(dt)
  footer.Size=UDim2.fromOffset(footerWidth,32)
  local footerScale=footer:FindFirstChild("Fit") or Instance.new("UIScale") footerScale.Name="Fit" footerScale.Scale=math.min(1,(workspace.CurrentCamera.ViewportSize.X-24)/footerWidth) footerScale.Parent=footer
  previousGlyph.Visible=hasCategories nextGlyph.Visible=hasCategories categoryHelp.Visible=hasCategories
- cursor.Visible=gamepad and root~=nil and not Gui.MenuIsOpen footer.Visible=cursor.Visible and not player:GetAttribute("Rebinding")
+ cursor.Visible=gamepad and root~=nil and not Gui.MenuIsOpen footer.Visible=cursor.Visible and not MenuTheme.Mobile()and not player:GetAttribute("Rebinding")and not(root and root:GetAttribute("NeoIconHints"))
  focusStroke.Enabled=root~=nil and outlineTarget~=nil and not Gui.MenuIsOpen
  focusFrame.Visible=focusStroke.Enabled and visible(outlineTarget,true)
  focusGlow.Visible=focusFrame.Visible

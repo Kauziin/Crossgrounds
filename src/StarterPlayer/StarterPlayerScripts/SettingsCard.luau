@@ -80,6 +80,9 @@ function Card.new(parent,key,config)
  else hook(value.Activated,function() Nav:Focus(row,false) adjust(1) end) end
  local function layout()
   Theme.Style.Surface(row,'inner')
+  local neo=Theme.Style.IsNova()
+  stroke.Transparency=neo and(Nav:GetFocus()==row and .1 or 1)or .55
+  if neo then row.BackgroundTransparency=game.Players.LocalPlayer:GetAttribute('SettingHighContrast')and 0 or 1 end
   divider.BackgroundTransparency=Theme.Style.Id()>0 and 1 or .6
   local scale=config.Scale() local w=row.AbsoluteSize.X/math.max(.1,scale) local narrow=w<570
   local x=narrow and 16 or math.floor(w*.51) local y=narrow and 86 or 18
@@ -93,7 +96,7 @@ function Card.new(parent,key,config)
   row.Size=UDim2.new(1,-6,0,h) icon.Position=UDim2.fromOffset(14,19)
   name.Position=UDim2.fromOffset(58,12) name.Size=UDim2.fromOffset(textWidth,titleHeight)
   description.Position=UDim2.fromOffset(58,14+titleHeight) description.Size=UDim2.fromOffset(textWidth,descHeight)
-  divider.Visible=not narrow divider.Position=UDim2.fromOffset(x-12,15) divider.Size=UDim2.fromOffset(1,h-30)
+  divider.Visible=not narrow and not neo divider.Position=UDim2.fromOffset(x-12,15) divider.Size=UDim2.fromOffset(1,h-30)
   local available=math.max(40,w-x-60)
   reset.Position=UDim2.fromOffset(w-48,y) reset.Size=UDim2.fromOffset(36,44)
   left.Visible=not numeric right.Visible=not numeric
@@ -111,7 +114,7 @@ function Card.new(parent,key,config)
  end
  hook(row:GetPropertyChangedSignal("AbsoluteSize"),layout) hook(description:GetPropertyChangedSignal("Text"),layout) hook(name:GetPropertyChangedSignal("TextSize"),layout) hook(description:GetPropertyChangedSignal("TextSize"),layout)
  hook(Preferences.Changed,function(changes) if not changes or changes[key] then refresh() layout() end end)
- hook(Nav.FocusChanged,function(focused) stroke.Color=focused==row and C.Accent or C.Border stroke.Transparency=focused==row and .1 or .55 end)
+ hook(Nav.FocusChanged,function(focused) stroke.Color=focused==row and C.Accent or C.Border stroke.Transparency=focused==row and .1 or Theme.Style.IsNova()and 1 or .55 end)
  hook(game.Players.LocalPlayer:GetAttributeChangedSignal('SettingInterfaceStyle'),layout)
  row.Destroying:Connect(function() for _,c in connections do c:Disconnect() end end)
  refresh() layout() return row

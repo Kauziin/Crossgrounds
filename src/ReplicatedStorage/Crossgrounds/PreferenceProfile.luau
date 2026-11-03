@@ -24,11 +24,11 @@ end
 function Profile.Migrate(saved)
  local profile=Profile.New() if typeof(saved)~="table" then return profile end
  if saved.Version==nil then
-  for key,value in saved do local rule=Definition.Rules[key] if rule then Profile.Set(profile,rule.PreferenceDevice and "Device:"..rule.PreferenceDevice or "Global",key,value) end end
+  for key,value in saved do local rule=Definition.Rules[key] if rule then Profile.Set(profile,rule.PreferenceDevice and "Device:"..rule.PreferenceDevice or "Global",key,key=='InterfaceStyle' and value==2 and 1 or value) end end
  else
   for _,scope in {"Global","Mode:ctf","Mode:arena","Device:Keyboard","Device:Gamepad","Device:Touch"} do
    local container=Profile.Container(saved,scope)
-   if typeof(container)=="table" then local count=0 for key,value in container do count+=1 if count>256 then break end if typeof(key)=="string" then Profile.Set(profile,scope,key,value) end end end
+   if typeof(container)=="table" then local count=0 for key,value in container do count+=1 if count>256 then break end if typeof(key)=="string" then Profile.Set(profile,scope,key,key=='InterfaceStyle' and value==2 and 1 or value) end end end
   end
  end
  -- Preserve legacy accent choices as the nearest free preset.

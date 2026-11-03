@@ -4,6 +4,8 @@ local Theme=require(script.Parent:WaitForChild("MenuTheme"))
 local Scope=require(script.Parent:WaitForChild("ModeScope")) local Nav=require(script.Parent:WaitForChild("MenuNavigation"))
 local Router=require(script.Parent:WaitForChild("ControlRouter")) local Icons=require(script.Parent:WaitForChild("InputIcons"))
 local Mode=require(script.Parent:WaitForChild("InputMode")) local Bridge=require(script.Parent:WaitForChild("HubBridge"))
+local NeoPause=require(script.Parent:WaitForChild('NeoPauseLayout'))
+local NeoSettings=require(script.Parent:WaitForChild('NeoSettingsLayout'))
 local Card=require(script.Parent:WaitForChild("SettingsCard"))
 local Visual=require(script.Parent:WaitForChild("SettingsVisual"))
 local Adaptive=require(root.Crossgrounds.InterfaceLayout)
@@ -25,9 +27,19 @@ local function btn(parent,name,value)
 end
 local launch=btn(gui,"SettingsButton","☰  MENU") launch.Size=UDim2.fromOffset(104,38) launch.AnchorPoint=Vector2.new(1,0) launch.Position=UDim2.new(1,-16,0,56)
 local shade=Instance.new("Frame") shade.Name="Shade" shade.Size=UDim2.fromScale(1,1) shade.BackgroundColor3=Color3.fromRGB(3,9,14) shade.BackgroundTransparency=1 shade.Visible=false shade.Active=true shade.Parent=gui
+-- Decoration covers the viewport; interactive content keeps Roblox safe insets.
+local backdropGui=Instance.new('ScreenGui')backdropGui.Name='NeoSettingsBackdrop'backdropGui.ResetOnSpawn=false backdropGui.IgnoreGuiInset=true backdropGui.ScreenInsets=Enum.ScreenInsets.None backdropGui.DisplayOrder=gui.DisplayOrder-1 backdropGui.Enabled=false backdropGui.Parent=gui.Parent
+local fullBackdrop=Instance.new('Frame')fullBackdrop.Name='FullViewport'fullBackdrop.Size=UDim2.fromScale(1,1)fullBackdrop.BackgroundColor3=Color3.new(0,0,0) fullBackdrop.BackgroundTransparency=.07 fullBackdrop.BorderSizePixel=0 fullBackdrop.Active=false fullBackdrop.Parent=backdropGui
+local backdropActive=false
+local function syncBackdrop()backdropGui.Enabled=backdropActive and gui.Enabled and shade.Visible end
+shade:GetPropertyChangedSignal('Visible'):Connect(syncBackdrop)
+gui:GetPropertyChangedSignal('Enabled'):Connect(syncBackdrop)
+gui.Destroying:Once(function()backdropGui:Destroy()end)
 local panel=Instance.new("Frame") panel.Name="Panel" panel.BackgroundTransparency=1 panel.AnchorPoint=Vector2.new(.5,.5) panel.Position=UDim2.fromScale(.5,.5) panel.Size=UDim2.new(1,-48,1,-88) panel.Parent=shade
+local function presentationScale()local modifier=panel:FindFirstChild('PreferenceScale')return modifier and modifier.Scale or Theme.Scale()end
 local header=label(panel,"Title","CROSSGROUNDS  /  PAUSA",UDim2.new(1,0,0,30)) header.TextSize=20 header.Font=Enum.Font.GothamBold
 local status=label(panel,"Status","",UDim2.new(1,0,0,32)) status.Position=UDim2.new(0,0,1,-32) status.TextColor3=muted status.TextWrapped=true status.TextSize=12
+local iconHints=require(script.Parent:WaitForChild('NeoNavigationHints')).new(panel)
 local panes={} local lists={}
 for _,id in {"Main","Options","Categories","Detail"} do
  local f=Instance.new("Frame") f.Name=id f.BackgroundColor3=Color3.fromRGB(14,26,36) f.BorderSizePixel=0 f.ClipsDescendants=true f:SetAttribute("CascadePane",true) f.Parent=panel panes[id]=f
@@ -80,7 +92,7 @@ local function commit(key,value)
  Preferences:Edit(key,context(key),value,"set")
 end
 local function settingRow(key)
- local row=Card.new(lists.Detail,key,{Settings=Settings,Preferences=Preferences,Nav=Nav,Context=context,Commit=commit,Scale=function() return Theme.Scale() end})
+ local row=Card.new(lists.Detail,key,{Settings=Settings,Preferences=Preferences,Nav=Nav,Context=context,Commit=commit,Scale=function() return presentationScale() end})
  table.insert(detailRows,row)
 end
 local activeDialog
@@ -99,7 +111,7 @@ end
 render=function(id)
  remember() page=id navSelection[leafParent[id] or "Options"]=id pendingConfirmation=nil cleanDetail() panes.Detail.Back.Text="‹  "..(titles[id] or id)
  if id=='Themes' then
-  activeLoadoutView=require(script.Parent.ThemeSelectionView).new(lists.Detail,{Navigation=Nav,Preferences=Preferences,Scale=function()return Theme.Scale()end,CardConfig={Settings=Settings,Preferences=Preferences,Nav=Nav,Context=context,Commit=commit,Scale=function()return Theme.Scale()end}})
+  activeLoadoutView=require(script.Parent.ThemeSelectionView).new(lists.Detail,{Navigation=Nav,Preferences=Preferences,Scale=function()return presentationScale()end,CardConfig={Settings=Settings,Preferences=Preferences,Nav=Nav,Context=context,Commit=commit,Scale=function()return presentationScale()end}})
  elseif keys[id] then
   local modeFields=false for _,key in keys[id] do if Settings.Rules[key].ModeOverride then modeFields=true end end
   if modeFields then
@@ -240,10 +252,28 @@ resize=function(animate)
  local w=math.min(style.Id==0 and (ctfLoadout and 1560 or 1280) or style.Width,(v.X-24)/scale) local h=math.min(style.Height,(v.Y-20)/scale) panel.Size=UDim2.fromOffset(w,h)
  for f,t in paneTweens do t:Cancel() paneTweens[f]=nil end
  local configActive=page~="Main" and not table.find({"Loadout","Exit","Surrender"},page)
+ local neo=Theme.Style.IsNova()and configActive
+ local neoPause=Theme.Style.IsNova()and table.find({'Main','Exit','Surrender'},page)~=nil
+ local neoSurface=neo or neoPause
+ if neoSurface then
+  modifier.Scale=scale
+  local margin=math.clamp(v.X*.03,16,48)
+  w=(v.X-margin*2)/scale h=math.min(760,(v.Y-20)/scale)panel.Size=UDim2.fromOffset(w,h)
+ end
+ shade.BackgroundTransparency=1
+ backdropActive=neoSurface syncBackdrop()
+ local fade=fullBackdrop:FindFirstChild('NeoFade')or Instance.new('UIGradient')fade.Name='NeoFade'fade.Transparency=NumberSequence.new({NumberSequenceKeypoint.new(0,0),NumberSequenceKeypoint.new(.6,.08),NumberSequenceKeypoint.new(1,.28)})fade.Enabled=neoSurface fade.Parent=fullBackdrop
+ header.TextSize=20 header.Position=UDim2.fromOffset(0,0)header.Size=UDim2.new(1,0,0,30)
+ header.TextColor3=Theme.Colors.Text
  panel:SetAttribute("SettingsOverhaul",configActive)
- for _,f in panes do f:SetAttribute("SettingsOverhaul",configActive) end
+ for _,f in panes do f:SetAttribute("SettingsOverhaul",configActive)if not neoSurface then f:SetAttribute("NeoSettingsPage",nil)require(script.Parent.AccentTheme).Role(f.Back,"TextColor3","Text")end end
  siblingTabs.Visible=configActive subtitle.Visible=configActive
- if configActive then
+ if neo then
+  if not categoryButtons.Options then buildCategories('Options')end
+  if categories[page]and page~='Options'and not categoryButtons[page]then buildCategories(page)end
+  siblingTabs.Visible=false
+  NeoSettings.Apply({Page=page,Categories=categories,Titles=titles,Panes=panes,Lists=lists,Panel=panel,Subtitle=subtitle,BindingTabs=bindingTabs,Width=w,Height=h})
+ elseif configActive then
   local adaptive=Adaptive.Settings(w,h,page=="Bindings")
   local compact=adaptive.Compact
   subtitle.Visible=adaptive.DescriptionVisible
@@ -339,6 +369,8 @@ resize=function(animate)
  panes.Main.Back.Visible=false if not configActive then lists.Main.Position=UDim2.fromOffset(8,8) lists.Main.Size=UDim2.new(1,-16,1,-16) end
  local visibleCount=0 for _,b in mainButtons do if b.Visible then visibleCount+=1 end end
  for _,b in mainButtons do b.Size=UDim2.new(1,-4,0,math.clamp((h-110)/math.max(1,visibleCount),48,62)) end
+ if neoPause then for f,t in paneTweens do t:Cancel()paneTweens[f]=nil end end
+ NeoPause.Apply({Active=neoPause,Page=page,Panes=panes,Lists=lists,Panel=panel,Width=w,Height=h})
  if animate then
   local activeId=panes.Detail.Visible and "Detail" or panes.Categories.Visible and "Categories" or panes.Options.Visible and "Options" or "Main"
   local activeList=lists[activeId] local target=panes[activeId].Back
@@ -355,7 +387,18 @@ resize=function(animate)
  if hints then hints()end
 end
 hints=function()
+ local neo=Theme.Style.IsNova()
+ panel:SetAttribute('NeoIconHints',neo)
+ iconHints.Root.Visible=false
  if player:GetAttribute('Rebinding')then return end
+ if Theme.Mobile()then status.Text=''return end
+ if neo then
+  status.Text=''
+  local context=Nav:GetHintContext(panel)
+  context.Categories=context.Categories and page~='Main'and page~='Exit'and page~='Surrender'
+  iconHints:Refresh(nil,context)
+  return
+ end
  local input=Mode:Get()
  if input==Enum.PreferredInput.Touch then
   status.Text=page=='Loadout' and 'Toque para inspecionar e selecionar · Deslize para ver mais' or 'Toque para escolher ou ajustar · Deslize para ver mais'
@@ -417,7 +460,7 @@ Nav.MenuRequested:Connect(function(id)
 end)
 Router:Register("Menu",function(s) if s==Enum.UserInputState.Begin then show(not shade.Visible,"Main") end end,{allowMenus=true})
 Router:Register("VoteMenu",function(s) if s==Enum.UserInputState.Begin then if Scope:IsArena() or Scope:IsCTF() then show(false) Nav:OpenMenu("MapVote") else show(true,"Maps") end end end,{allowMenus=true,scope="global"})
-Router.CaptureChanged:Connect(function(active,message) status.Text=active and "PRESSIONE UM NOVO BOTÃO · 5s" or message end)
+Router.CaptureChanged:Connect(function(active,message) hints() status.Text=active and "PRESSIONE UM NOVO BOTÃO · 5s" or message end)
 local function scopeLabels()
  mainButtons.Resume.Text="Continuar"
  mainButtons.Loadout.Visible=true
@@ -440,5 +483,13 @@ player:GetAttributeChangedSignal('ArsenalFocused'):Connect(function() resize(fal
 shade:GetPropertyChangedSignal("AbsoluteSize"):Connect(function() resize(false) end)
 player:GetAttributeChangedSignal("HUDLayoutEditing"):Connect(function() resize(false) end)
 Mode.Changed:Connect(hints)
+Icons.Changed:Connect(hints)
+Router.Changed:Connect(hints)
+Nav.FocusChanged:Connect(function()if shade.Visible then hints()end end)
+Nav.HintContextChanged:Connect(function()if shade.Visible then hints()end end)
+game:GetService('UserInputService').TextBoxFocused:Connect(hints)
+game:GetService('UserInputService').TextBoxFocusReleased:Connect(function()task.defer(hints)end)
+game:GetService('GuiService').MenuOpened:Connect(hints)
+game:GetService('GuiService').MenuClosed:Connect(function()task.defer(hints)end)
 player:SetAttribute("ExperienceMenuOpen",false) resize(false)
 hints()

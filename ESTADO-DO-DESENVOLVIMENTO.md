@@ -834,3 +834,131 @@ Implementado laboratório restrito ao Roblox Studio com painel F8, 42 presets de
 Biblioteca local em `artifacts/interface-library-2026-11-03/`: 170 PNGs, índice HTML com busca/filtro, manifesto, folhas de contato, cobertura e análise. Inclui 38 páginas cadastradas no Cascade, 28 estados de evento, configurações, progressão, armamentos, HUD/mensagens e 17 capturas no iPhone 17 Pro landscape simulado. Páginas internas sem seleção e previews preliminares são rotulados como limites da fixture; a prévia funcional do Armeiro está em `417-armeiro-com-previa.png`. Análise decidiu preservar linguagem e estrutura visual, priorizar visibilidade das ações inferiores do Armeiro e melhorar leitura dos dados de clã/grupo e alvos/texto de menus estreitos. Nenhuma alteração estética aplicada nesta etapa.
 
 Validações efetivas: 42/42 presets invocados no Play Studio; 13 fontes do laboratório e integrações compilaram e coincidiram com o DataModel de Edit; Play reiniciado para recapturar hub, progressão mobile, loading e saída/rendição em contexto correto. Teste pontual confirmou `open(Progress)` e `reset` fechando a página e ID desconhecido recusado pelo servidor. Avisos anteriores de assets de áudio, plugin GUIEditor e TestService permanecem no console; não surgiu erro novo do laboratório na rodada final. Não houve hardware físico, partida multiplayer humana completa, compra, DataStore de produção ou publicação. Relatório técnico em `docs/DEBUG-INTERFACES-2026-11-03.md`.
+
+
+### UI #10b — estilos adicionais Geral e Completo — 03/11/2026
+
+Lidas as duas referências de `instructions/UI/#10b` e as recomendações anexadas. Implementada preferência global `InterfaceStyle` pelo armazenamento existente: Atual (0, padrão), Geral (1) e Completo (2), independente da paleta. Disponível em Configurações/Interface e Temas. Componentes compartilhados simplificam molduras/estados inativos; Progresso recebe cabeçalho e navegação próprios por estilo; Pausa/Configurações/Cascade usam limites ampliados. Armeiro nos estilos novos reserva aproximadamente 48% da largura à prévia em telas largas e mantém lista vertical, categorias, modelos e regras existentes. Sem estatísticas novas na Arena. Temas ganhou seleção de composição e amostra ao vivo, preservando HSV/controle de acesso. O editor completo por papel de cor/roda cromática permanece como direção documentada, não como funcionalidade pronta.
+
+Corrigida perda de rótulos laterais ao entrar no CTF com coluna recolhida: texto vazio transitório não sobrescreve ExpandedText. Corrigida escala composta dos controles HSV dentro do conteúdo mobile com leitura ampliada. Alterações anteriores e paralelas de bots/Riverside/pulo/armas/áudio/laboratório foram preservadas.
+
+Validações: 45/45 testes em cinco suítes, incluindo sete contratos novos; 12/12 fontes finais compiladas e iguais ao editor principal 4375993208. Troca de estilo pelo fluxo real de preferências; D-pad/A/B simulados com Studio ativo e retorno do foco a Temas. Nova sessão confirmou seis rótulos da lateral após transição ao Practice Range. Capturas Xbox 1920x1080, 1280x720 e iPhone landscape 874x402 (viewport 750x382); botões de estilo mobile 131x64 px e três controles de restauração HSV contidos nas linhas de 412 px. Sete imagens verificadas e resultados em artifacts/ui-10b-2026-11-03; relatório/escopo em docs/UI-10B-ESTILOS.md. git diff --check passou.
+
+Limites: não migra integralmente todas as telas específicas; não valida hardware físico, retrato/todas as proporções, gestos completos, DataStore de produção, multiplayer humano ou FPS. Console mantém avisos anteriores de assets/plugins/TestService; acesso prematuro do laboratório ao Armeiro durante transição foi repetido com sucesso após a criação da tela. Play encerrado, testes temporários removidos, simulador padrão. Sem publicação/commit/push. Uso consultado após os trabalhos maiores: saldo semanal final 85%, acima do mínimo de 1%.
+
+
+### UI #10b — correção de direção e plano de recriação — 03/11/2026
+
+Usuário esclareceu que deseja exatamente duas interfaces: a atual e uma nova, reconstruída a partir da experiência do jogador. A entrega anterior com Atual/Geral/Completo não satisfaz essa intenção. Planejamento registrado em instructions/UI/#10b/PLANO-RECRIACAO.md: jornadas, arquitetura de informação, direção visual, componentes/apresentação novos sobre serviços existentes, controle/mobile/acessibilidade, isolamento das duas apresentações, migração futura dos IDs e critérios de validação. Geral/Completo passam a arquétipos internos da Nova. Relatório anterior marcado como histórico.
+
+Etapa apenas documental: fontes inspecionadas e captura do usuário considerada; nenhuma mudança funcional, rollback, migração, teste de runtime, edição no Studio ou publicação. Protótipos visuais, escolhas de produto e alcance do HUD ficam para discussão quando o usuário retornar. A implementação anterior permanece no código até uma etapa própria de substituição. Saldo semanal consultado: 85% restante, acima do mínimo de 1%.
+
+
+### UI #10b — decisões de direção confirmadas
+
+Usuário escolheu direção cinematográfica para a interface Nova, menus principais antes do HUD e concedeu liberdade para reorganizar funções/caminhos preservando recursos. Plano de recriação atualizado com proposta de destinos Jogar, Armamentos, Carreira, Social, Configurações e painel rápido de Música. Registrado requisito explícito para a etapa posterior de HUD: padronizar mensagens hoje inconsistentes em uma família visual com hierarquia, regiões, prioridade, duração, fila e som coerentes. Alteração documental apenas; wireframes/mockups e implementação da Nova continuam pendentes. Nenhuma alteração de runtime ou publicação nesta atualização.
+
+
+### UI Nova — especificação detalhada confirmada pelo usuário
+
+Atualizado instructions/UI/#10b/PLANO-RECRIACAO.md, seção 12, como especificação prevalente: Atual anterior a Geral/Completo; Nova cinematográfica e aberta, preservando identidade Crossgrounds, sem usar #10b como alvo; menus primeiro, HUD depois; mobile próprio; reorganização autorizada. Incluídos remapeamento com teclado/controle visual e ícones de plataforma no placar, respeitando limitações de identificação. HUD futuro: vida dentro da barra/inferior esquerdo com estamina; equipamento iconográfico/inferior direito; killfeed compacto, placar legível, faixas de bandeira, cantos coloridos e ícone pulsante ao portar; eliminações agregadas com XP real e medalha recente. Janela de 5s é proposta, não regra aprovada; não criar recompensas ou sistemas de blindagem fictícios. Dicas permanentes de gameplay removidas no futuro, preservando acesso ao menu e controles touch. Escolhido conjunto de protótipos com revisão antes da implementação ampla. Apenas documentação alterada; protótipos, fontes funcionais, testes de runtime e publicação não executados nesta etapa.
+
+
+### Interface Nova — primeiro protótipo navegável
+
+Entregue artifacts/ui-nova-prototype/index.html, separado do jogo: duas composições de inicial, seleção de modo, classes/edição, acessórios, categorias de configurações, diagramas de teclado/Xbox/PlayStation e quadro de HUD futuro. Navegação por clique, foco/setas/Enter/Escape e X contextual; tons opcionais provisórios. Mobile reorganizado com Lista/Arma e detalhes em etapas, ação de aplicar acessível em região inferior. Fundos abstratos, silhuetas vetoriais, classes e eventos ilustrativos identificados; Carreira/Social e partes secundárias são destinos planejados, sem funcionalidade fictícia de produção.
+
+Validação efetiva: renderização local em Edge headless com tools/render_ui_nova.cjs; dez capturas em 1920x1080, 1280x720 e 390x844; 13 verificações de navegador passaram, zero falhas, viewport sem expansão/rolagem horizontal. Revisão visual encontrou e corrigiu recorte da inicial mobile e prévia mobile com botão inferior. Resultados e limitações no README/validation.json da pasta. Não houve validação auditiva, controle/toque físico, serviços de jogo, modelos reais, FPS ou runtime Roblox. Não implementa expiração da sequência nem medalhas reais. Atualização do plano na seção 13; nenhuma fonte runtime Roblox, Studio ou publicação alterada. Saldo semanal consultado: 82% restante.
+
+
+### Protótipo da Nova — urgência e posição do aviso de bandeira
+
+Atendido ajuste visual no protótipo HTML: comunicado de bandeira inimiga capturada agora fica 13 px abaixo do placar nas resoluções verificadas; maior peso tipográfico, acento âmbar, chevrons e passagem luminosa direcional com dois ciclos. Ícone superior esquerdo ampliado para 80 px no desktop e 60 px no mobile. Estado de portador/killfeed mobile reposicionados. Mantido movimento reduzido. Renderizador regenerou 12 capturas e verificou posição/contenção em 1920x1080, 1280x720 e 390x844; 13 verificações de navegação/estados passaram. Revisão visual das capturas desktop/mobile realizada. Capturas sem animação não validam fluidez; nenhuma alteração em Roblox/Studio ou publicação.
+
+
+### Protótipo Nova — mobile paisagem e posições do XP
+
+Corrigido alvo mobile para paisagem 844x390. HUD do protótipo ganhou alternância XP Embaixo/Esquerda do retículo e simulação de scope: aviso esquerdo se afasta considerando raio ilustrativo da lente mais margem; inferior aproximado da borda de baixo. Ajustadas proporções de HUD em telas baixas. Quinze capturas regeneradas, treze verificações anteriores passaram e verificações de contenção/separação de XP em cada captura de HUD passaram. Capturas mobile normal/com scope e inferior inspecionadas visualmente. Preferências só na memória do protótipo; círculo de scope é guia visual de layout, não óptica de jogo. Plano/README atualizados. Nenhuma alteração no runtime Roblox, Studio ou publicação.
+
+
+### Protótipo Nova — PC/console e botões mobile
+
+Explicitado XP nas duas posições também em PC/console. Simulação mobile paisagem agora inclui joystick e oito botões com ícones/nomes acessíveis: disparo, mira, recarga/interação, pulo, deslize, corrida, troca de arma e câmera; ações ilustrativas locais. Informações de vida/equipamento/killfeed reorganizadas para acomodar toque. Alternância Método disponível na ferramenta de revisão. Dezesseis capturas e dezesseis verificações de navegador passaram; controles mobile mediram mínimo de 44 px e XP não intersectou controles nos estados inferior, esquerda e scope. Conferidos visualmente desktop e mobile. Renderizador corrigido para esperar inicialização da página de destino antes da captura. README/plano atualizados. Não valida multitoque físico, jogo, disparo, movimento de personagem ou persistência; nenhuma alteração em Roblox/Studio/publicação.
+
+
+### UI #11b — introdução e diagramas recebidos
+
+Guardado ZIP original Crossgrounds_Diagramas.zip em instructions/UI/#11b, com nove arquivos extraídos em referencias/ e manifesto SHA-256/tamanhos. Caminhos da extração conferidos dentro da pasta de destino, sem sobrescrever conteúdo diferente. INTRODUCAO.md descreve uso dos diagramas ABNT2/ANSI, Xbox/PlayStation, keycaps e estados; três imagens conceituais inspecionadas visualmente. Referências não são bindings finais: apontada mistura de legenda A em prévia PlayStation do mockup. Documentada sugestão mobile: base de dois polegares, ações essenciais diretas, opcionais recuperáveis, perfis pessoais preservados, HUD fora das zonas dos dedos e menus por etapa. Apenas arquivamento/documentação; nenhuma alteração no protótipo, runtime, Studio ou publicação; sem testes de jogo.
+
+
+### UI #11b — exemplo visual mobile simplificado
+
+Protótipo HTML recebeu perfil Limpo alternável com Expandido. Mantém joystick e cinco ações essenciais; três opcionais (correr/deslizar/câmera) acessíveis por Mais, sem corrida automática compulsória. Sete alvos permanentes contra nove no Expandido; menos repetição de texto de bandeira e uma linha de killfeed no exemplo. Painel temporário posicionado abaixo da faixa de objetivo. Capturas 17/18/19 e verificações de preservação de ações/acesso aos opcionais adicionadas. Erro inicial de teste por herdar perfil Limpo foi corrigido com estado inicial explícito do cenário Expandido. Registro de validação final acompanha a pasta do protótipo; sem gameplay, multitoque físico, alteração de layout Roblox, Studio ou publicação.
+
+Validação final do exemplo: 19 capturas e 18/18 verificações de navegador passaram; contenção do XP e tamanho mínimo dos alvos conferidos pelo renderizador.
+
+
+### Correção de conceito — oval central livre no mobile
+
+Usuário corrigiu que limpeza significa centro oval livre, não redução de botões. Protótipo Livre preserva nove alvos diretos, redistribui controles/HUD na periferia, afasta XP lateral para fora do oval e oculta guias ilustrativos centrais. Área provisória de 60% da largura e 46% da altura. Substituída solução de painel Mais. Renderizador verifica interseções com o oval e colisão de XP/controles; reposicionado joystick após primeira verificação apontar sobreposição com XP. Resultado final: 18/18 verificações e 19 capturas concluídas; imagem Livre inspecionada. README/introdução #11b atualizados com correção prevalente. Apenas protótipo; sem alteração Roblox/Studio/publicação.
+
+
+### Nova UI — início da implementação real (sem #11b) — 03/11/2026
+
+Revisadas etapas e implementado primeiro bloco Luau: NovaHubView, inicial própria, catálogo de modalidades, entrada/cancelamento e Practice Range pelo HubBridge existente; destinos Carreira/Social/Configurações/Música encaminham aos sistemas atuais. Armamentos no hub preserva necessidade de modalidade, sem equipamento fictício. Seletor binário Atual/Nova pelo armazenamento existente; experimental 2 migra para 1. Camada visual experimental deixa Views legadas na composição clássica; Nova tem GUI separada e foco exclusivo quando ativa. Transições respeitam movimento reduzido e sons existentes. Sem diagramas/remapeamento #11b ou novo HUD.
+
+Validação: 46/46 contratos passaram; 8/8 fontes finais compiladas/iguais ao editor principal 4375993208. Play novo confirmou Nova exclusiva, acesso a Configurações, catálogo, entrada real CTF Practice Range e retorno ao hub/Atual. Capturas Xbox 1920x1080 e iPhone paisagem 874x402 (viewport 750x382), com lista compacta/rolagem e ações principais visíveis. git diff --check passou. Sem erro novo observado nas fontes alteradas; avisos antigos de assets/plugin/TestService permanecem. Teste inicial direto de Edit logo após stop falhou por transição do DataModel e passou após reconexão. Play encerrado, testes temporários removidos e simulador padrão.
+
+Pendentes demais apresentações (pausa, configurações internas, Armeiro, Progresso/Social), comparação visual integral da Atual pré-Geral/Completo, acabamento e cena dedicada, controle/toque físico, produção, multiplayer e FPS. Relatório docs/NOVA-UI-IMPLEMENTACAO.md; evidências artifacts/nova-runtime-2026-11-03. Sem publicação/commit/push. Saldo semanal consultado no trabalho: 77% restante.
+
+
+### Correção da inicial e nomenclatura — Clássica/Neo
+
+Atendido esclarecimento: a mesma inicial Clássica é usada pelos dois temas, sem inicial Neo alternativa. NovaHubView agora redireciona Home ao root clássico; HubController só habilita apresentação Neo em páginas internas, com atualização ao navegar. Modalidades Neo passa a lista vertical e base de botões compartilhados usa linguagem sem caixas inativas. Seletor, labels, prévia e ajuda renomeados Clássica/Neo, IDs preservados. Em Play confirmado InterfaceStyle=1 com GUI clássica na inicial, transição para Neo ao jogar e retorno à inicial compartilhada por Voltar; labels runtime CLÁSSICA/NEO. Captura 04-inicial-compartilhada-neo.jpg. Nenhuma mudança #11b/HUD/publicação. A propagação integral às demais telas segue pendente.
+
+Verificação final desta correção: dez fontes compiladas e iguais ao editor; ajuste final de recuo de texto nas listas compilado, sem repetir a captura após esse ajuste de espaçamento. git diff --check passou; Play encerrado e simulador padrão.
+
+
+### Neo — Configurações em uma página por vez — 03/11/2026
+
+Nova apresentação NeoSettingsLayout para categorias, subcategorias e opções, sem acumular colunas. Preservados callbacks, escopos, defaults e persistência existentes; ramo Clássica e sua escala mobile mantidos. SettingsCard tem linhas transparentes/contorno no foco em Neo; MenuTheme respeita transparência dos painéis Neo em atualizações de tema. Corrigido cálculo de escala efetiva dos controles no painel.
+
+Play novo: categorias com somente Options visível, navegação Câmera/Interface/Analógicos, killfeed true→false→true pelo callback real e troca Clássica/Neo preservando página/escala. Expectativa inicial de teste sobre colunas Clássica no mobile corrigida para comportamento compacto existente; confirmado fator 0.6 na Clássica e 1 na apresentação Neo. Capturas desktop/mobile em artifacts/neo-settings-2026-11-03; seletor mobile 270x44 px, linha 672x82. Treze fontes do conjunto compiladas/comparadas com editor; git diff --check passou. Sem novos erros observados das fontes alteradas; avisos anteriores de assets/plugin/TestService persistem.
+
+Limites: sem teste físico de controle/toque, todas as categorias/estados, persistência de produção ou FPS; remapeamento/temas/editor de HUD especializados mantêm componentes atuais. Nenhuma implementação #11b/HUD/publicação. Play encerrado, simulador padrão. Saldo semanal consultado: 75% restante.
+
+
+### Neo — fundo integral das Configurações
+
+Corrigida faixa superior sem fundo: decoração movida para ScreenGui NeoSettingsBackdrop com ScreenInsets=None/IgnoreGuiInset=true, separada do conteúdo interativo com CoreUISafeInsets. Gradiente cobre a tela física, sem deslocar textos/botões para sob a barra Roblox. Visibilidade sincronizada com menu aberto, tema Neo e Enabled da GUI; backdrop destruído com menu. Play confirmou ocultação na Clássica e ao fechar; captura desktop 1459x748 sem faixa. Mobile confirmado fundo 874x402, maior que viewport de câmera 750x382 por incluir insets; primeira asserção de igualdade com câmera foi corrigida para distinguir tela física/área segura. Imagem mobile inspecionada. Fonte compilada/aplicada, sem mudança funcional de preferências/#11b/HUD/publicação. Evidência 04-fundo-tela-inteira.jpg.
+
+
+### Neo — margens menores, fundo intenso e pausa — 03/11/2026
+
+Margens dos painéis Neo passam a 3% da largura, limitadas a 16–48 px; captura 1459 px mostrou 44 px de margem e painel 1371 px. Fundo integral agora preto puro com alpha .03 e gradiente até .22, sem afetar área segura do conteúdo ou Clássica. NeoPauseLayout apresenta Pausa, saída e rendição como listas simples sem painéis, usando ações/confirmadores existentes e Voltar visível para toque.
+
+Play novo verificou margens/fundo, pausa sem colisão título/lista, Continuar fechando menu, visita às páginas de saída/rendição no CTF Practice Range sem confirmar ações, retorno por toque e alternância Clássica/Neo. Mobile paisagem: lista 440x178 com rolagem. Erro de sintaxe de preparo corrigido antes de aplicar e tween legado que causava sobreposição cancelado no ramo Neo. Capturas e limites em artifacts/neo-pause-2026-11-03/VALIDACAO.md. Sem #11b/HUD/publicação; sem validação física ou FPS.
+Verificação final: 14 fontes do conjunto compiladas e correspondentes ao editor; Play encerrado e simulador padrão. Saldo semanal consultado: 72% restante.
+
+### Neo — gradiente suavizado e dicas por plataforma — 03/11/2026
+
+Reduzida intensidade do fundo integral: transparência base .03→.07 e extremo do gradiente .22→.28. Novo NeoNavigationHints nos menus Neo de ExperienceMenu e NovaHubView, com símbolos de ações, keycaps de teclado e glifos nativos Xbox/PlayStation pelo InputIcons existente. Ações contextuais conforme opção selecionada e atalhos de categorias consultam ControlRouter. Rodapé legado oculto quando o novo está ativo. Mobile sem dicas de navegação, inclusive Clássica ExperienceMenu e rodapé global de controle; controles interativos mantidos. Captura de remapeamento oculta dicas e preserva mensagens funcionais.
+
+Play novo: teclado, contexto de slider, apresentação Xbox simulada, iPhone 17 Pro paisagem 874×402 (viewport 750×382), ocultação mobile Clássica/Neo/hub e início/expiração real de remapeamento sem aplicar tecla. Quinze fontes compiladas/aplicadas; git diff --check passou. Console sem novo erro observado das fontes alteradas; avisos antigos de assets/plugin/TestService persistem. Capturas e limites em artifacts/neo-hints-2026-11-03/VALIDACAO.md; sem controle/toque físico ou PlayStation validado, migração integral de telas legadas, #11b ou publicação. Saldo semanal consultado: 71% restante.
+Verificação final em Edit: 15/15 fontes compiladas e iguais às fontes locais; Play encerrado, scripts temporários descartados e simulador restaurado ao viewport padrão.
+
+### Neo — dicas vinculadas às ações do foco e inventário de telas — 03/11/2026
+
+MenuNavigation.GetHintContext expõe ações do dispatcher para o alvo atual, callback de voltar, ajuste e categorias disponíveis. Novo evento HintContextChanged atualiza dicas ao trocar a raiz do menu ou as ações no mesmo card. NeoNavigationHints/ExperienceMenu/NovaHubView usam essas capacidades, removendo pressupostos de X para a página inteira de Armamentos e Y para qualquer controle ajustável. Dicas do menu pai ficam ocultas durante edição de texto, confirmação flutuante e menu Roblox. LS e LT/RT só aparecem em controle quando options/group estão registrados. Não foram adicionados atalhos nem alteradas regras de seleção/equipamento; mobile segue sem dicas.
+
+Play novo: sete verificações passaram (numérico, booleano, botão, ações alteradas no mesmo alvo, texto, modal e troca de página). Nova sessão confirmou apresentação Gamepad simulada com LS/grupos aparecendo e desaparecendo conforme callbacks. 15/15 fontes compiladas e correspondentes ao editor; git diff --check passou. Sem novo erro observado das fontes alteradas; avisos antigos de áudio/plugin/TestService permanecem. Tentativa de salvar resultado HTTP no cliente foi recusada pelo engine; verificação de fontes salva pelo Edit e resultado Gamepad confirmado novamente em sessão nova. Play encerrado e scripts temporários descartados. Sem controle físico, nova simulação mobile ou migração de todas as telas nesta etapa. Sem publicação. Saldo semanal consultado: 70% restante.
+
+Inventário atualizado em docs/NOVA-UI-IMPLEMENTACAO.md: inicial compartilhada, modalidades, pausa/saída/rendição e configurações comuns já migradas. Faltam composição Neo do Armeiro/Armamentos, Progresso, Carreira/cosméticos, Social/guilda, Playlist, votação/entrada/resultados e componentes especializados de configurações. HUD/avisos ficam para depois; #11b continua excluído.
+
+### Correção de navegação presa no cabeçalho — 03/11/2026
+
+MenuNavigation.direction agora compara a interseção dos intervalos dos controles no eixo perpendicular ao movimento. Antes exigia que o centro do título largo estivesse dentro do botão de destino; títulos de seção Neo com lista estreita à esquerda não encontravam candidato ao pressionar para baixo. Mantidos links explícitos e ajuste horizontal de sliders. Fonte compilada e aplicada no Studio em Edit; verificados cálculos de título largo→lista estreita, retorno e faixas separadas. git diff --check passou. Pendente validação de navegação em Play/controle físico; não declarar o fluxo completo testado. Sem publicação.
+
+### Dicas Neo com descrição textual — 03/11/2026
+
+Substituídos ícones semânticos das ações por rótulos textuais (Navegar, Confirmar, Voltar e ações contextuais). Mantidas teclas e identificação nativa dos botões de controle ao lado do texto, contexto dinâmico e ocultação mobile. Largura de cada grupo calculada pelo texto e ajuste do rodapé à largura disponível preservado. NeoNavigationHints compilado, aplicado e comparado com fonte local no Studio Edit; git diff --check passou. Pendente conferência visual em Play e legibilidade com todos os comandos simultâneos/escala de tela. Sem publicação.

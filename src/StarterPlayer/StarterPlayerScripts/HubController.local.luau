@@ -9,7 +9,7 @@ local gui=Instance.new("ScreenGui") gui.Name="CrossgroundsHub" gui.ResetOnSpawn=
 local browser=Cascade.new(gui,"BrowserBackdrop","CROSSGROUNDS")
 browser:AddPane("Modes","MODALIDADES") browser:AddPane("ModeDetails","SOBRE O MODO")
 local selected="ctf" local catalogOpen=true local quickEntry local lastMode=Scope:Get() local cards={}
-local refresh local modeGrid
+local refresh local modeGrid local nova
 local function stay()
  local data=Bridge:Get() local q=data and data.queue
  quickEntry=nil
@@ -188,6 +188,14 @@ function browser:Push(ids)
   task.defer(function() if self.Backdrop.Visible and home.Visible then Nav:Focus(selectedHome) end end)
  end
 end
+local pushWithNeo=browser.Push
+function browser:Push(ids)
+ pushWithNeo(self,ids)
+ if nova then
+  if #ids>1 then nova:Modes()end
+  if refresh then refresh()end
+ end
+end
 home:GetPropertyChangedSignal("AbsoluteSize"):Connect(layoutHome)
 Theme.ObserveMobile(layoutHome)
 player:GetAttributeChangedSignal("SettingMenuScale"):Connect(layoutHome)
@@ -241,11 +249,28 @@ local acknowledge=Instance.new("TextButton") acknowledge.Name="Continue" acknowl
 Nav:Connect(acknowledge,function() Bridge:Send("dismiss") end) Nav:SetBack(overlay,function() Bridge:Send("dismiss") end,acknowledge)
 local reopen=Instance.new("TextButton") reopen.Name="OpenModes" reopen.Text="Jogar / Modalidades" reopen.AnchorPoint=Vector2.new(0,1) reopen.Position=UDim2.new(0,20,1,-22) reopen.Size=UDim2.fromOffset(214,42) reopen.TextSize=15 reopen.Parent=gui Theme.Button(reopen)
 Nav:Connect(reopen,function() catalogOpen=true browser:Push({"RootPane","Modes"}) refresh() end)
+nova=require(script.Parent:WaitForChild('NovaHubView')).new({
+ Home=function()browser:Push({'RootPane'})end,
+ Stay=stay,Pending=function()return Bridge.Pending end,Error=function()return Bridge.LocalError end,
+ Cancel=function()local state=Bridge:Get()local q=state and state.queue if q and(q.state=='ready'or q.state=='joining')then quickEntry=nil Bridge:Send('cancel',nil,q.ticket)end end,
+ Play=function(id,practice)
+  local state=Bridge:Get()if not state or Bridge.Pending then return end
+  local entry for _,v in state.catalog or {}do if v.id==id then entry=v end end
+  if not entry or not entry.canEnter then return end local q=state.queue or {state='idle'}
+  selected=id local variant=practice and 'practice' or nil
+  if q.state=='ready'and q.gameId==id and q.variant==variant then Bridge:Send('enter',nil,q.ticket)
+  elseif q.state=='idle'or q.state=='failed'then quickEntry=id Bridge:Send('join',id,nil,variant)end
+ end,
+})
 refresh=function()
  local data=Bridge:Get() local mode=Scope:Get() local q=data and data.queue or {state="idle"}
  local open=mode=="hub" and catalogOpen and not player:GetAttribute("ClanMenuOpen") and not player:GetAttribute("SocialMenuOpen") and not player:GetAttribute("CareerMenuOpen") and not player:GetAttribute("ExperienceMenuOpen") and not player:GetAttribute("ProgressionMenuOpen") and not player:GetAttribute("LobbyMusicMenuOpen") and not player:GetAttribute("HUDLayoutEditing")
  if browser.Backdrop.Visible~=open then browser:SetOpen(open) end
  player:SetAttribute("LobbyBrowserOpen",open)
+ local useNova=Theme.Style.IsNova()and not homeActive
+ nova:Update(data)nova:SetOpen(open and useNova)
+ gui.Enabled=not (open and useNova)
+ if open and useNova then scrimGui.Enabled=false end
  reopen.Visible=mode=="hub" and not open and not player:GetAttribute("ClanMenuOpen") and not player:GetAttribute("SocialMenuOpen") and not player:GetAttribute("CareerMenuOpen") and not player:GetAttribute("ExperienceMenuOpen") and not player:GetAttribute("ProgressionMenuOpen") and not player:GetAttribute("LobbyMusicMenuOpen") and not player:GetAttribute("HUDLayoutEditing")
  local attention=mode~="hub" and (q.state=="failed" or q.state=="entering" or q.state=="travelling" or data and data.error or Bridge.LocalError)
  overlay.Visible=attention and true or false message.Text=Bridge.LocalError or data and data.error or q.message or ""
@@ -264,7 +289,7 @@ refresh=function()
 end
 Nav:SetBack(browser.Panel,function() if #browser.Stack>1 then browser:Push({"RootPane"}) else stay() end end,homeButtons[1])
 Nav.MenuRequested:Connect(function(id)
- if id=="Hub" and Scope:IsHub() then catalogOpen=true browser:Push({"RootPane","Modes"}) refresh()
+ if id=="Hub" and Scope:IsHub() then nova:Modes()catalogOpen=true browser:Push({"RootPane","Modes"}) refresh()
  elseif id=="Resume" and Scope:IsHub() then stay() end
 end)
 Scope.Changed:Connect(function()
@@ -278,4 +303,8 @@ player:GetAttributeChangedSignal("ClanMenuOpen"):Connect(refresh)
 player:GetAttributeChangedSignal("ProgressionMenuOpen"):Connect(refresh)
 player:GetAttributeChangedSignal("LobbyMusicMenuOpen"):Connect(refresh)
 player:GetAttributeChangedSignal("HUDLayoutEditing"):Connect(refresh)
+player:GetAttributeChangedSignal('SettingInterfaceStyle'):Connect(function()
+ refresh()
+ if not Theme.Style.IsNova() and browser.Backdrop.Visible then browser:Resize(false)task.defer(function()Nav:Focus(homeButtons[1])end)end
+end)
 browser:Push({"RootPane"}) refresh()

@@ -1,0 +1,457 @@
+{
+  "captures": [
+    {
+      "name": "01-home-a-1080",
+      "route": "home",
+      "error": null,
+      "width": 1920,
+      "height": 1080,
+      "overflow": false,
+      "buttons": 7
+    },
+    {
+      "name": "02-accessories-1080",
+      "route": "attachments",
+      "error": null,
+      "width": 1920,
+      "height": 1080,
+      "overflow": false,
+      "buttons": 12
+    },
+    {
+      "name": "03-home-b-1080",
+      "route": "home-b",
+      "error": null,
+      "width": 1920,
+      "height": 1080,
+      "overflow": false,
+      "buttons": 6
+    },
+    {
+      "name": "04-controls-720",
+      "route": "controls",
+      "error": null,
+      "width": 1280,
+      "height": 720,
+      "overflow": false,
+      "buttons": 9
+    },
+    {
+      "name": "05-hud-1080",
+      "route": "hud",
+      "error": null,
+      "width": 1920,
+      "height": 1080,
+      "overflow": false,
+      "buttons": 7,
+      "flagLayout": {
+        "scoreGap": 13,
+        "bannerInside": true,
+        "flagSize": 80
+      },
+      "touch": {
+        "count": 0,
+        "xpOverlap": false,
+        "minSize": null
+      },
+      "xpLayout": {
+        "position": "bottom",
+        "scoped": false,
+        "right": 1053.4296875,
+        "left": 866.5703125,
+        "bottom": 993.609375,
+        "inside": true,
+        "leftOfAim": true
+      }
+    },
+    {
+      "name": "06-home-mobile",
+      "route": "home",
+      "error": null,
+      "width": 844,
+      "height": 390,
+      "overflow": false,
+      "buttons": 7
+    },
+    {
+      "name": "07-accessories-mobile",
+      "route": "attachments",
+      "error": null,
+      "width": 844,
+      "height": 390,
+      "overflow": false,
+      "buttons": 12
+    },
+    {
+      "name": "08-controls-mobile",
+      "route": "controls",
+      "error": null,
+      "width": 844,
+      "height": 390,
+      "overflow": false,
+      "buttons": 9
+    },
+    {
+      "name": "09-accessory-preview-mobile",
+      "route": "attachments",
+      "error": null,
+      "width": 844,
+      "height": 390,
+      "overflow": false,
+      "buttons": 12
+    },
+    {
+      "name": "10-loadouts-1080",
+      "route": "loadouts",
+      "error": null,
+      "width": 1920,
+      "height": 1080,
+      "overflow": false,
+      "buttons": 6
+    },
+    {
+      "name": "11-hud-720",
+      "route": "hud",
+      "error": null,
+      "width": 1280,
+      "height": 720,
+      "overflow": false,
+      "buttons": 7,
+      "flagLayout": {
+        "scoreGap": 13,
+        "bannerInside": true,
+        "flagSize": 80
+      },
+      "touch": {
+        "count": 0,
+        "xpOverlap": false,
+        "minSize": null
+      },
+      "xpLayout": {
+        "position": "bottom",
+        "scoped": false,
+        "right": 733.4296875,
+        "left": 546.5703125,
+        "bottom": 652,
+        "inside": true,
+        "leftOfAim": true
+      }
+    },
+    {
+      "name": "12-hud-mobile",
+      "route": "hud",
+      "error": null,
+      "width": 844,
+      "height": 390,
+      "overflow": false,
+      "buttons": 16,
+      "flagLayout": {
+        "scoreGap": 16,
+        "bannerInside": true,
+        "flagSize": 52
+      },
+      "touch": {
+        "count": 9,
+        "xpOverlap": false,
+        "minSize": 44
+      },
+      "xpLayout": {
+        "position": "bottom",
+        "scoped": false,
+        "right": 493.640625,
+        "left": 350.359375,
+        "bottom": 322,
+        "inside": true,
+        "leftOfAim": true
+      }
+    },
+    {
+      "name": "13-xp-reticle-mobile",
+      "route": "hud",
+      "error": null,
+      "width": 844,
+      "height": 390,
+      "overflow": false,
+      "buttons": 16,
+      "flagLayout": {
+        "scoreGap": 16,
+        "bannerInside": true,
+        "flagSize": 52
+      },
+      "touch": {
+        "count": 9,
+        "xpOverlap": false,
+        "minSize": 44
+      },
+      "xpLayout": {
+        "position": "reticle",
+        "scoped": false,
+        "right": 398,
+        "left": 254.71875,
+        "bottom": 211,
+        "inside": true,
+        "leftOfAim": true
+      }
+    },
+    {
+      "name": "14-xp-scope-mobile",
+      "route": "hud",
+      "error": null,
+      "width": 844,
+      "height": 390,
+      "overflow": false,
+      "buttons": 16,
+      "flagLayout": {
+        "scoreGap": 16,
+        "bannerInside": true,
+        "flagSize": 52
+      },
+      "touch": {
+        "count": 9,
+        "xpOverlap": false,
+        "minSize": 44
+      },
+      "xpLayout": {
+        "position": "reticle",
+        "scoped": true,
+        "right": 310.390625,
+        "left": 167.109375,
+        "bottom": 211,
+        "inside": true,
+        "leftOfAim": true
+      }
+    },
+    {
+      "name": "15-xp-scope-desktop",
+      "route": "hud",
+      "error": null,
+      "width": 1920,
+      "height": 1080,
+      "overflow": false,
+      "buttons": 7,
+      "flagLayout": {
+        "scoreGap": 13,
+        "bannerInside": true,
+        "flagSize": 80
+      },
+      "touch": {
+        "count": 0,
+        "xpOverlap": false,
+        "minSize": null
+      },
+      "xpLayout": {
+        "position": "reticle",
+        "scoped": true,
+        "right": 702,
+        "left": 515.140625,
+        "bottom": 559,
+        "inside": true,
+        "leftOfAim": true
+      }
+    },
+    {
+      "name": "16-xp-reticle-desktop",
+      "route": "hud",
+      "error": null,
+      "width": 1920,
+      "height": 1080,
+      "overflow": false,
+      "buttons": 7,
+      "flagLayout": {
+        "scoreGap": 13,
+        "bannerInside": true,
+        "flagSize": 80
+      },
+      "touch": {
+        "count": 0,
+        "xpOverlap": false,
+        "minSize": null
+      },
+      "xpLayout": {
+        "position": "reticle",
+        "scoped": false,
+        "right": 936,
+        "left": 749.140625,
+        "bottom": 559,
+        "inside": true,
+        "leftOfAim": true
+      }
+    },
+    {
+      "name": "17-mobile-simple",
+      "route": "hud",
+      "error": null,
+      "width": 844,
+      "height": 390,
+      "overflow": false,
+      "buttons": 16,
+      "flagLayout": {
+        "scoreGap": 12,
+        "bannerInside": true,
+        "flagSize": 52
+      },
+      "touch": {
+        "count": 9,
+        "xpOverlap": false,
+        "minSize": 44
+      },
+      "clearOval": {
+        "width": 506.4,
+        "height": 179.4,
+        "hits": []
+      },
+      "xpLayout": {
+        "position": "bottom",
+        "scoped": false,
+        "right": 493.640625,
+        "left": 350.359375,
+        "bottom": 322,
+        "inside": true,
+        "leftOfAim": true
+      }
+    },
+    {
+      "name": "18-mobile-quick-panel",
+      "route": "hud",
+      "error": null,
+      "width": 844,
+      "height": 390,
+      "overflow": false,
+      "buttons": 16,
+      "flagLayout": {
+        "scoreGap": 12,
+        "bannerInside": true,
+        "flagSize": 52
+      },
+      "touch": {
+        "count": 9,
+        "xpOverlap": false,
+        "minSize": 44
+      },
+      "xpLayout": {
+        "position": "bottom",
+        "scoped": false,
+        "right": 493.640625,
+        "left": 350.359375,
+        "bottom": 322,
+        "inside": true,
+        "leftOfAim": true
+      }
+    },
+    {
+      "name": "19-mobile-simple-scope",
+      "route": "hud",
+      "error": null,
+      "width": 844,
+      "height": 390,
+      "overflow": false,
+      "buttons": 16,
+      "flagLayout": {
+        "scoreGap": 12,
+        "bannerInside": true,
+        "flagSize": 52
+      },
+      "touch": {
+        "count": 9,
+        "xpOverlap": false,
+        "minSize": 44
+      },
+      "clearOval": {
+        "width": 506.4,
+        "height": 179.4,
+        "hits": []
+      },
+      "xpLayout": {
+        "position": "reticle",
+        "scoped": true,
+        "right": 152.796875,
+        "left": 41.8125,
+        "bottom": 208.5,
+        "inside": true,
+        "leftOfAim": true
+      }
+    }
+  ],
+  "tests": [
+    {
+      "name": "Inicial A has direct play action",
+      "passed": true
+    },
+    {
+      "name": "Initial alternatives share destinations",
+      "passed": true
+    },
+    {
+      "name": "Focus and chosen class are distinct",
+      "passed": true
+    },
+    {
+      "name": "Choose changes local class",
+      "passed": true
+    },
+    {
+      "name": "Edit opens the attachment journey",
+      "passed": true
+    },
+    {
+      "name": "Blocked item cannot apply",
+      "passed": true
+    },
+    {
+      "name": "Back returns from editing to classes",
+      "passed": true
+    },
+    {
+      "name": "Keyboard diagram includes active binding highlights",
+      "passed": true
+    },
+    {
+      "name": "Controller representations exist",
+      "passed": true
+    },
+    {
+      "name": "Dialog retains focus and Escape closes",
+      "passed": true
+    },
+    {
+      "name": "HUD has life value inside bar",
+      "passed": true
+    },
+    {
+      "name": "HUD separates equipment and vitals",
+      "passed": true
+    },
+    {
+      "name": "Illustrative streak aggregates numbers locally",
+      "passed": true
+    },
+    {
+      "name": "Touch preview exposes icon-only essential actions",
+      "passed": true
+    },
+    {
+      "name": "Touch aim toggles the scope preview",
+      "passed": true
+    },
+    {
+      "name": "Desktop preview has no touch controls",
+      "passed": true
+    },
+    {
+      "name": "Clean profile retains five essential actions and movement",
+      "passed": true
+    },
+    {
+      "name": "Center-free profile preserves optional actions directly",
+      "passed": true
+    }
+  ],
+  "passed": 18,
+  "failed": 0,
+  "limitations": [
+    "Browser UX prototype only",
+    "No Roblox gameplay, gamepad hardware, production data or audio listening validated",
+    "Placeholder silhouettes and content",
+    "Capture mode disables animation"
+  ]
+}

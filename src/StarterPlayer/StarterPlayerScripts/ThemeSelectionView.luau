@@ -14,9 +14,9 @@ function View.new(parent,options)
  text(root,'Intro','Estilo define a composição. Paleta define as cores. Escolha os dois independentemente.',42,14)
  local styles=Instance.new('Frame')styles.Name='InterfaceStyles'styles.BackgroundTransparency=1 styles.Position=UDim2.fromOffset(0,46)styles.Size=UDim2.new(1,0,0,72)styles.Parent=root
  local styleButtons={}
- for i,entry in {{0,'Atual','Visual original'},{1,'Geral','Mais cenário, menos molduras'},{2,'Completo','Mais espaço para editar'}}do
+ for i,entry in {{0,'Clássica','Interface original'},{1,'Neo','Nova navegação'}}do
   local b=Instance.new('TextButton')b.Name='Style'..entry[1]b.Text=entry[2]b.TextSize=15 b.TextWrapped=true b:SetAttribute('SettingsStyled',true)b:SetAttribute('AccessibleLabel',entry[2]..' · '..entry[3])b.Parent=styles Theme.Button(b)
-  b.Position=UDim2.new((i-1)/3,0,0,0)b.Size=UDim2.new(1/3,-8,0,64)
+  b.Position=UDim2.new((i-1)/2,0,0,0)b.Size=UDim2.new(1/2,-8,0,64)
   nav:Connect(b,function()preferences:Edit('InterfaceStyle','Global',entry[1])end)styleButtons[entry[1]]=b
  end
  local sample=Instance.new('Frame')sample.Name='LiveStylePreview'sample.Position=UDim2.fromOffset(0,124)sample.Size=UDim2.new(1,-8,0,102)sample.Parent=root Theme.Surface(sample)
@@ -94,7 +94,7 @@ function View.new(parent,options)
   local id=preferences:Value('InterfaceStyle','Global')or 0
   for key,b in styleButtons do b:SetAttribute('MenuSelected',key==id)end
   Theme.Style.Surface(sample,id==1 and 'navigation' or 'panel')
-  sampleTitle.Text='PRÉVIA · '..({[0]='ATUAL',[1]='GERAL',[2]='COMPLETO'})[id]
+  sampleTitle.Text='PRÉVIA · '..(({[0]='CLÁSSICA',[1]='NEO'})[id] or 'NEO')
   local selected=preferences:Value('ThemePreset','Global')
   if selected==0 and player:GetAttribute('ThemeCustomAllowed')~=true then selected=1 end
   for i,b in buttons do b:SetAttribute('MenuSelected',selected==i)b:FindFirstChild('SelectionMarker').Visible=selected==i end

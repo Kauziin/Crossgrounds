@@ -1,0 +1,72 @@
+{
+  "date": "2026-11-03",
+  "tests": {
+    "run": 45,
+    "passed": 45,
+    "failed": 0,
+    "suites": [
+      "InterfaceStyle_Test",
+      "PreferenceProfile_Test",
+      "PreferenceDrafts_Test",
+      "ThemeAndInterface_Test",
+      "MobileMenusAndSafeZone_Test"
+    ]
+  },
+  "controllerSimulation": {
+    "left": "Style2 to Style1",
+    "A": "InterfaceStyle=1",
+    "B": "Options.List.Themes"
+  },
+  "ctfSidebarLabels": [
+    "Continuar",
+    "Armamentos",
+    "Progressão",
+    "Configurações",
+    "Render-se",
+    "Sair"
+  ],
+  "mobileStyleButton": [
+    131.33,
+    64
+  ],
+  "hsvRestoreButtonsInsideRows": 3,
+  "captures": [
+    {
+      "file": "01-general-progress-1080.jpg",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "file": "02-complete-weapons-1080.jpg",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "file": "03-style-and-theme-1080.jpg",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "file": "04-complete-progress-720.jpg",
+      "width": 1280,
+      "height": 720
+    },
+    {
+      "file": "05-progress-mobile.jpg",
+      "width": 874,
+      "height": 402
+    },
+    {
+      "file": "06-styles-mobile.jpg",
+      "width": 874,
+      "height": 402
+    },
+    {
+      "file": "07-complete-accessories-1080.jpg",
+      "width": 1920,
+      "height": 1080
+    }
+  ],
+  "weeklyRemainingPercent": 85,
+  "published": false
+}

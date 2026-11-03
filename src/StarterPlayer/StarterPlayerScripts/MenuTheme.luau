@@ -9,7 +9,7 @@ palette() Accent.Changed:Connect(palette)
 local Style=require(script.Parent:WaitForChild('InterfaceStyle'))
 Theme.Style=Style
 local function menuStyle(o)
- local a=o while a do if a:GetAttribute('InterfaceStyleScope')then return Style.Id()end a=a.Parent end return 0
+ local a=o while a do if a:GetAttribute('InterfaceStyleScope')then return Style.IsNova()and 1 or 0 end a=a.Parent end return 0
 end
 Theme.Radius={Panel=16,Card=12,Button=10,Small=6}
 Theme.Spacing={Gap=8,Inset=12}
@@ -50,6 +50,7 @@ function Theme.Surface(p)
  p.BorderSizePixel=0 p.BackgroundTransparency=alpha(p:GetAttribute('CascadePane') and .03 or .10)
  Accent.Role(p,'BackgroundColor3','Surface') corner(p,Theme.Radius.Panel) edge(p)
  if menuStyle(p)>0 then Style.Surface(p,(p.Name=='RootPane' or p.Name=='Main') and 'navigation' or 'panel')end
+ if p:GetAttribute('NeoSettingsPage')then p.BackgroundTransparency=1 local e=p:FindFirstChild('AcrylicEdge')if e then e.Transparency=1 end end
  local g=p:FindFirstChild('AcrylicTint') if g then g:Destroy()end
 end
 local depthTweens=setmetatable({},{__mode='k'})
@@ -84,7 +85,7 @@ function Theme.Button(b)
 end
 function Theme.RefreshAccessibility(v)
  local r=styled[v] if r then paint(v,r)end
- local s=v:FindFirstChild('AcrylicEdge')if s and not r then s.Transparency=player:GetAttribute('SettingHighContrast')and .12 or .45 end
+ local s=v:FindFirstChild('AcrylicEdge')if s and not r then s.Transparency=v:GetAttribute('NeoSettingsPage')and 1 or player:GetAttribute('SettingHighContrast')and .12 or .45 end
 end
 function Theme.Text(parent,name,value,height,size)
  local t=Instance.new('TextLabel')t.Name=name t.BackgroundTransparency=1 t.Text=value t.TextColor3=Theme.Colors.Text t.TextSize=size or 15 t.Font=Enum.Font.GothamMedium t.TextXAlignment=Enum.TextXAlignment.Left t.TextYAlignment=Enum.TextYAlignment.Top t.TextWrapped=true t.Size=UDim2.new(1,-8,0,height or 50)t.Parent=parent return t

@@ -1,0 +1,36 @@
+{
+  "tests": {
+    "passed": 46,
+    "run": 46,
+    "errors": []
+  },
+  "runtime": {
+    "novaEnabled": true,
+    "legacyDisabledWhenNovaOpen": true,
+    "settingsRoute": true,
+    "practiceRangeEntry": {
+      "mode": "ctf",
+      "practice": true,
+      "novaHidden": true
+    },
+    "returnToOriginal": {
+      "style": 0,
+      "mode": "hub",
+      "nova": false,
+      "legacy": true
+    }
+  },
+  "captures": [
+    "01-inicial-1080.jpg",
+    "02-modalidades-1080.jpg",
+    "03-modalidades-mobile.jpg"
+  ],
+  "excluded": [
+    "UI #11b",
+    "HUD changes",
+    "production persistence",
+    "physical gamepad/touch",
+    "full arsenal/configuration redesign"
+  ],
+  "published": false
+}

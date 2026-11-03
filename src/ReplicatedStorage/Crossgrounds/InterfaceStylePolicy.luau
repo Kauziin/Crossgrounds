@@ -1,9 +1,9 @@
 -- Presentation only. Numeric IDs are persisted by the existing preference service.
 local Style={}
-Style.Choices={0,1,2}
-Style.Labels={[0]='ATUAL',[1]='GERAL',[2]='COMPLETO'}
+Style.Choices={0,1}
+Style.Labels={[0]='CLÁSSICA',[1]='NEO'}
 function Style.Resolve(value)
- return value==1 and 1 or value==2 and 2 or 0
+ return value==1 and 1 or value==2 and 1 or 0
 end
 function Style.Metrics(value,technical)
  local id=Style.Resolve(value)

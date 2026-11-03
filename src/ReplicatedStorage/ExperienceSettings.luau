@@ -33,7 +33,7 @@ local extra={
  GameSFXVolume={Label="Sons da partida",Default=.5,Min=0,Max=1,Step=.05,Percent=true,Category="Audio"},
  BeastProximityVolume={Label="Proximidade da Besta",Default=.35,Min=0,Max=1,Step=.05,Percent=true,Category="Audio"},
  MenuScale={Label="Escala do menu",Default=1,Min=.8,Max=1.3,Step=.05,Percent=true,Category="Interface"},
- InterfaceStyle={Label='Estilo da interface',Default=0,Choices={0,1,2},Labels={[0]='ATUAL',[1]='GERAL',[2]='COMPLETO'},Category='Interface'},
+ InterfaceStyle={Label='Estilo da interface',Default=0,Choices={0,1},Labels={[0]='CLÁSSICA',[1]='NEO'},Category='Interface'},
  HUDScale={Label="Escala da HUD",Default=1,Min=.8,Max=1.3,Step=.05,Percent=true,Category="Interface",ModeOverride=true},
  FontScale={Label="Tamanho adicional do texto",Default=1,Min=.9,Max=1.35,Step=.05,Percent=true,Category="Accessibility"},
  AccentHue={Label="Matiz",Default=180,Min=0,Max=359,Step=1,Category="Themes"},

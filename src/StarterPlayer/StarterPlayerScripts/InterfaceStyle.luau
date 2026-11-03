@@ -3,7 +3,9 @@ local Style={}
 local Policy=require(game.ReplicatedStorage.Crossgrounds.InterfaceStylePolicy)
 local player=game.Players.LocalPlayer
 local saved=setmetatable({},{__mode='k'})
-function Style.Id()return Policy.Resolve(player:GetAttribute('SettingInterfaceStyle'))end
+-- Legacy views keep their original composition until individually migrated.
+function Style.Id()return 0 end
+function Style.IsNova()return Policy.Resolve(player:GetAttribute('SettingInterfaceStyle'))==1 end
 function Style.Metrics(technical)return Policy.Metrics(Style.Id(),technical)end
 function Style.Observe(owner,callback)
  local c=player:GetAttributeChangedSignal('SettingInterfaceStyle'):Connect(callback)

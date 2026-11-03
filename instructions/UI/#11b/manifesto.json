@@ -1,0 +1,51 @@
+{
+  "archive": "Crossgrounds_Diagramas.zip",
+  "sha256": "bdfc76485f99ec9915c035aafa5fd5a71cf9e734405caa4b1410677026574251",
+  "files": [
+    {
+      "file": "exemplo_diagramas_teclado_xbox_playstation.png",
+      "bytes": 1376114,
+      "sha256": "855a18882a305fe3960393eb7dd23a5f0c1db4b7270ee1eb8d117737df76e5d1"
+    },
+    {
+      "file": "exemplo_botoes_controles.png",
+      "bytes": 1666345,
+      "sha256": "f99d2c69905891a5d4f6ef7d7880579d3953dc3d30b623e38aebb9c30b442f5c"
+    },
+    {
+      "file": "exemplo_interface_mapeador.png",
+      "bytes": 1578305,
+      "sha256": "55c60e61f04e90895cc6cf906c869625cf2e5ffdc282799b2cb2a9dd0fe7db52"
+    },
+    {
+      "file": "teclado_80_ANSI.png",
+      "bytes": 86198,
+      "sha256": "7a282fb45b26b7e944842ee713bab014a010da4d05a4c4a7e67d23ec2bb5df57"
+    },
+    {
+      "file": "exemplo_keycaps.png",
+      "bytes": 1515153,
+      "sha256": "33338314beddf52ec947def42b24a7ee02dda59cb9675d945888efdbf92fbfaa"
+    },
+    {
+      "file": "teclado_80_ABNT2.svg",
+      "bytes": 27069,
+      "sha256": "e14e1f47281bc592482c811c5578792f845ccc8bd6373bdfb568cba34ef34e5d"
+    },
+    {
+      "file": "teclado_80_ABNT2.png",
+      "bytes": 88954,
+      "sha256": "204a608797f9492b2f2cbdfb99383383364970501b7b7c2fb007ead1df4d5a73"
+    },
+    {
+      "file": "teclado_80_ANSI.svg",
+      "bytes": 26481,
+      "sha256": "aa662d75200277f471eda7eecfa752fd61313cc8cc956075f62de807ba350c74"
+    },
+    {
+      "file": "LEIA-ME.txt",
+      "bytes": 648,
+      "sha256": "244aa00b74f5099a055ce6f732c0219d094cd0d7746238c8d97dde2abe07c41b"
+    }
+  ]
+}

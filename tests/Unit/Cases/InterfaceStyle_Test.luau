@@ -11,15 +11,19 @@ return function(t)
  t.test('style persists once globally without modifying the palette',function()
   local p=Profile.New()
   Profile.Set(p,'Global','ThemePreset',7)
-  t.expect.truthy(Profile.Set(p,'Global','InterfaceStyle',2))
+  t.expect.truthy(Profile.Set(p,'Global','InterfaceStyle',1))
   local restored=Profile.Migrate(p)
-  for _,mode in {'hub','ctf','arena'}do t.expect.equal(Profile.Resolve(restored,'InterfaceStyle',mode),2)end
+  for _,mode in {'hub','ctf','arena'}do t.expect.equal(Profile.Resolve(restored,'InterfaceStyle',mode),1)end
   t.expect.equal(Profile.Resolve(restored,'ThemePreset','ctf'),7)
  end)
  t.test('invalid style and scoped overrides are rejected',function()
-  for _,value in {-1,3,1.5,0/0,math.huge,'Completo'}do t.expect.equal(Settings:Sanitize('InterfaceStyle',value),nil)end
+  for _,value in {-1,2,3,1.5,0/0,math.huge,'Completo'}do t.expect.equal(Settings:Sanitize('InterfaceStyle',value),nil)end
   t.expect.falsy(Profile.Set(Profile.New(),'Mode:arena','InterfaceStyle',1))
   t.expect.falsy(Profile.Set(Profile.New(),'Device:Touch','InterfaceStyle',1))
+ end)
+ t.test('legacy experimental styles migrate into one Nova without touching colors',function()
+  for _,v in {1,2}do local p=Profile.Migrate({Version=2,Global={InterfaceStyle=v,ThemePreset=5}})t.expect.equal(Profile.Resolve(p,'InterfaceStyle','hub'),1)t.expect.equal(Profile.Resolve(p,'ThemePreset','hub'),5)end
+  t.expect.equal(#Settings.Rules.InterfaceStyle.Choices,2)
  end)
  t.test('unrecognized presentation IDs use the original style',function()
   for _,v in {'invalid',3,-1,0/0}do t.expect.equal(Policy.Resolve(v),0)end

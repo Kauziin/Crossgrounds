@@ -1,0 +1,10 @@
+Crossgrounds — Diagramas e exemplos
+
+- teclado_80_ABNT2.svg/.png: teclado TKL minimalista para Brasil, referência esquemática.
+- teclado_80_ANSI.svg/.png: teclado TKL minimalista para EUA.
+- exemplo_diagramas_teclado_xbox_playstation.png: diagrama ilustrativo anterior.
+- exemplo_keycaps.png: exemplos de teclas individuais.
+- exemplo_botoes_controles.png: exemplos de botões Xbox/PlayStation.
+- exemplo_interface_mapeador.png: conceito de tela do mapeador.
+
+Observação: os diagramas são conceitos visuais, não arquivos de interface Roblox; as legendas variam entre fabricantes e layouts físicos. Os SVGs permitem edição de cada tecla.
