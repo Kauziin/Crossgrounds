@@ -63,6 +63,10 @@ remote.OnClientEvent:Connect(function(data)
  current = data
  if gui.Enabled then render() end
 end)
+if game:GetService("RunService"):IsStudio()then
+ local event=Instance.new("BindableEvent")event.Name="StudioUIStandings"event.Parent=player.PlayerGui
+ event.Event:Connect(function(on)holding=on render()refresh()end)
+end
 local function action(_,state)
  if state == Enum.UserInputState.Begin then
   if Router:IsBlocked() then return Enum.ContextActionResult.Pass end

@@ -1,5 +1,8 @@
 -- Approved plan 8: vertical catalog, wide attachment list, separate preview/statistics.
 local View={}
+local Theme=require(script.Parent.MenuTheme)
+local Style=Theme.Style
+local StylePolicy=require(game.ReplicatedStorage.Crossgrounds.InterfaceStylePolicy)
 local Art=require(game.ReplicatedStorage.Crossgrounds.AttachmentArt)
 local Accent=require(script.Parent:WaitForChild('AccentTheme'))
 local Career=require(script.Parent:WaitForChild('CareerClient'))
@@ -95,6 +98,8 @@ function View.new(parent,options)
    local on=focus==r.Button local selected=r.Category==category or r.Entry and r.Entry.equipped
    r.Diamond.Visible=on r.Edge.Color=on and Color3.fromRGB(226,252,255) or selected and Color3.fromRGB(40,230,235) or Color3.fromRGB(106,148,162)
    r.Edge.Thickness=on and 2 or 1 r.Edge.Transparency=on and 0 or selected and .15 or contrast and .25 or .65
+   r.Button.BackgroundTransparency=Style.Id()==1 and not on and not selected and 1 or Style.Id()>0 and .28 or .06
+   if Style.Id()>0 and not on and not selected then r.Edge.Transparency=1 end
    r.Button.BackgroundColor3=on and Color3.fromRGB(14,63,72) or selected and Color3.fromRGB(13,46,54) or Color3.fromRGB(15,35,43)
    if r.Art then r.Art.ImageTransparency=r.Entry.available==false and .25 or 0 r.Mark.Visible=r.Entry.equipped==true r.Button:SetAttribute('ArsenalItemStatus',r.Entry.status) end
    if r.Entry then r.Status.TextColor3=r.Entry.equipped and Color3.fromRGB(91,234,199) or r.Entry.available==false and Color3.fromRGB(160,176,184) or Color3.fromRGB(168,201,214) end
@@ -105,7 +110,15 @@ function View.new(parent,options)
   for _,r in rows do if r.Button==oldFocus then wanted=r.Entry.id end r.Button:Destroy() end rows={} currentId=nil
   local live={} for _,r in controls do if r.Button.Parent then table.insert(live,r) end end controls=live
   heading.Text=names[category] or category or 'ARMAS'
-  for i,entry in options.Entries(category) do
+  local entries=options.Entries(category)
+  if Style.Id()>0 then
+   local ordered={}for i,e in entries do ordered[i]={entry=e,order=i}end
+   table.sort(ordered,function(a,b)
+    if (a.entry.available~=false)~=(b.entry.available~=false)then return a.entry.available~=false end return a.order<b.order
+   end)
+   entries={}for _,v in ordered do table.insert(entries,v.entry)end
+  end
+  for i,entry in entries do
    local r
    r=button(items,'Item_'..entry.id,entry.name,entry.status,function() inspect(r.Entry) options.Select(r.Entry) end,entry)
    r.Button.LayoutOrder=i table.insert(rows,r)
@@ -145,8 +158,10 @@ function View.new(parent,options)
  reflow=function()
   local s=scale() local gap=12 local compact=width<650 local top=options.Top and options.Top() or 64
   local height=math.max(420,options.Height and options.Height() or 530)
-  local rightWidth=width>=900 and math.clamp(width*(accessories and .33 or .29),270,380) or 0
-  local side=accessories and 0 or compact and width or math.clamp(width*.22,170,240)
+  local architecture=StylePolicy.Arsenal(width,accessories,Style.Id())local modern=architecture.Modern
+  local rightWidth=architecture.Right
+  local side=modern and architecture.Side or accessories and 0 or compact and width or math.clamp(width*.22,170,240)
+  for _,p in {left,center,right,statsPanel}do Style.Surface(p,p==center and 'panel' or 'inner')end
   local x=(accessories or compact) and 0 or side+gap local y=top+(compact and not accessories and 174 or 0)
   local centerWidth=width-x-(rightWidth>0 and rightWidth+gap or 0)
   left.Position=UDim2.fromOffset(0,top) left.Size=UDim2.fromOffset(side,compact and 162 or height)
@@ -157,7 +172,7 @@ function View.new(parent,options)
   items.UIListLayout.Padding=UDim.new(0,accessories and 6 or 8)
   local itemY=accessories and stripHeight+22 or 54 items.Position=UDim2.fromOffset(10,itemY) items.Size=UDim2.new(1,-20,1,-itemY-10)
   local rx=rightWidth>0 and width-rightWidth or x local ry=rightWidth>0 and y or y+height+gap local rw=rightWidth>0 and rightWidth or centerWidth
-  local previewHeight=math.max(228,math.floor(height*.43))
+  local previewHeight=math.max(modern and 272 or 228,math.floor(height*(modern and .58 or .43)))
   right.Position=UDim2.fromOffset(rx,ry) right.Size=UDim2.fromOffset(rw,previewHeight)
   statsPanel.Position=UDim2.fromOffset(rx,ry+previewHeight+gap) statsPanel.Size=UDim2.fromOffset(rw,math.max(210,height-previewHeight-gap))
   self.PreviewPosition=right.Position+UDim2.fromOffset(12,96) self.PreviewSize=UDim2.fromOffset(rw-24,previewHeight-104)
@@ -167,12 +182,13 @@ function View.new(parent,options)
   statsList.UIListLayout.Padding=UDim.new(0,2) for _,v in statsList:GetChildren() do if v:IsA('Frame') then v.Size=UDim2.new(1,-4,0,math.ceil(22*s)) end end
   for _,r in controls do
    local utility=table.find(toolButtons,r.Button) local cat=r.Category~=nil
-   r.Button.Size=utility and UDim2.fromOffset(math.ceil((r.Name.Text:find('Restaurar') and 204 or 174)*s),math.ceil(36*s)) or cat and accessories and UDim2.fromOffset(math.ceil((#r.Name.Text>8 and 150 or 112)*s),stripHeight-5) or UDim2.new(1,-8,0,math.ceil((cat and 60 or r.Art and 44 or 64)*s))
+   r.Button.Size=utility and UDim2.fromOffset(math.ceil((r.Name.Text:find('Restaurar') and 204 or 174)*s),math.ceil(36*s)) or cat and accessories and UDim2.fromOffset(math.ceil((#r.Name.Text>8 and 150 or 112)*s),stripHeight-5) or UDim2.new(1,-8,0,math.ceil((cat and 60 or r.Art and (modern and 72 or 44) or 64)*s))
    local inset=r.Art and 92 or r.Entry and 58 or 20 r.Icon.Position=UDim2.fromOffset(15,0) r.Icon.Size=UDim2.new(0,36,1,0)
    r.Name.Position=UDim2.fromOffset(inset,(utility or cat and accessories or r.Art) and 0 or 5)
    r.Name.Size=UDim2.new(1,-inset-12,0,math.ceil((utility and 36 or cat and 48 or r.Art and 44 or 31)*s)) r.Name.TextSize=utility and 13 or 16
-   r.Status.Position=UDim2.fromOffset(inset,math.ceil(34*s)) r.Status.Size=UDim2.new(1,-inset-12,0,math.ceil(23*s)) r.Status.Visible=not r.Art and r.Status.Text~=''
-   if r.Art then r.Art.Position=UDim2.fromOffset(12,3) r.Art.Size=UDim2.fromOffset(math.ceil(72*s),math.ceil(38*s)) r.Name.TextWrapped=false r.Name.TextTruncate=Enum.TextTruncate.AtEnd r.Name.Size=UDim2.new(1,-inset-26,0,math.ceil(44*s)) end
+   r.Status.Position=UDim2.fromOffset(inset,math.ceil(34*s)) r.Status.Size=UDim2.new(1,-inset-12,0,math.ceil(23*s)) r.Status.Visible=(not r.Art or modern) and r.Status.Text~=''
+   if r.Art then r.Art.Position=UDim2.fromOffset(12,3) r.Art.Size=UDim2.fromOffset(math.ceil(72*s),math.ceil(38*s)) r.Name.TextWrapped=false r.Name.TextTruncate=Enum.TextTruncate.AtEnd r.Name.Size=UDim2.new(1,-inset-26,0,math.ceil((modern and 34 or 44)*s))
+    if modern then r.Art.Position=UDim2.fromOffset(12,9)r.Art.Size=UDim2.fromOffset(math.ceil(72*s),math.ceil(50*s))r.Status.TextTruncate=Enum.TextTruncate.AtEnd r.Status.TextWrapped=false end end
   end
   local bottom=math.max(y+height,statsPanel.Position.Y.Offset+statsPanel.Size.Y.Offset)
   tools.Visible=#toolButtons>0 tools.Position=UDim2.fromOffset(x,bottom+8) tools.Size=UDim2.fromOffset(width-x,math.ceil(44*s))
@@ -185,7 +201,7 @@ function View.new(parent,options)
  function self:DefaultFocus() for _,r in rows do if r.Entry.equipped then return r.Button end end return rows[1] and rows[1].Button or categoryButtons[category] end
  function self:Destroy() if dead then return end dead=true for _,c in connections do c:Disconnect() end root:Destroy() end
  root.Destroying:Connect(function() dead=true for _,c in connections do c:Disconnect() end end)
- if player then for _,a in {'SettingFontScale','SettingHighContrast'} do table.insert(connections,player:GetAttributeChangedSignal(a):Connect(function() reflow() paint(nav:GetFocus()) if options.LayoutChanged then options.LayoutChanged() end end)) end end
+ if player then for _,a in {'SettingFontScale','SettingHighContrast','SettingInterfaceStyle'} do table.insert(connections,player:GetAttributeChangedSignal(a):Connect(function() reflow() paint(nav:GetFocus()) if options.LayoutChanged then options.LayoutChanged() end end)) end end
  renderItems() reflow() return self
 end
 return View

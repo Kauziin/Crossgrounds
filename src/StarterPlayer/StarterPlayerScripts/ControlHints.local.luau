@@ -14,5 +14,5 @@ for i,action in {"Sprint","SwitchWeapon","ShiftLock","Perspective","ReloadIntera
 end
 game:GetService("RunService").RenderStepped:Connect(function()
  local v=workspace.CurrentCamera.ViewportSize scale.Scale=math.clamp(v.Y/720,.8,1.3) panel.Position=UDim2.new(1,-math.max(24,v.X*.05),1,-math.max(24,v.Y*.05))
- panel.Visible=Mode:Get()==Enum.PreferredInput.Gamepad and not Router:IsBlocked()
+ panel.Visible=(Mode:Get()==Enum.PreferredInput.Gamepad or game:GetService("RunService"):IsStudio()and player:GetAttribute("StudioInterfaceInput")=="Gamepad") and not Router:IsBlocked()
 end)

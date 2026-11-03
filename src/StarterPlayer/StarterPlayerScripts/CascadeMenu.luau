@@ -4,7 +4,9 @@ local Icons=require(game.ReplicatedStorage.Crossgrounds.InterfaceIcons)
 local Tween=game:GetService("TweenService")
 local player=game.Players.LocalPlayer
 local Cascade={} Cascade.__index=Cascade
+Cascade.CaptureInstances={}
 function Cascade.new(gui,name,title)
+ gui:SetAttribute('InterfaceStyleScope',true)
  gui.IgnoreGuiInset=false gui.ScreenInsets=Enum.ScreenInsets.CoreUISafeInsets
  gui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling
  local backdrop=Instance.new("Frame") backdrop.Name=name backdrop.BackgroundTransparency=1 backdrop.Size=UDim2.fromScale(1,1) backdrop.Visible=false backdrop.Parent=gui
@@ -15,7 +17,9 @@ function Cascade.new(gui,name,title)
  workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(function() self:Resize(false) end)
  player:GetAttributeChangedSignal("SettingMenuScale"):Connect(function() self:Resize(false) end)
  Theme.ObserveMobile(function() self:Resize(false)end)
+ Theme.Style.Observe(backdrop,function()self:Resize(false)end)
  Nav:SetBack(panel,function() if #self.Stack>1 then self:Push({self.Stack[1]}) elseif self.OnClose then self.OnClose() end end)
+ if game:GetService("RunService"):IsStudio()then table.insert(Cascade.CaptureInstances,self)end
  return self
 end
 function Cascade:AddPane(id,title)
@@ -51,14 +55,20 @@ function Cascade:Resize(animate)
  local w=math.min(1120,v.X-32) local h=math.min(660,v.Y-40) self.Panel.Size=UDim2.fromOffset(w,h)
  local scale=player:GetAttribute("SettingMenuScale") or 1
  local modifier=self.Panel:FindFirstChild("PreferenceScale") or Instance.new("UIScale") modifier.Name="PreferenceScale" modifier.Scale=scale*Theme.MobileFactor() modifier.Parent=self.Panel
- w=math.min(1120,(v.X-24)/scale) h=math.min(660,(v.Y-20)/scale) self.Panel.Size=UDim2.fromOffset(w,h)
+ local style=Theme.Style.Metrics(false)
+ w=math.min(style.Id==0 and 1120 or style.Width,(v.X-24)/scale) h=math.min(style.Id==0 and 660 or style.Height,(v.Y-20)/scale) self.Panel.Size=UDim2.fromOffset(w,h)
+ local header=Theme.Style.Id()>0 and 70 or 38
+ if Theme.Style.Id()>0 then Theme.Style.Hero(self.Panel,self.Heading)else
+  local brand=self.Panel:FindFirstChild('StyleBrand')if brand then brand.Visible=false end
+  self.Heading.Position=UDim2.fromOffset(0,0)self.Heading.TextSize=22 self.Heading.Size=UDim2.new(1,-8,0,30)
+ end
  local narrow=w<720
  local n=#self.Stack self.Panel:SetAttribute("CascadeDepth",n) local step=218
  if step*(n-1)+330>w then step=math.max(28,(w-math.min(330,w-(n-1)*28))/math.max(1,n-1)) end
  for _,p in self.Panes do p.Frame.Visible=false end
  for i,id in self.Stack do
-  local p=self.Panes[id] local x=(i-1)*step local target=UDim2.fromOffset(x,38+(i-1)*6)
-  p.Frame.Visible=not narrow or i==n if narrow then x=0 target=UDim2.fromOffset(0,38) end p.Frame.ZIndex=i p.Frame.Size=UDim2.fromOffset(narrow and w or n==1 and math.min(w,310) or i==n and w-x or step-8,h-76-(i-1)*6)
+  local p=self.Panes[id] local x=(i-1)*step local target=UDim2.fromOffset(x,header+(i-1)*6)
+  p.Frame.Visible=not narrow or i==n if narrow then x=0 target=UDim2.fromOffset(0,header) end p.Frame.ZIndex=i p.Frame.Size=UDim2.fromOffset(narrow and w or n==1 and math.min(w,310) or i==n and w-x or step-8,h-header-38-(i-1)*6)
   Theme.CascadeDepth(p.Frame,n-i,animate and not Theme.ReducedMotion())
   for _,b in p.List:GetChildren() do if b:IsA("TextButton") then b.TextWrapped=i==n b.TextTruncate=i==n and Enum.TextTruncate.None or Enum.TextTruncate.AtEnd end end
   if id=="RootPane" then

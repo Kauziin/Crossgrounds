@@ -79,6 +79,8 @@ function Card.new(parent,key,config)
   hook(UIS.InputEnded,function(i) if i==dragging then dragging=nil end end)
  else hook(value.Activated,function() Nav:Focus(row,false) adjust(1) end) end
  local function layout()
+  Theme.Style.Surface(row,'inner')
+  divider.BackgroundTransparency=Theme.Style.Id()>0 and 1 or .6
   local scale=config.Scale() local w=row.AbsoluteSize.X/math.max(.1,scale) local narrow=w<570
   local x=narrow and 16 or math.floor(w*.51) local y=narrow and 86 or 18
   local textWidth=narrow and w-80 or x-84
@@ -110,6 +112,7 @@ function Card.new(parent,key,config)
  hook(row:GetPropertyChangedSignal("AbsoluteSize"),layout) hook(description:GetPropertyChangedSignal("Text"),layout) hook(name:GetPropertyChangedSignal("TextSize"),layout) hook(description:GetPropertyChangedSignal("TextSize"),layout)
  hook(Preferences.Changed,function(changes) if not changes or changes[key] then refresh() layout() end end)
  hook(Nav.FocusChanged,function(focused) stroke.Color=focused==row and C.Accent or C.Border stroke.Transparency=focused==row and .1 or .55 end)
+ hook(game.Players.LocalPlayer:GetAttributeChangedSignal('SettingInterfaceStyle'),layout)
  row.Destroying:Connect(function() for _,c in connections do c:Disconnect() end end)
  refresh() layout() return row
 end

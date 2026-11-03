@@ -22,12 +22,13 @@ end
 game.ReplicatedStorage:WaitForChild("Events"):WaitForChild("CombatFeedback").OnClientEvent:Connect(function(message)
  if message.kind~="Eliminated" or not Scope:IsCombat() or message.character~=player.Character then return end
  local victimHumanoid=player.Character and player.Character:FindFirstChildOfClass("Humanoid")
- if victimHumanoid and victimHumanoid.Health>0 then return end
+ local preview=Run:IsStudio()and message.studioPreview==true
+ if victimHumanoid and victimHumanoid.Health>0 and not preview then return end
  local killer=message.killer
  if typeof(killer)~="Instance" or not killer:IsA("Model") or killer==player.Character or not killer:IsDescendantOf(workspace) then killer=nil end
  if not killer and type(message.identity)~="table" then return end
  Nav:OpenMenu("Resume")
- state={victim=message.character,killer=killer,name=tostring(message.killerName or killer and killer.Name or "Jogador"),weapon=tostring(message.weapon or ""),cf=workspace.CurrentCamera.CFrame}
+ state={preview=preview,victim=message.character,killer=killer,name=tostring(message.killerName or killer and killer.Name or "Jogador"),weapon=tostring(message.weapon or ""),cf=workspace.CurrentCamera.CFrame}
  if type(message.identity)=="table" then identity:Render(message.identity) identity.Frame.Visible=true end
  player:SetAttribute("SpectatingEliminator",true) caption.Visible=true
 end)
@@ -37,7 +38,7 @@ Scope.Changed:Connect(stop)
 Run:BindToRenderStep("CrossgroundsEliminatorView",Enum.RenderPriority.Camera.Value+2,function(dt)
  local view=state if not view then return end
  local victimHumanoid=player.Character and player.Character:FindFirstChildOfClass("Humanoid")
- if player.Character~=view.victim or not Scope:IsCombat() or victimHumanoid and victimHumanoid.Health>0 then stop() return end
+ if player.Character~=view.victim or not Scope:IsCombat() or victimHumanoid and victimHumanoid.Health>0 and not view.preview then stop() return end
  local camera=workspace.CurrentCamera local killer=view.killer
  local h=killer and killer:FindFirstChildOfClass("Humanoid") local root=killer and killer:FindFirstChild("HumanoidRootPart")
  if killer and killer:IsDescendantOf(workspace) and h and h.Health>0 and root then

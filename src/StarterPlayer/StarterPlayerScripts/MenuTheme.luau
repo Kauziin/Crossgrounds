@@ -6,6 +6,11 @@ local function palette()
  for k,v in Accent.Palette() do Theme.Colors[k]=v Theme.Settings[k]=v end
 end
 palette() Accent.Changed:Connect(palette)
+local Style=require(script.Parent:WaitForChild('InterfaceStyle'))
+Theme.Style=Style
+local function menuStyle(o)
+ local a=o while a do if a:GetAttribute('InterfaceStyleScope')then return Style.Id()end a=a.Parent end return 0
+end
 Theme.Radius={Panel=16,Card=12,Button=10,Small=6}
 Theme.Spacing={Gap=8,Inset=12}
 local UIS=game:GetService('UserInputService')
@@ -44,6 +49,7 @@ end
 function Theme.Surface(p)
  p.BorderSizePixel=0 p.BackgroundTransparency=alpha(p:GetAttribute('CascadePane') and .03 or .10)
  Accent.Role(p,'BackgroundColor3','Surface') corner(p,Theme.Radius.Panel) edge(p)
+ if menuStyle(p)>0 then Style.Surface(p,(p.Name=='RootPane' or p.Name=='Main') and 'navigation' or 'panel')end
  local g=p:FindFirstChild('AcrylicTint') if g then g:Destroy()end
 end
 local depthTweens=setmetatable({},{__mode='k'})
@@ -62,9 +68,10 @@ local styled=setmetatable({},{__mode='k'})
 local function paint(b,r)
  if not b.Parent then return end
  local selected=b:GetAttribute('MenuSelected')==true
+ local simple=menuStyle(b)==1
  Accent.Role(b,'BackgroundColor3',selected and 'Selected' or 'Button')
- b.BackgroundTransparency=alpha(selected and .03 or r.hover and .05 or .14)
- local s=edge(b) s.Thickness=(selected or r.hover)and 2 or 1 s.Transparency=(selected or r.hover)and .04 or .50
+ b.BackgroundTransparency=alpha(selected and .03 or r.hover and (menuStyle(b)>0 and .10 or .05) or simple and 1 or menuStyle(b)==2 and .45 or .14)
+ local s=edge(b) s.Thickness=(selected or r.hover)and 2 or 1 s.Transparency=(selected or r.hover)and .04 or simple and 1 or menuStyle(b)==2 and .85 or .50
  Accent.Role(s,'Color',(selected or r.hover)and 'Accent' or 'Border')
 end
 function Theme.Button(b)
@@ -101,4 +108,7 @@ function Theme.Apply(gui)
  for _,v in gui:GetDescendants()do style(v)end gui.DescendantAdded:Connect(style)
 end
 Accent.Changed:Connect(function()for b,r in styled do if b.Parent then paint(b,r)end end end)
+Style.Observe(player.PlayerGui,function()
+ for b,r in styled do if b.Parent then paint(b,r)end end
+end)
 return Theme

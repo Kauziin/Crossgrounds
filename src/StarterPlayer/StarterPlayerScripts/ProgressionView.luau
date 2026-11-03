@@ -3,6 +3,7 @@ local V={}
 local Nav=require(script.Parent:WaitForChild("MenuNavigation"))
 local Theme=require(script.Parent:WaitForChild("MenuTheme"))
 local player=game.Players.LocalPlayer
+local Style=Theme.Style
 V.C={Surface=Color3.fromRGB(7,15,19),Card=Color3.fromRGB(22,31,36),Accent=Color3.fromRGB(0,231,233),Text=Color3.fromRGB(242,247,249),Muted=Color3.fromRGB(174,192,199),Edge=Color3.fromRGB(74,96,103),Peer=Color3.fromRGB(216,227,250)}
 local C=V.C
 local function make(class,parent,name)
@@ -15,7 +16,7 @@ function V.Edge(o,color,thickness)
  local s=o:FindFirstChild("Edge") or make("UIStroke",o,"Edge") s.ApplyStrokeMode=Enum.ApplyStrokeMode.Border s.Color=color or C.Edge s.Thickness=thickness or 1 s.Transparency=.3 return s
 end
 function V.Box(parent,name,height)
- local f=make("Frame",parent,name) f.Size=UDim2.new(1,0,0,height) f.BackgroundColor3=C.Card f.BackgroundTransparency=.12 V.Round(f) V.Edge(f) return f
+ local f=make("Frame",parent,name) f.Size=UDim2.new(1,0,0,height) f.BackgroundColor3=C.Card f.BackgroundTransparency=.12 V.Round(f) V.Edge(f) if name~="Navigation"and name~="Content"then Style.Surface(f,"inner")end return f
 end
 function V.Text(parent,name,value,x,y,w,h,size,color)
  local t=make("TextLabel",parent,name) t.BackgroundTransparency=1 t.Text=value t.Position=UDim2.fromOffset(x,y) t.Size=UDim2.fromOffset(w,h)
@@ -33,8 +34,10 @@ function V.Button(parent,name,value,callback)
  if callback then Nav:Connect(b,callback) end return b
 end
 function V.Select(b,on)
- b:SetAttribute("Selected",on) b.BackgroundColor3=on and Color3.fromRGB(15,48,54) or C.Card
- local edge=b:FindFirstChild("Edge") if edge then edge.Color=on and (b:GetAttribute("TrackNavigation") and Color3.fromRGB(161,120,255) or C.Accent) or C.Edge edge.Thickness=on and 2 or 1 edge.Transparency=on and 0 or .3 end
+ b:SetAttribute("Selected",on)
+ b.BackgroundTransparency=on and .08 or Style.Id()==1 and 1 or Style.Id()==2 and .3 or .08
+ b.BackgroundColor3=on and Color3.fromRGB(15,48,54) or C.Card
+ local edge=b:FindFirstChild("Edge") if edge then edge.Color=on and (b:GetAttribute("TrackNavigation") and Color3.fromRGB(161,120,255) or C.Accent) or C.Edge edge.Thickness=on and 2 or 1 edge.Transparency=on and 0 or Style.Id()==1 and 1 or Style.Id()==2 and .85 or .3 end
  local marker=b:FindFirstChild("SelectedMarker") if marker then marker.Visible=on end
 end
 local function line(p,x1,y1,x2,y2,color,thick)
@@ -202,17 +205,25 @@ function V.new(gui)
   local viewport=backdrop.AbsoluteSize if viewport.X<100 then viewport=workspace.CurrentCamera.ViewportSize end
   local theme=require(script.Parent.MenuTheme) viewport=theme.MenuBounds(viewport)
   local preference=math.clamp(player:GetAttribute("SettingMenuScale") or 1,.65,1.5)
+  local style=Style.Metrics(false)
+  local maxWidth=style.Id==0 and 1400 or style.Width local maxHeight=style.Id==0 and 710 or style.Height
   local desktop=viewport.X>=1000 and viewport.X/viewport.Y>1.3
-  scale.Scale=desktop and math.min(preference,(viewport.X-32)/1400,(viewport.Y-50)/710) or math.min(preference,math.max(.65,(viewport.X-24)/360))
-  local w=math.min(1400,(viewport.X-32)/scale.Scale) local h=math.min(710,(viewport.Y-76)/scale.Scale)
+  scale.Scale=desktop and math.min(preference,(viewport.X-32)/maxWidth,(viewport.Y-50)/maxHeight) or math.min(preference,math.max(.65,(viewport.X-24)/360))
+  local w=math.min(maxWidth,(viewport.X-32)/scale.Scale) local h=math.min(maxHeight,(viewport.Y-76)/scale.Scale)
+  if style.Id>0 and desktop then scale.Scale=math.min(preference,math.max(.9,(viewport.X-32)/1400),math.max(.9,(viewport.Y-50)/710))
+   w=math.min(maxWidth,(viewport.X-32)/scale.Scale)h=math.min(maxHeight,(viewport.Y-76)/scale.Scale)
+  end
   scale.Scale*=theme.MobileFactor()
   if w<780 then h=math.max(h,(viewport.Y-56)/scale.Scale) end
   panel.Size=UDim2.fromOffset(w,h) self.Compact=w<780
-  local compact=self.Compact local selectorHeight=math.ceil(44/scale.Scale) local compactTop=42+selectorHeight+8
-  side.Visible=not compact pageSelector.Visible=compact pageSelector.Position=UDim2.fromOffset(0,38) pageSelector.Size=UDim2.fromOffset(w,selectorHeight) pageSelector.TextSize=compact and math.ceil(14/scale.Scale) or 15
+  local header=Style.Hero(panel,title,self.Compact)
+  Style.Surface(side,'navigation')Style.Surface(content,'panel')
+  for id,b in self.Buttons do V.Select(b,self.Selected==id)end
+  local compact=self.Compact local selectorHeight=math.ceil(44/scale.Scale) local compactTop=header+selectorHeight+8
+  side.Visible=not compact pageSelector.Visible=compact pageSelector.Position=UDim2.fromOffset(0,header) pageSelector.Size=UDim2.fromOffset(w,selectorHeight) pageSelector.TextSize=compact and math.ceil(14/scale.Scale) or 15
   local sidebar=compact and 0 or w<1150 and 218 or 240 local gap=compact and 0 or 12
-  side.Position=UDim2.fromOffset(0,42) side.Size=compact and UDim2.fromOffset(w,112) or UDim2.fromOffset(sidebar,h-42)
-  content.Position=UDim2.fromOffset(sidebar+gap,compact and compactTop or 42) content.Size=UDim2.fromOffset(w-sidebar-gap,h-(compact and compactTop or 42))
+  side.Position=UDim2.fromOffset(0,header) side.Size=compact and UDim2.fromOffset(w,112) or UDim2.fromOffset(sidebar,h-header)
+  content.Position=UDim2.fromOffset(sidebar+gap,compact and compactTop or header) content.Size=UDim2.fromOffset(w-sidebar-gap,h-(compact and compactTop or header))
   for i,entry in entries do
    local b=self.Buttons[entry[1]] local icon=b:FindFirstChild("Icon") local label=b.Label
    if compact then
@@ -237,6 +248,7 @@ function V.new(gui)
  backdrop:GetPropertyChangedSignal("AbsoluteSize"):Connect(function() self:Resize() end)
  player:GetAttributeChangedSignal("SettingMenuScale"):Connect(function() self:Resize() end)
  require(script.Parent.MenuTheme).ObserveMobile(function()self:Resize()end)
+ Style.Observe(panel,function()self:Resize()end)
  self:Resize() return self
 end
 return V

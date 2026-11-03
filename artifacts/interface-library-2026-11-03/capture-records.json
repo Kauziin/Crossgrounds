@@ -1,0 +1,1142 @@
+[
+  {
+    "index": 1,
+    "gui": "ClanMenu",
+    "pane": "Confirm",
+    "items": 2,
+    "name": "010-ClanMenu-Confirm",
+    "type": "isolated-pane",
+    "note": "layout sem dados selecionados"
+  },
+  {
+    "index": 1,
+    "gui": "ClanMenu",
+    "pane": "Create",
+    "items": 7,
+    "name": "011-ClanMenu-Create",
+    "type": "isolated-pane",
+    "note": "layout com dados disponíveis"
+  },
+  {
+    "index": 1,
+    "gui": "ClanMenu",
+    "pane": "Invite",
+    "items": 1,
+    "name": "012-ClanMenu-Invite",
+    "type": "isolated-pane",
+    "note": "layout sem dados selecionados"
+  },
+  {
+    "index": 1,
+    "gui": "ClanMenu",
+    "pane": "Invites",
+    "items": 2,
+    "name": "013-ClanMenu-Invites",
+    "type": "isolated-pane",
+    "note": "layout sem dados selecionados"
+  },
+  {
+    "index": 1,
+    "gui": "ClanMenu",
+    "pane": "Lookup",
+    "items": 4,
+    "name": "014-ClanMenu-Lookup",
+    "type": "isolated-pane",
+    "note": "layout com dados disponíveis"
+  },
+  {
+    "index": 1,
+    "gui": "ClanMenu",
+    "pane": "Member",
+    "items": 2,
+    "name": "015-ClanMenu-Member",
+    "type": "isolated-pane",
+    "note": "layout sem dados selecionados"
+  },
+  {
+    "index": 1,
+    "gui": "ClanMenu",
+    "pane": "Members",
+    "items": 1,
+    "name": "016-ClanMenu-Members",
+    "type": "isolated-pane",
+    "note": "layout sem dados selecionados"
+  },
+  {
+    "index": 1,
+    "gui": "ClanMenu",
+    "pane": "Overview",
+    "items": 8,
+    "name": "017-ClanMenu-Overview",
+    "type": "isolated-pane",
+    "note": "layout com dados disponíveis"
+  },
+  {
+    "index": 1,
+    "gui": "ClanMenu",
+    "pane": "Ranking",
+    "items": 2,
+    "name": "018-ClanMenu-Ranking",
+    "type": "isolated-pane",
+    "note": "layout sem dados selecionados"
+  },
+  {
+    "index": 1,
+    "gui": "ClanMenu",
+    "pane": "RootPane",
+    "items": 12,
+    "name": "019-ClanMenu-RootPane",
+    "type": "isolated-pane",
+    "note": "layout com dados disponíveis"
+  },
+  {
+    "index": 2,
+    "gui": "CareerMenu",
+    "pane": "Finish",
+    "items": 2,
+    "name": "020-CareerMenu-Finish",
+    "type": "isolated-pane",
+    "note": "layout sem dados selecionados"
+  },
+  {
+    "index": 2,
+    "gui": "CareerMenu",
+    "pane": "FrameLayer",
+    "items": 15,
+    "name": "021-CareerMenu-FrameLayer",
+    "type": "isolated-pane",
+    "note": "layout com dados disponíveis"
+  },
+  {
+    "index": 2,
+    "gui": "CareerMenu",
+    "pane": "Frames",
+    "items": 6,
+    "name": "022-CareerMenu-Frames",
+    "type": "isolated-pane",
+    "note": "layout com dados disponíveis"
+  },
+  {
+    "index": 2,
+    "gui": "CareerMenu",
+    "pane": "Identity",
+    "items": 29,
+    "name": "023-CareerMenu-Identity",
+    "type": "isolated-pane",
+    "note": "layout com dados disponíveis"
+  },
+  {
+    "index": 2,
+    "gui": "CareerMenu",
+    "pane": "Prestige",
+    "items": 4,
+    "name": "024-CareerMenu-Prestige",
+    "type": "isolated-pane",
+    "note": "layout com dados disponíveis"
+  },
+  {
+    "index": 2,
+    "gui": "CareerMenu",
+    "pane": "RootPane",
+    "items": 10,
+    "name": "025-CareerMenu-RootPane",
+    "type": "isolated-pane",
+    "note": "layout com dados disponíveis"
+  },
+  {
+    "index": 2,
+    "gui": "CareerMenu",
+    "pane": "UnlockConfirm",
+    "items": 4,
+    "name": "026-CareerMenu-UnlockConfirm",
+    "type": "isolated-pane",
+    "note": "layout com dados disponíveis"
+  },
+  {
+    "index": 2,
+    "gui": "CareerMenu",
+    "pane": "Unlocks",
+    "items": 24,
+    "name": "027-CareerMenu-Unlocks",
+    "type": "isolated-pane",
+    "note": "layout com dados disponíveis"
+  },
+  {
+    "index": 2,
+    "gui": "CareerMenu",
+    "pane": "Weapons",
+    "items": 16,
+    "name": "028-CareerMenu-Weapons",
+    "type": "isolated-pane",
+    "note": "layout com dados disponíveis"
+  },
+  {
+    "index": 3,
+    "gui": "LobbyMusicMenu",
+    "pane": "RootPane",
+    "items": 8,
+    "name": "029-LobbyMusicMenu-RootPane",
+    "type": "isolated-pane",
+    "note": "layout com dados disponíveis"
+  },
+  {
+    "index": 3,
+    "gui": "LobbyMusicMenu",
+    "pane": "Track",
+    "items": 7,
+    "name": "030-LobbyMusicMenu-Track",
+    "type": "isolated-pane",
+    "note": "layout com dados disponíveis"
+  },
+  {
+    "index": 3,
+    "gui": "LobbyMusicMenu",
+    "pane": "Tracks",
+    "items": 17,
+    "name": "031-LobbyMusicMenu-Tracks",
+    "type": "isolated-pane",
+    "note": "layout com dados disponíveis"
+  },
+  {
+    "index": 4,
+    "gui": "SocialMenu",
+    "pane": "Friends",
+    "items": 6,
+    "name": "032-SocialMenu-Friends",
+    "type": "isolated-pane",
+    "note": "layout com dados disponíveis"
+  },
+  {
+    "index": 4,
+    "gui": "SocialMenu",
+    "pane": "Member",
+    "items": 5,
+    "name": "033-SocialMenu-Member",
+    "type": "isolated-pane",
+    "note": "layout com dados disponíveis"
+  },
+  {
+    "index": 4,
+    "gui": "SocialMenu",
+    "pane": "Members",
+    "items": 2,
+    "name": "034-SocialMenu-Members",
+    "type": "isolated-pane",
+    "note": "layout sem dados selecionados"
+  },
+  {
+    "index": 4,
+    "gui": "SocialMenu",
+    "pane": "Players",
+    "items": 2,
+    "name": "035-SocialMenu-Players",
+    "type": "isolated-pane",
+    "note": "layout sem dados selecionados"
+  },
+  {
+    "index": 4,
+    "gui": "SocialMenu",
+    "pane": "Preferences",
+    "items": 4,
+    "name": "036-SocialMenu-Preferences",
+    "type": "isolated-pane",
+    "note": "layout com dados disponíveis"
+  },
+  {
+    "index": 4,
+    "gui": "SocialMenu",
+    "pane": "Profile",
+    "items": 5,
+    "name": "037-SocialMenu-Profile",
+    "type": "isolated-pane",
+    "note": "layout com dados disponíveis"
+  },
+  {
+    "index": 4,
+    "gui": "SocialMenu",
+    "pane": "Recent",
+    "items": 2,
+    "name": "038-SocialMenu-Recent",
+    "type": "isolated-pane",
+    "note": "layout sem dados selecionados"
+  },
+  {
+    "index": 4,
+    "gui": "SocialMenu",
+    "pane": "RootPane",
+    "items": 14,
+    "name": "039-SocialMenu-RootPane",
+    "type": "isolated-pane",
+    "note": "layout com dados disponíveis"
+  },
+  {
+    "index": 5,
+    "gui": "ArenaHUD",
+    "pane": "Maps",
+    "items": 4,
+    "name": "040-ArenaHUD-Maps",
+    "type": "isolated-pane",
+    "note": "layout com dados disponíveis"
+  },
+  {
+    "index": 5,
+    "gui": "ArenaHUD",
+    "pane": "RootPane",
+    "items": 6,
+    "name": "041-ArenaHUD-RootPane",
+    "type": "isolated-pane",
+    "note": "layout com dados disponíveis"
+  },
+  {
+    "index": 6,
+    "gui": "JoinMenu",
+    "pane": "KitDetails",
+    "items": 5,
+    "name": "042-JoinMenu-KitDetails",
+    "type": "isolated-pane",
+    "note": "layout com dados disponíveis"
+  },
+  {
+    "index": 6,
+    "gui": "JoinMenu",
+    "pane": "Loadouts",
+    "items": 8,
+    "name": "043-JoinMenu-Loadouts",
+    "type": "isolated-pane",
+    "note": "layout com dados disponíveis"
+  },
+  {
+    "index": 6,
+    "gui": "JoinMenu",
+    "pane": "RootPane",
+    "items": 7,
+    "name": "044-JoinMenu-RootPane",
+    "type": "isolated-pane",
+    "note": "layout com dados disponíveis"
+  },
+  {
+    "index": 7,
+    "gui": "CrossgroundsHub",
+    "pane": "ModeDetails",
+    "items": 7,
+    "name": "045-CrossgroundsHub-ModeDetails",
+    "type": "isolated-pane",
+    "note": "layout com dados disponíveis"
+  },
+  {
+    "index": 7,
+    "gui": "CrossgroundsHub",
+    "pane": "Modes",
+    "items": 5,
+    "name": "046-CrossgroundsHub-Modes",
+    "type": "isolated-pane",
+    "note": "layout com dados disponíveis"
+  },
+  {
+    "index": 7,
+    "gui": "CrossgroundsHub",
+    "pane": "RootPane",
+    "items": 8,
+    "name": "047-CrossgroundsHub-RootPane",
+    "type": "isolated-pane",
+    "note": "layout com dados disponíveis"
+  },
+  {
+    "name": "100-evento-hub",
+    "gui": "CrossgroundsHub",
+    "id": "hub",
+    "type": "simulated-event"
+  },
+  {
+    "name": "101-evento-ctf-hud",
+    "gui": "CombatHUD",
+    "id": "ctf-hud",
+    "type": "simulated-event"
+  },
+  {
+    "name": "102-evento-arena-hud",
+    "gui": "ArenaHUD",
+    "id": "arena-hud",
+    "type": "simulated-event"
+  },
+  {
+    "name": "103-evento-ctf-flag-pickup",
+    "gui": "CTFFlagAlerts",
+    "id": "ctf-flag-pickup",
+    "type": "simulated-event"
+  },
+  {
+    "name": "104-evento-ctf-flag-drop",
+    "gui": "CTFFlagAlerts",
+    "id": "ctf-flag-drop",
+    "type": "simulated-event"
+  },
+  {
+    "name": "105-evento-ctf-flag-return",
+    "gui": "CTFFlagAlerts",
+    "id": "ctf-flag-return",
+    "type": "simulated-event"
+  },
+  {
+    "name": "106-evento-ctf-flag-capture",
+    "gui": "CTFFlagAlerts",
+    "id": "ctf-flag-capture",
+    "type": "simulated-event"
+  },
+  {
+    "name": "107-evento-ctf-victory",
+    "gui": "CombatHUD",
+    "id": "ctf-victory",
+    "type": "simulated-event"
+  },
+  {
+    "name": "108-evento-ctf-tie",
+    "gui": "CombatHUD",
+    "id": "ctf-tie",
+    "type": "simulated-event"
+  },
+  {
+    "name": "109-evento-ctf-elimination",
+    "gui": "CombatHUD",
+    "id": "ctf-elimination",
+    "type": "simulated-event"
+  },
+  {
+    "name": "110-evento-level-account",
+    "gui": "LevelUpNotices",
+    "id": "level-account",
+    "type": "simulated-event"
+  },
+  {
+    "name": "111-evento-level-weapon",
+    "gui": "LevelUpNotices",
+    "id": "level-weapon",
+    "type": "simulated-event"
+  },
+  {
+    "name": "112-evento-party-invitation",
+    "gui": "PartyInvitationNotice",
+    "id": "party-invitation",
+    "type": "simulated-event"
+  },
+  {
+    "name": "113-evento-ctf-vote",
+    "gui": "FloatingMapVote",
+    "id": "ctf-vote",
+    "type": "simulated-event"
+  },
+  {
+    "name": "114-evento-arena-vote",
+    "gui": "FloatingMapVote",
+    "id": "arena-vote",
+    "type": "simulated-event"
+  },
+  {
+    "name": "115-evento-arena-respawn",
+    "gui": "ArenaHUD",
+    "id": "arena-respawn",
+    "type": "simulated-event"
+  },
+  {
+    "name": "116-evento-getout-survivor-waiting",
+    "gui": "GetOutHUD",
+    "id": "getout-survivor-waiting",
+    "type": "simulated-event"
+  },
+  {
+    "name": "117-evento-getout-beast-waiting",
+    "gui": "GetOutHUD",
+    "id": "getout-beast-waiting",
+    "type": "simulated-event"
+  },
+  {
+    "name": "118-evento-getout-survivor-playing",
+    "gui": "GetOutHUD",
+    "id": "getout-survivor-playing",
+    "type": "simulated-event"
+  },
+  {
+    "name": "119-evento-getout-beast-playing",
+    "gui": "GetOutHUD",
+    "id": "getout-beast-playing",
+    "type": "simulated-event"
+  },
+  {
+    "name": "120-evento-getout-survivor-enraged",
+    "gui": "GetOutHUD",
+    "id": "getout-survivor-enraged",
+    "type": "simulated-event"
+  },
+  {
+    "name": "121-evento-getout-beast-enraged",
+    "gui": "GetOutHUD",
+    "id": "getout-beast-enraged",
+    "type": "simulated-event"
+  },
+  {
+    "name": "122-evento-getout-survivor-results",
+    "gui": "GetOutHUD",
+    "id": "getout-survivor-results",
+    "type": "simulated-event"
+  },
+  {
+    "name": "123-evento-getout-beast-results",
+    "gui": "GetOutHUD",
+    "id": "getout-beast-results",
+    "type": "simulated-event"
+  },
+  {
+    "name": "124-evento-getout-Downed",
+    "gui": "GetOutHUD",
+    "id": "getout-Downed",
+    "type": "simulated-event"
+  },
+  {
+    "name": "125-evento-getout-Dragged",
+    "gui": "GetOutHUD",
+    "id": "getout-Dragged",
+    "type": "simulated-event"
+  },
+  {
+    "name": "126-evento-getout-Captured",
+    "gui": "GetOutHUD",
+    "id": "getout-Captured",
+    "type": "simulated-event"
+  },
+  {
+    "name": "127-evento-getout-hacking",
+    "gui": "GetOutHUD",
+    "id": "getout-hacking",
+    "type": "simulated-event"
+  },
+  {
+    "name": "200-settings-pause",
+    "gui": "ExperienceMenu",
+    "type": "navigation",
+    "page": "pause"
+  },
+  {
+    "name": "201-settings-configuracoes",
+    "gui": "ExperienceMenu",
+    "type": "navigation",
+    "page": "configuracoes"
+  },
+  {
+    "name": "202-settings-Gameplay",
+    "gui": "ExperienceMenu",
+    "type": "navigation",
+    "page": "Gameplay"
+  },
+  {
+    "name": "203-settings-Controls",
+    "gui": "ExperienceMenu",
+    "type": "navigation",
+    "page": "Controls"
+  },
+  {
+    "name": "204-settings-Camera",
+    "gui": "ExperienceMenu",
+    "type": "navigation",
+    "page": "Camera"
+  },
+  {
+    "name": "205-settings-Interface",
+    "gui": "ExperienceMenu",
+    "type": "navigation",
+    "page": "Interface"
+  },
+  {
+    "name": "206-settings-Themes",
+    "gui": "ExperienceMenu",
+    "type": "navigation",
+    "page": "Themes"
+  },
+  {
+    "name": "207-settings-Graphics",
+    "gui": "ExperienceMenu",
+    "type": "navigation",
+    "page": "Graphics"
+  },
+  {
+    "name": "208-settings-Accessibility",
+    "gui": "ExperienceMenu",
+    "type": "navigation",
+    "page": "Accessibility"
+  },
+  {
+    "name": "209-settings-Audio",
+    "gui": "ExperienceMenu",
+    "type": "navigation",
+    "page": "Audio"
+  },
+  {
+    "name": "210-settings-Maps",
+    "gui": "ExperienceMenu",
+    "type": "navigation",
+    "page": "Maps"
+  },
+  {
+    "name": "211-settings-AdminMaps",
+    "gui": "ExperienceMenu",
+    "type": "navigation",
+    "page": "AdminMaps"
+  },
+  {
+    "name": "212-settings-Development",
+    "gui": "ExperienceMenu",
+    "type": "navigation",
+    "page": "Development"
+  },
+  {
+    "name": "213-settings-Analog",
+    "gui": "ExperienceMenu",
+    "type": "navigation",
+    "page": "Analog"
+  },
+  {
+    "name": "214-settings-Bindings",
+    "gui": "ExperienceMenu",
+    "type": "navigation",
+    "page": "Bindings"
+  },
+  {
+    "name": "215-settings-HUDSettings",
+    "gui": "ExperienceMenu",
+    "type": "navigation",
+    "page": "HUDSettings"
+  },
+  {
+    "name": "216-settings-CameraCore",
+    "gui": "ExperienceMenu",
+    "type": "navigation",
+    "page": "CameraCore"
+  },
+  {
+    "name": "217-settings-Aim",
+    "gui": "ExperienceMenu",
+    "type": "navigation",
+    "page": "Aim"
+  },
+  {
+    "name": "218-settings-Reticle",
+    "gui": "ExperienceMenu",
+    "type": "navigation",
+    "page": "Reticle"
+  },
+  {
+    "name": "219-settings-confirmar-saida",
+    "gui": "ExperienceMenu",
+    "type": "navigation",
+    "page": "confirmar-saida"
+  },
+  {
+    "name": "220-settings-rendicao-ctf-indisponivel",
+    "gui": "ExperienceMenu",
+    "type": "navigation",
+    "page": "confirmar-rendicao"
+  },
+  {
+    "name": "300-progressao-Profile",
+    "gui": "ProgressionPanel",
+    "page": "Profile",
+    "type": "navigation"
+  },
+  {
+    "name": "301-progressao-Leaders",
+    "gui": "ProgressionPanel",
+    "page": "Leaders",
+    "type": "navigation"
+  },
+  {
+    "name": "302-progressao-Unlocks",
+    "gui": "ProgressionPanel",
+    "page": "Unlocks",
+    "type": "navigation"
+  },
+  {
+    "name": "303-progressao-Friends",
+    "gui": "ProgressionPanel",
+    "page": "Friends",
+    "type": "navigation"
+  },
+  {
+    "name": "304-progressao-Guild",
+    "gui": "ProgressionPanel",
+    "page": "Guild",
+    "type": "navigation"
+  },
+  {
+    "name": "400-armamentos-loadouts",
+    "gui": "ExperienceMenu",
+    "type": "navigation"
+  },
+  {
+    "name": "401-arsenal-ASSAULT-RIFLES",
+    "gui": "ExperienceMenu",
+    "type": "navigation",
+    "page": "ASSAULT RIFLES"
+  },
+  {
+    "name": "402-arsenal-LEGACY",
+    "gui": "ExperienceMenu",
+    "type": "navigation",
+    "page": "LEGACY"
+  },
+  {
+    "name": "403-arsenal-LIGHT-MACHINE-GUNS",
+    "gui": "ExperienceMenu",
+    "type": "navigation",
+    "page": "LIGHT MACHINE GUNS"
+  },
+  {
+    "name": "404-arsenal-MARKSMAN-RIFLES",
+    "gui": "ExperienceMenu",
+    "type": "navigation",
+    "page": "MARKSMAN RIFLES"
+  },
+  {
+    "name": "405-arsenal-SHOTGUNS",
+    "gui": "ExperienceMenu",
+    "type": "navigation",
+    "page": "SHOTGUNS"
+  },
+  {
+    "name": "406-arsenal-SNIPER-RIFLES",
+    "gui": "ExperienceMenu",
+    "type": "navigation",
+    "page": "SNIPER RIFLES"
+  },
+  {
+    "name": "407-arsenal-SPECIAL",
+    "gui": "ExperienceMenu",
+    "type": "navigation",
+    "page": "SPECIAL"
+  },
+  {
+    "name": "408-arsenal-SUBMACHINE-GUNS",
+    "gui": "ExperienceMenu",
+    "type": "navigation",
+    "page": "SUBMACHINE GUNS"
+  },
+  {
+    "name": "410-armeiro-optic",
+    "type": "navigation",
+    "gui": "ExperienceMenu",
+    "page": "optic"
+  },
+  {
+    "name": "411-armeiro-muzzle",
+    "type": "navigation",
+    "gui": "ExperienceMenu",
+    "page": "muzzle"
+  },
+  {
+    "name": "412-armeiro-underbarrel",
+    "type": "navigation",
+    "gui": "ExperienceMenu",
+    "page": "underbarrel"
+  },
+  {
+    "name": "413-armeiro-magazine",
+    "type": "navigation",
+    "gui": "ExperienceMenu",
+    "page": "magazine"
+  },
+  {
+    "name": "414-armeiro-stock",
+    "type": "navigation",
+    "gui": "ExperienceMenu",
+    "page": "stock"
+  },
+  {
+    "name": "415-armeiro-laser",
+    "type": "navigation",
+    "gui": "ExperienceMenu",
+    "page": "laser"
+  },
+  {
+    "name": "416-progressao-arma",
+    "gui": "ExperienceMenu",
+    "type": "navigation"
+  },
+  {
+    "name": "500-loading",
+    "id": "loading",
+    "gui": "CrossgroundsLoading",
+    "type": "simulated-event"
+  },
+  {
+    "name": "501-loading-error",
+    "id": "loading-error",
+    "gui": "CrossgroundsLoading",
+    "type": "simulated-event"
+  },
+  {
+    "name": "502-damage",
+    "id": "damage",
+    "gui": "DamageFeedback",
+    "type": "simulated-event"
+  },
+  {
+    "name": "503-interaction",
+    "id": "interaction",
+    "gui": "AccessibleInteractionHUD",
+    "type": "simulated-event"
+  },
+  {
+    "name": "504-dialog",
+    "id": "dialog",
+    "gui": "MenuDialog",
+    "type": "simulated-event"
+  },
+  {
+    "name": "505-eliminated",
+    "id": "eliminated",
+    "gui": "EliminatorView",
+    "type": "simulated-event"
+  },
+  {
+    "name": "506-standings-ctf",
+    "id": "standings-ctf",
+    "gui": "HeldStandings",
+    "type": "simulated-event"
+  },
+  {
+    "name": "507-standings-arena",
+    "id": "standings-arena",
+    "gui": "HeldStandings",
+    "type": "simulated-event"
+  },
+  {
+    "name": "600-mobile-hub",
+    "id": "hub",
+    "gui": "CrossgroundsHub",
+    "type": "mobile-simulator",
+    "device": "iPhone 17 Pro landscape"
+  },
+  {
+    "name": "601-mobile-ctf",
+    "id": "ctf-hud",
+    "gui": "MobileCombatHUD",
+    "type": "mobile-simulator",
+    "device": "iPhone 17 Pro landscape"
+  },
+  {
+    "name": "602-mobile-arena",
+    "id": "arena-hud",
+    "gui": "MobileCombatHUD",
+    "type": "mobile-simulator",
+    "device": "iPhone 17 Pro landscape"
+  },
+  {
+    "name": "603-mobile-getout",
+    "id": "getout-survivor-playing",
+    "gui": "GetOutActions",
+    "type": "mobile-simulator",
+    "device": "iPhone 17 Pro landscape"
+  },
+  {
+    "name": "604-mobile-editor",
+    "id": "ctf-hud",
+    "gui": "MobileCombatHUD",
+    "type": "mobile-simulator",
+    "device": "iPhone 17 Pro landscape"
+  },
+  {
+    "name": "605-mobile-configuracoes",
+    "id": "hub",
+    "gui": "ExperienceMenu",
+    "type": "mobile-simulator",
+    "device": "iPhone 17 Pro landscape"
+  },
+  {
+    "name": "606-mobile-progressao",
+    "id": "hub",
+    "gui": "ProgressionPanel",
+    "type": "mobile-simulator",
+    "device": "iPhone 17 Pro landscape"
+  },
+  {
+    "name": "607-mobile-social",
+    "id": "hub",
+    "gui": "SocialMenu",
+    "type": "mobile-simulator",
+    "device": "iPhone 17 Pro landscape"
+  },
+  {
+    "name": "608-mobile-carreira",
+    "id": "hub",
+    "gui": "CareerMenu",
+    "type": "mobile-simulator",
+    "device": "iPhone 17 Pro landscape"
+  },
+  {
+    "name": "609-mobile-clas",
+    "id": "hub",
+    "gui": "ClanMenu",
+    "type": "mobile-simulator",
+    "device": "iPhone 17 Pro landscape"
+  },
+  {
+    "name": "610-mobile-armamentos",
+    "id": "ctf-hud",
+    "gui": "ExperienceMenu",
+    "type": "mobile-simulator",
+    "device": "iPhone 17 Pro landscape"
+  },
+  {
+    "name": "611-mobile-votacao",
+    "id": "ctf-vote",
+    "gui": "FloatingMapVote",
+    "type": "mobile-simulator",
+    "device": "iPhone 17 Pro landscape"
+  },
+  {
+    "name": "612-mobile-hud-com-arma",
+    "gui": "MobileCombatHUD",
+    "type": "mobile-weapon-fixture"
+  },
+  {
+    "name": "613-mobile-mira-hud",
+    "gui": "WeaponHUD",
+    "type": "mobile-weapon-fixture"
+  },
+  {
+    "name": "614-mobile-editor-inspetor",
+    "gui": "MobileCombatHUD",
+    "type": "mobile-simulator"
+  },
+  {
+    "name": "508-weapon-hud",
+    "id": "weapon-hud",
+    "gui": "CombatHUD+WeaponHUD",
+    "type": "simulated-event"
+  },
+  {
+    "name": "509-gamepad-help",
+    "id": "gamepad-help",
+    "gui": "GamepadInstructions",
+    "type": "simulated-event"
+  },
+  {
+    "name": "510-optical-scope",
+    "id": "optical-scope",
+    "gui": "StudioOpticalScope+StudioOpticalReticle",
+    "type": "simulated-event"
+  },
+  {
+    "name": "511-optical-reflex",
+    "id": "optical-reflex",
+    "gui": "StudioOpticalReticle",
+    "type": "simulated-event"
+  },
+  {
+    "name": "417-armeiro-com-previa",
+    "type": "debug-readonly-preview",
+    "gui": "ExperienceMenu"
+  },
+  {
+    "name": "418-opcoes-classe",
+    "type": "navigation-modal",
+    "gui": "ClassOptionsOverlay"
+  },
+  {
+    "name": "419-renomear-classe",
+    "type": "navigation-modal",
+    "gui": "ClassOptionsOverlay"
+  },
+  {
+    "name": "420-confirmar-exclusao-classe",
+    "type": "navigation-modal",
+    "gui": "ClassOptionsOverlay"
+  },
+  {
+    "name": "305-filtros-progressao",
+    "gui": "TrackFilters",
+    "type": "navigation-modal"
+  },
+  {
+    "name": "421-previas-corpo-a-corpo",
+    "gui": "ExperienceMenu",
+    "type": "navigation"
+  },
+  {
+    "name": "422-previas-auxiliares",
+    "gui": "ExperienceMenu",
+    "type": "navigation"
+  },
+  {
+    "name": "423-previas-variantes",
+    "gui": "ExperienceMenu",
+    "type": "navigation"
+  },
+  {
+    "name": "424-arena-loadout",
+    "gui": "ExperienceMenu",
+    "type": "navigation"
+  },
+  {
+    "name": "425-arsenal-secundaria",
+    "gui": "ExperienceMenu",
+    "type": "navigation"
+  },
+  {
+    "name": "221-remapeamento-Keyboard",
+    "gui": "ExperienceMenu",
+    "type": "navigation"
+  },
+  {
+    "name": "222-remapeamento-Gamepad",
+    "gui": "ExperienceMenu",
+    "type": "navigation"
+  },
+  {
+    "name": "223-remapeamento-Touch",
+    "gui": "ExperienceMenu",
+    "type": "navigation"
+  },
+  {
+    "name": "7001-rolagem-configuracoes",
+    "gui": "ExperienceMenu",
+    "type": "scroll",
+    "path": "ExperienceMenu.Shade.Panel.Options.List",
+    "offset": 208
+  },
+  {
+    "name": "7101-rolagem-remapeamento",
+    "gui": "ExperienceMenu",
+    "type": "scroll",
+    "path": "ExperienceMenu.Shade.Panel.Options.List",
+    "offset": 64
+  },
+  {
+    "name": "7201-rolagem-armeiro",
+    "gui": "ExperienceMenu",
+    "type": "scroll",
+    "path": "ExperienceMenu.Shade.Panel.Detail.List",
+    "offset": 75
+  },
+  {
+    "name": "7211-rolagem-armeiro",
+    "gui": "ExperienceMenu",
+    "type": "scroll",
+    "path": "ExperienceMenu.Shade.Panel.Detail.List.Gunsmith.ArsenalSelection.Catalog.Items",
+    "offset": 307.8
+  },
+  {
+    "name": "7212-rolagem-armeiro",
+    "gui": "ExperienceMenu",
+    "type": "scroll",
+    "path": "ExperienceMenu.Shade.Panel.Detail.List.Gunsmith.ArsenalSelection.Catalog.Items",
+    "offset": 615.6
+  },
+  {
+    "name": "7213-rolagem-armeiro",
+    "gui": "ExperienceMenu",
+    "type": "scroll",
+    "path": "ExperienceMenu.Shade.Panel.Detail.List.Gunsmith.ArsenalSelection.Catalog.Items",
+    "offset": 752
+  },
+  {
+    "name": "7221-rolagem-armeiro",
+    "gui": "ExperienceMenu",
+    "type": "scroll",
+    "path": "ExperienceMenu.Shade.Panel.Detail.List.Gunsmith.ArsenalSelection.StatisticsPanel.Attributes",
+    "offset": 16
+  },
+  {
+    "name": "048-hub-completo",
+    "gui": "CrossgroundsHub+CrossgroundsHomeBackdrop",
+    "type": "composite"
+  },
+  {
+    "name": "050-clan-dados",
+    "gui": "ClanMenu",
+    "type": "synthetic-data-fixture",
+    "fixture": "clan-fixture"
+  },
+  {
+    "name": "051-clan-integrantes",
+    "gui": "ClanMenu",
+    "type": "synthetic-data-fixture",
+    "fixture": null
+  },
+  {
+    "name": "052-clan-gerenciar-integrante",
+    "gui": "ClanMenu",
+    "type": "synthetic-data-fixture",
+    "fixture": null
+  },
+  {
+    "name": "053-clan-ranking",
+    "gui": "ClanMenu",
+    "type": "synthetic-data-fixture",
+    "fixture": "clan-fixture"
+  },
+  {
+    "name": "054-clan-convite",
+    "gui": "ClanMenu",
+    "type": "synthetic-data-fixture",
+    "fixture": "clan-fixture"
+  },
+  {
+    "name": "055-grupo-dados",
+    "gui": "SocialMenu",
+    "type": "synthetic-data-fixture",
+    "fixture": "party-fixture"
+  },
+  {
+    "name": "056-grupo-integrantes",
+    "gui": "SocialMenu",
+    "type": "synthetic-data-fixture",
+    "fixture": null
+  },
+  {
+    "name": "057-grupo-gerenciar",
+    "gui": "SocialMenu",
+    "type": "synthetic-data-fixture",
+    "fixture": null
+  },
+  {
+    "name": "224-settings-retornar-hub-arena",
+    "type": "scenario-navigation",
+    "scenario": "arena-hud",
+    "gui": "ExperienceMenu",
+    "note": "acao de retorno ao hub, sem confirmacao acionada"
+  },
+  {
+    "name": "615-mobile-seletor-progresso",
+    "type": "mobile-navigation",
+    "scenario": "hub",
+    "gui": "ProgressionPages",
+    "note": "iPhone 17 Pro landscape"
+  },
+  {
+    "name": "616-mobile-laboratorio-debug",
+    "type": "studio-tool",
+    "scenario": "hub",
+    "gui": "StudioInterfaceLaboratory",
+    "note": "iPhone 17 Pro landscape"
+  },
+  {
+    "name": "512-placar-superior-arena",
+    "type": "event-overlay",
+    "scenario": "standings-arena",
+    "gui": "MatchStandings",
+    "note": "dados sinteticos, componente nativo"
+  },
+  {
+    "name": "513-ajuda-camera-admin",
+    "type": "local-attribute-overlay",
+    "scenario": "hub",
+    "gui": "AdminCameraHelp",
+    "note": "atributo admin local apenas no Play; sem camera admin real"
+  },
+  {
+    "name": "514-controle-ampliacao-luneta",
+    "type": "structural-overlay",
+    "scenario": "optical-scope",
+    "gui": "SniperZoomHUD",
+    "note": "controle de ampliacao mostrado em copia estrutural; sem arma/ADS reais"
+  }
+]

@@ -1,7 +1,7 @@
 local player=game.Players.LocalPlayer
 local Root=game.ReplicatedStorage.Crossgrounds
 local Catalog=require(Root.WeaponCatalog)
-local Theme=require(script.Parent.AccentTheme)
+local Theme=require(script.Parent:WaitForChild("AccentTheme"))
 local gui=Instance.new("ScreenGui") gui.Name="LevelUpNotices" gui.ResetOnSpawn=false gui.IgnoreGuiInset=false gui.DisplayOrder=88 gui.Parent=player:WaitForChild("PlayerGui")
 local card=Instance.new("Frame") card.Name="Notice" card.AnchorPoint=Vector2.new(.5,0) card.Position=UDim2.new(.5,0,0,72) card.Size=UDim2.new(.8,0,0,86) card.BackgroundColor3=Color3.fromRGB(10,17,24) card.BackgroundTransparency=.08 card.Visible=false card:SetAttribute("ThemePreserve",true) card.Parent=gui
 local limit=Instance.new("UISizeConstraint") limit.MaxSize=Vector2.new(460,86) limit.Parent=card

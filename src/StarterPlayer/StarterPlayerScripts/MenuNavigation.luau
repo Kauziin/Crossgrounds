@@ -207,6 +207,11 @@ function Navigation:Activate()
  local entry=focused and registered[focused]
  if entry and entry.activate then entry.activate() end
 end
+function Navigation:DebugActivate(object,action)
+ if not Run:IsStudio()then return false end
+ local entry=registered[object]local callback=action and entry and entry.actions and entry.actions[action]or not action and entry and entry.activate
+ if not callback then return false end callback()return true
+end
 local function first()
  local preferred=defaults[root]
  if preferred and visible(preferred,false) then return preferred end

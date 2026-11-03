@@ -59,6 +59,7 @@ function Service:Request(p,on)
 end
 function Service:Start()
  if started then return end started=true
+ require(script.Parent.JumpCooldownService):Start()
  local events=game.ReplicatedStorage:WaitForChild("Events")
  local remote=events:FindFirstChild("CombatSlide") or Instance.new("RemoteEvent") remote.Name="CombatSlide" remote.Parent=events
  remote.OnServerEvent:Connect(function(p,on) if typeof(on)=="boolean" then self:Request(p,on) end end)

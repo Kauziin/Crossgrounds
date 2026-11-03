@@ -1,0 +1,1027 @@
+{
+  "created": "2026-11-03",
+  "source": "Roblox Studio Play, local client",
+  "count": 170,
+  "images": [
+    {
+      "file": "010-ClanMenu-Confirm.png",
+      "title": "010-ClanMenu-Confirm",
+      "group": "0",
+      "bytes": 176066
+    },
+    {
+      "file": "011-ClanMenu-Create.png",
+      "title": "011-ClanMenu-Create",
+      "group": "0",
+      "bytes": 199634
+    },
+    {
+      "file": "012-ClanMenu-Invite.png",
+      "title": "012-ClanMenu-Invite",
+      "group": "0",
+      "bytes": 177174
+    },
+    {
+      "file": "013-ClanMenu-Invites.png",
+      "title": "013-ClanMenu-Invites",
+      "group": "0",
+      "bytes": 181036
+    },
+    {
+      "file": "014-ClanMenu-Lookup.png",
+      "title": "014-ClanMenu-Lookup",
+      "group": "0",
+      "bytes": 188813
+    },
+    {
+      "file": "015-ClanMenu-Member.png",
+      "title": "015-ClanMenu-Member",
+      "group": "0",
+      "bytes": 176573
+    },
+    {
+      "file": "016-ClanMenu-Members.png",
+      "title": "016-ClanMenu-Members",
+      "group": "0",
+      "bytes": 175460
+    },
+    {
+      "file": "017-ClanMenu-Overview.png",
+      "title": "017-ClanMenu-Overview",
+      "group": "0",
+      "bytes": 186844
+    },
+    {
+      "file": "018-ClanMenu-Ranking.png",
+      "title": "018-ClanMenu-Ranking",
+      "group": "0",
+      "bytes": 175822
+    },
+    {
+      "file": "019-ClanMenu-RootPane.png",
+      "title": "019-ClanMenu-RootPane",
+      "group": "0",
+      "bytes": 280849
+    },
+    {
+      "file": "020-CareerMenu-Finish.png",
+      "title": "020-CareerMenu-Finish",
+      "group": "0",
+      "bytes": 192443
+    },
+    {
+      "file": "021-CareerMenu-FrameLayer.png",
+      "title": "021-CareerMenu-FrameLayer",
+      "group": "0",
+      "bytes": 221318
+    },
+    {
+      "file": "022-CareerMenu-Frames.png",
+      "title": "022-CareerMenu-Frames",
+      "group": "0",
+      "bytes": 214173
+    },
+    {
+      "file": "023-CareerMenu-Identity.png",
+      "title": "023-CareerMenu-Identity",
+      "group": "0",
+      "bytes": 234266
+    },
+    {
+      "file": "024-CareerMenu-Prestige.png",
+      "title": "024-CareerMenu-Prestige",
+      "group": "0",
+      "bytes": 216254
+    },
+    {
+      "file": "025-CareerMenu-RootPane.png",
+      "title": "025-CareerMenu-RootPane",
+      "group": "0",
+      "bytes": 297486
+    },
+    {
+      "file": "026-CareerMenu-UnlockConfirm.png",
+      "title": "026-CareerMenu-UnlockConfirm",
+      "group": "0",
+      "bytes": 203803
+    },
+    {
+      "file": "027-CareerMenu-Unlocks.png",
+      "title": "027-CareerMenu-Unlocks",
+      "group": "0",
+      "bytes": 233959
+    },
+    {
+      "file": "028-CareerMenu-Weapons.png",
+      "title": "028-CareerMenu-Weapons",
+      "group": "0",
+      "bytes": 230968
+    },
+    {
+      "file": "029-LobbyMusicMenu-RootPane.png",
+      "title": "029-LobbyMusicMenu-RootPane",
+      "group": "0",
+      "bytes": 273562
+    },
+    {
+      "file": "030-LobbyMusicMenu-Track.png",
+      "title": "030-LobbyMusicMenu-Track",
+      "group": "0",
+      "bytes": 189819
+    },
+    {
+      "file": "031-LobbyMusicMenu-Tracks.png",
+      "title": "031-LobbyMusicMenu-Tracks",
+      "group": "0",
+      "bytes": 210657
+    },
+    {
+      "file": "032-SocialMenu-Friends.png",
+      "title": "032-SocialMenu-Friends",
+      "group": "0",
+      "bytes": 193856
+    },
+    {
+      "file": "033-SocialMenu-Member.png",
+      "title": "033-SocialMenu-Member",
+      "group": "0",
+      "bytes": 187627
+    },
+    {
+      "file": "034-SocialMenu-Members.png",
+      "title": "034-SocialMenu-Members",
+      "group": "0",
+      "bytes": 179373
+    },
+    {
+      "file": "035-SocialMenu-Players.png",
+      "title": "035-SocialMenu-Players",
+      "group": "0",
+      "bytes": 182326
+    },
+    {
+      "file": "036-SocialMenu-Preferences.png",
+      "title": "036-SocialMenu-Preferences",
+      "group": "0",
+      "bytes": 187030
+    },
+    {
+      "file": "037-SocialMenu-Profile.png",
+      "title": "037-SocialMenu-Profile",
+      "group": "0",
+      "bytes": 187523
+    },
+    {
+      "file": "038-SocialMenu-Recent.png",
+      "title": "038-SocialMenu-Recent",
+      "group": "0",
+      "bytes": 182034
+    },
+    {
+      "file": "039-SocialMenu-RootPane.png",
+      "title": "039-SocialMenu-RootPane",
+      "group": "0",
+      "bytes": 281047
+    },
+    {
+      "file": "040-ArenaHUD-Maps.png",
+      "title": "040-ArenaHUD-Maps",
+      "group": "0",
+      "bytes": 294963
+    },
+    {
+      "file": "041-ArenaHUD-RootPane.png",
+      "title": "041-ArenaHUD-RootPane",
+      "group": "0",
+      "bytes": 294791
+    },
+    {
+      "file": "042-JoinMenu-KitDetails.png",
+      "title": "042-JoinMenu-KitDetails",
+      "group": "0",
+      "bytes": 184952
+    },
+    {
+      "file": "043-JoinMenu-Loadouts.png",
+      "title": "043-JoinMenu-Loadouts",
+      "group": "0",
+      "bytes": 192031
+    },
+    {
+      "file": "044-JoinMenu-RootPane.png",
+      "title": "044-JoinMenu-RootPane",
+      "group": "0",
+      "bytes": 276476
+    },
+    {
+      "file": "045-CrossgroundsHub-ModeDetails.png",
+      "title": "045-CrossgroundsHub-ModeDetails",
+      "group": "0",
+      "bytes": 201561
+    },
+    {
+      "file": "046-CrossgroundsHub-Modes.png",
+      "title": "046-CrossgroundsHub-Modes",
+      "group": "0",
+      "bytes": 296937
+    },
+    {
+      "file": "047-CrossgroundsHub-RootPane.png",
+      "title": "047-CrossgroundsHub-RootPane",
+      "group": "0",
+      "bytes": 317033
+    },
+    {
+      "file": "048-hub-completo.png",
+      "title": "048-hub-completo",
+      "group": "0",
+      "bytes": 245021
+    },
+    {
+      "file": "050-clan-dados.png",
+      "title": "050-clan-dados",
+      "group": "0",
+      "bytes": 225990
+    },
+    {
+      "file": "051-clan-integrantes.png",
+      "title": "051-clan-integrantes",
+      "group": "0",
+      "bytes": 200885
+    },
+    {
+      "file": "052-clan-gerenciar-integrante.png",
+      "title": "052-clan-gerenciar-integrante",
+      "group": "0",
+      "bytes": 216694
+    },
+    {
+      "file": "053-clan-ranking.png",
+      "title": "053-clan-ranking",
+      "group": "0",
+      "bytes": 202305
+    },
+    {
+      "file": "054-clan-convite.png",
+      "title": "054-clan-convite",
+      "group": "0",
+      "bytes": 204391
+    },
+    {
+      "file": "055-grupo-dados.png",
+      "title": "055-grupo-dados",
+      "group": "0",
+      "bytes": 291369
+    },
+    {
+      "file": "056-grupo-integrantes.png",
+      "title": "056-grupo-integrantes",
+      "group": "0",
+      "bytes": 213624
+    },
+    {
+      "file": "057-grupo-gerenciar.png",
+      "title": "057-grupo-gerenciar",
+      "group": "0",
+      "bytes": 231925
+    },
+    {
+      "file": "100-evento-hub.png",
+      "title": "100-evento-hub",
+      "group": "1",
+      "bytes": 330789
+    },
+    {
+      "file": "101-evento-ctf-hud.png",
+      "title": "101-evento-ctf-hud",
+      "group": "1",
+      "bytes": 301221
+    },
+    {
+      "file": "102-evento-arena-hud.png",
+      "title": "102-evento-arena-hud",
+      "group": "1",
+      "bytes": 307696
+    },
+    {
+      "file": "103-evento-ctf-flag-pickup.png",
+      "title": "103-evento-ctf-flag-pickup",
+      "group": "1",
+      "bytes": 266285
+    },
+    {
+      "file": "104-evento-ctf-flag-drop.png",
+      "title": "104-evento-ctf-flag-drop",
+      "group": "1",
+      "bytes": 266964
+    },
+    {
+      "file": "105-evento-ctf-flag-return.png",
+      "title": "105-evento-ctf-flag-return",
+      "group": "1",
+      "bytes": 266530
+    },
+    {
+      "file": "106-evento-ctf-flag-capture.png",
+      "title": "106-evento-ctf-flag-capture",
+      "group": "1",
+      "bytes": 266821
+    },
+    {
+      "file": "107-evento-ctf-victory.png",
+      "title": "107-evento-ctf-victory",
+      "group": "1",
+      "bytes": 312966
+    },
+    {
+      "file": "108-evento-ctf-tie.png",
+      "title": "108-evento-ctf-tie",
+      "group": "1",
+      "bytes": 311231
+    },
+    {
+      "file": "109-evento-ctf-elimination.png",
+      "title": "109-evento-ctf-elimination",
+      "group": "1",
+      "bytes": 316568
+    },
+    {
+      "file": "110-evento-level-account.png",
+      "title": "110-evento-level-account",
+      "group": "1",
+      "bytes": 262588
+    },
+    {
+      "file": "111-evento-level-weapon.png",
+      "title": "111-evento-level-weapon",
+      "group": "1",
+      "bytes": 261284
+    },
+    {
+      "file": "112-evento-party-invitation.png",
+      "title": "112-evento-party-invitation",
+      "group": "1",
+      "bytes": 298489
+    },
+    {
+      "file": "113-evento-ctf-vote.png",
+      "title": "113-evento-ctf-vote",
+      "group": "1",
+      "bytes": 272561
+    },
+    {
+      "file": "114-evento-arena-vote.png",
+      "title": "114-evento-arena-vote",
+      "group": "1",
+      "bytes": 272864
+    },
+    {
+      "file": "115-evento-arena-respawn.png",
+      "title": "115-evento-arena-respawn",
+      "group": "1",
+      "bytes": 308208
+    },
+    {
+      "file": "116-evento-getout-survivor-waiting.png",
+      "title": "116-evento-getout-survivor-waiting",
+      "group": "1",
+      "bytes": 298795
+    },
+    {
+      "file": "117-evento-getout-beast-waiting.png",
+      "title": "117-evento-getout-beast-waiting",
+      "group": "1",
+      "bytes": 297456
+    },
+    {
+      "file": "118-evento-getout-survivor-playing.png",
+      "title": "118-evento-getout-survivor-playing",
+      "group": "1",
+      "bytes": 297564
+    },
+    {
+      "file": "119-evento-getout-beast-playing.png",
+      "title": "119-evento-getout-beast-playing",
+      "group": "1",
+      "bytes": 299612
+    },
+    {
+      "file": "120-evento-getout-survivor-enraged.png",
+      "title": "120-evento-getout-survivor-enraged",
+      "group": "1",
+      "bytes": 298013
+    },
+    {
+      "file": "121-evento-getout-beast-enraged.png",
+      "title": "121-evento-getout-beast-enraged",
+      "group": "1",
+      "bytes": 299942
+    },
+    {
+      "file": "122-evento-getout-survivor-results.png",
+      "title": "122-evento-getout-survivor-results",
+      "group": "1",
+      "bytes": 295966
+    },
+    {
+      "file": "123-evento-getout-beast-results.png",
+      "title": "123-evento-getout-beast-results",
+      "group": "1",
+      "bytes": 294735
+    },
+    {
+      "file": "124-evento-getout-Downed.png",
+      "title": "124-evento-getout-Downed",
+      "group": "1",
+      "bytes": 298128
+    },
+    {
+      "file": "125-evento-getout-Dragged.png",
+      "title": "125-evento-getout-Dragged",
+      "group": "1",
+      "bytes": 296365
+    },
+    {
+      "file": "126-evento-getout-Captured.png",
+      "title": "126-evento-getout-Captured",
+      "group": "1",
+      "bytes": 296823
+    },
+    {
+      "file": "127-evento-getout-hacking.png",
+      "title": "127-evento-getout-hacking",
+      "group": "1",
+      "bytes": 297582
+    },
+    {
+      "file": "200-settings-pause.png",
+      "title": "200-settings-pause",
+      "group": "2",
+      "bytes": 282421
+    },
+    {
+      "file": "201-settings-configuracoes.png",
+      "title": "201-settings-configuracoes",
+      "group": "2",
+      "bytes": 156851
+    },
+    {
+      "file": "202-settings-Gameplay.png",
+      "title": "202-settings-Gameplay",
+      "group": "2",
+      "bytes": 188819
+    },
+    {
+      "file": "203-settings-Controls.png",
+      "title": "203-settings-Controls",
+      "group": "2",
+      "bytes": 163545
+    },
+    {
+      "file": "204-settings-Camera.png",
+      "title": "204-settings-Camera",
+      "group": "2",
+      "bytes": 164121
+    },
+    {
+      "file": "205-settings-Interface.png",
+      "title": "205-settings-Interface",
+      "group": "2",
+      "bytes": 205040
+    },
+    {
+      "file": "206-settings-Themes.png",
+      "title": "206-settings-Themes",
+      "group": "2",
+      "bytes": 239217
+    },
+    {
+      "file": "207-settings-Graphics.png",
+      "title": "207-settings-Graphics",
+      "group": "2",
+      "bytes": 202757
+    },
+    {
+      "file": "208-settings-Accessibility.png",
+      "title": "208-settings-Accessibility",
+      "group": "2",
+      "bytes": 215836
+    },
+    {
+      "file": "209-settings-Audio.png",
+      "title": "209-settings-Audio",
+      "group": "2",
+      "bytes": 206400
+    },
+    {
+      "file": "210-settings-Maps.png",
+      "title": "210-settings-Maps",
+      "group": "2",
+      "bytes": 169464
+    },
+    {
+      "file": "211-settings-AdminMaps.png",
+      "title": "211-settings-AdminMaps",
+      "group": "2",
+      "bytes": 183036
+    },
+    {
+      "file": "212-settings-Development.png",
+      "title": "212-settings-Development",
+      "group": "2",
+      "bytes": 204131
+    },
+    {
+      "file": "213-settings-Analog.png",
+      "title": "213-settings-Analog",
+      "group": "2",
+      "bytes": 215349
+    },
+    {
+      "file": "214-settings-Bindings.png",
+      "title": "214-settings-Bindings",
+      "group": "2",
+      "bytes": 215098
+    },
+    {
+      "file": "215-settings-HUDSettings.png",
+      "title": "215-settings-HUDSettings",
+      "group": "2",
+      "bytes": 236380
+    },
+    {
+      "file": "216-settings-CameraCore.png",
+      "title": "216-settings-CameraCore",
+      "group": "2",
+      "bytes": 214926
+    },
+    {
+      "file": "217-settings-Aim.png",
+      "title": "217-settings-Aim",
+      "group": "2",
+      "bytes": 227053
+    },
+    {
+      "file": "218-settings-Reticle.png",
+      "title": "218-settings-Reticle",
+      "group": "2",
+      "bytes": 212082
+    },
+    {
+      "file": "219-settings-confirmar-saida.png",
+      "title": "219-settings-confirmar-saida",
+      "group": "2",
+      "bytes": 148884
+    },
+    {
+      "file": "220-settings-rendicao-ctf-indisponivel.png",
+      "title": "220-settings-rendicao-ctf-indisponivel",
+      "group": "2",
+      "bytes": 147755
+    },
+    {
+      "file": "221-remapeamento-Keyboard.png",
+      "title": "221-remapeamento-Keyboard",
+      "group": "2",
+      "bytes": 191135
+    },
+    {
+      "file": "222-remapeamento-Gamepad.png",
+      "title": "222-remapeamento-Gamepad",
+      "group": "2",
+      "bytes": 187274
+    },
+    {
+      "file": "223-remapeamento-Touch.png",
+      "title": "223-remapeamento-Touch",
+      "group": "2",
+      "bytes": 166482
+    },
+    {
+      "file": "224-settings-retornar-hub-arena.png",
+      "title": "224-settings-retornar-hub-arena",
+      "group": "2",
+      "bytes": 165673
+    },
+    {
+      "file": "300-progressao-Profile.png",
+      "title": "300-progressao-Profile",
+      "group": "3",
+      "bytes": 244230
+    },
+    {
+      "file": "301-progressao-Leaders.png",
+      "title": "301-progressao-Leaders",
+      "group": "3",
+      "bytes": 201996
+    },
+    {
+      "file": "302-progressao-Unlocks.png",
+      "title": "302-progressao-Unlocks",
+      "group": "3",
+      "bytes": 226094
+    },
+    {
+      "file": "303-progressao-Friends.png",
+      "title": "303-progressao-Friends",
+      "group": "3",
+      "bytes": 200994
+    },
+    {
+      "file": "304-progressao-Guild.png",
+      "title": "304-progressao-Guild",
+      "group": "3",
+      "bytes": 192656
+    },
+    {
+      "file": "305-filtros-progressao.png",
+      "title": "305-filtros-progressao",
+      "group": "3",
+      "bytes": 165864
+    },
+    {
+      "file": "400-armamentos-loadouts.png",
+      "title": "400-armamentos-loadouts",
+      "group": "4",
+      "bytes": 213314
+    },
+    {
+      "file": "401-arsenal-ASSAULT-RIFLES.png",
+      "title": "401-arsenal-ASSAULT-RIFLES",
+      "group": "4",
+      "bytes": 208670
+    },
+    {
+      "file": "402-arsenal-LEGACY.png",
+      "title": "402-arsenal-LEGACY",
+      "group": "4",
+      "bytes": 208912
+    },
+    {
+      "file": "403-arsenal-LIGHT-MACHINE-GUNS.png",
+      "title": "403-arsenal-LIGHT-MACHINE-GUNS",
+      "group": "4",
+      "bytes": 207288
+    },
+    {
+      "file": "404-arsenal-MARKSMAN-RIFLES.png",
+      "title": "404-arsenal-MARKSMAN-RIFLES",
+      "group": "4",
+      "bytes": 206994
+    },
+    {
+      "file": "405-arsenal-SHOTGUNS.png",
+      "title": "405-arsenal-SHOTGUNS",
+      "group": "4",
+      "bytes": 208230
+    },
+    {
+      "file": "406-arsenal-SNIPER-RIFLES.png",
+      "title": "406-arsenal-SNIPER-RIFLES",
+      "group": "4",
+      "bytes": 206589
+    },
+    {
+      "file": "407-arsenal-SPECIAL.png",
+      "title": "407-arsenal-SPECIAL",
+      "group": "4",
+      "bytes": 195222
+    },
+    {
+      "file": "408-arsenal-SUBMACHINE-GUNS.png",
+      "title": "408-arsenal-SUBMACHINE-GUNS",
+      "group": "4",
+      "bytes": 205502
+    },
+    {
+      "file": "410-armeiro-optic.png",
+      "title": "410-armeiro-optic",
+      "group": "4",
+      "bytes": 211097
+    },
+    {
+      "file": "411-armeiro-muzzle.png",
+      "title": "411-armeiro-muzzle",
+      "group": "4",
+      "bytes": 214954
+    },
+    {
+      "file": "412-armeiro-underbarrel.png",
+      "title": "412-armeiro-underbarrel",
+      "group": "4",
+      "bytes": 209854
+    },
+    {
+      "file": "413-armeiro-magazine.png",
+      "title": "413-armeiro-magazine",
+      "group": "4",
+      "bytes": 215980
+    },
+    {
+      "file": "414-armeiro-stock.png",
+      "title": "414-armeiro-stock",
+      "group": "4",
+      "bytes": 209435
+    },
+    {
+      "file": "415-armeiro-laser.png",
+      "title": "415-armeiro-laser",
+      "group": "4",
+      "bytes": 207093
+    },
+    {
+      "file": "416-progressao-arma.png",
+      "title": "416-progressao-arma",
+      "group": "4",
+      "bytes": 218604
+    },
+    {
+      "file": "417-armeiro-com-previa.png",
+      "title": "417-armeiro-com-previa",
+      "group": "4",
+      "bytes": 206003
+    },
+    {
+      "file": "418-opcoes-classe.png",
+      "title": "418-opcoes-classe",
+      "group": "4",
+      "bytes": 168180
+    },
+    {
+      "file": "419-renomear-classe.png",
+      "title": "419-renomear-classe",
+      "group": "4",
+      "bytes": 170282
+    },
+    {
+      "file": "420-confirmar-exclusao-classe.png",
+      "title": "420-confirmar-exclusao-classe",
+      "group": "4",
+      "bytes": 168446
+    },
+    {
+      "file": "421-previas-corpo-a-corpo.png",
+      "title": "421-previas-corpo-a-corpo",
+      "group": "4",
+      "bytes": 199996
+    },
+    {
+      "file": "422-previas-auxiliares.png",
+      "title": "422-previas-auxiliares",
+      "group": "4",
+      "bytes": 198673
+    },
+    {
+      "file": "423-previas-variantes.png",
+      "title": "423-previas-variantes",
+      "group": "4",
+      "bytes": 202155
+    },
+    {
+      "file": "424-arena-loadout.png",
+      "title": "424-arena-loadout",
+      "group": "4",
+      "bytes": 202873
+    },
+    {
+      "file": "425-arsenal-secundaria.png",
+      "title": "425-arsenal-secundaria",
+      "group": "4",
+      "bytes": 187300
+    },
+    {
+      "file": "500-loading.png",
+      "title": "500-loading",
+      "group": "5",
+      "bytes": 111105
+    },
+    {
+      "file": "501-loading-error.png",
+      "title": "501-loading-error",
+      "group": "5",
+      "bytes": 121649
+    },
+    {
+      "file": "502-damage.png",
+      "title": "502-damage",
+      "group": "5",
+      "bytes": 268637
+    },
+    {
+      "file": "503-interaction.png",
+      "title": "503-interaction",
+      "group": "5",
+      "bytes": 271777
+    },
+    {
+      "file": "504-dialog.png",
+      "title": "504-dialog",
+      "group": "5",
+      "bytes": 170371
+    },
+    {
+      "file": "505-eliminated.png",
+      "title": "505-eliminated",
+      "group": "5",
+      "bytes": 267357
+    },
+    {
+      "file": "506-standings-ctf.png",
+      "title": "506-standings-ctf",
+      "group": "5",
+      "bytes": 193284
+    },
+    {
+      "file": "507-standings-arena.png",
+      "title": "507-standings-arena",
+      "group": "5",
+      "bytes": 193070
+    },
+    {
+      "file": "508-weapon-hud.png",
+      "title": "508-weapon-hud",
+      "group": "5",
+      "bytes": 290637
+    },
+    {
+      "file": "509-gamepad-help.png",
+      "title": "509-gamepad-help",
+      "group": "5",
+      "bytes": 267178
+    },
+    {
+      "file": "510-optical-scope.png",
+      "title": "510-optical-scope",
+      "group": "5",
+      "bytes": 105283
+    },
+    {
+      "file": "511-optical-reflex.png",
+      "title": "511-optical-reflex",
+      "group": "5",
+      "bytes": 262650
+    },
+    {
+      "file": "512-placar-superior-arena.png",
+      "title": "512-placar-superior-arena",
+      "group": "5",
+      "bytes": 290866
+    },
+    {
+      "file": "513-ajuda-camera-admin.png",
+      "title": "513-ajuda-camera-admin",
+      "group": "5",
+      "bytes": 296535
+    },
+    {
+      "file": "514-controle-ampliacao-luneta.png",
+      "title": "514-controle-ampliacao-luneta",
+      "group": "5",
+      "bytes": 94732
+    },
+    {
+      "file": "600-mobile-hub.png",
+      "title": "600-mobile-hub",
+      "group": "6",
+      "bytes": 86114
+    },
+    {
+      "file": "601-mobile-ctf.png",
+      "title": "601-mobile-ctf",
+      "group": "6",
+      "bytes": 106720
+    },
+    {
+      "file": "602-mobile-arena.png",
+      "title": "602-mobile-arena",
+      "group": "6",
+      "bytes": 102862
+    },
+    {
+      "file": "603-mobile-getout.png",
+      "title": "603-mobile-getout",
+      "group": "6",
+      "bytes": 103781
+    },
+    {
+      "file": "604-mobile-editor.png",
+      "title": "604-mobile-editor",
+      "group": "6",
+      "bytes": 67833
+    },
+    {
+      "file": "605-mobile-configuracoes.png",
+      "title": "605-mobile-configuracoes",
+      "group": "6",
+      "bytes": 95974
+    },
+    {
+      "file": "606-mobile-progressao.png",
+      "title": "606-mobile-progressao",
+      "group": "6",
+      "bytes": 103710
+    },
+    {
+      "file": "607-mobile-social.png",
+      "title": "607-mobile-social",
+      "group": "6",
+      "bytes": 99286
+    },
+    {
+      "file": "608-mobile-carreira.png",
+      "title": "608-mobile-carreira",
+      "group": "6",
+      "bytes": 104163
+    },
+    {
+      "file": "609-mobile-clas.png",
+      "title": "609-mobile-clas",
+      "group": "6",
+      "bytes": 99961
+    },
+    {
+      "file": "610-mobile-armamentos.png",
+      "title": "610-mobile-armamentos",
+      "group": "6",
+      "bytes": 110307
+    },
+    {
+      "file": "611-mobile-votacao.png",
+      "title": "611-mobile-votacao",
+      "group": "6",
+      "bytes": 94327
+    },
+    {
+      "file": "612-mobile-hud-com-arma.png",
+      "title": "612-mobile-hud-com-arma",
+      "group": "6",
+      "bytes": 128655
+    },
+    {
+      "file": "613-mobile-mira-hud.png",
+      "title": "613-mobile-mira-hud",
+      "group": "6",
+      "bytes": 116498
+    },
+    {
+      "file": "614-mobile-editor-inspetor.png",
+      "title": "614-mobile-editor-inspetor",
+      "group": "6",
+      "bytes": 74203
+    },
+    {
+      "file": "615-mobile-seletor-progresso.png",
+      "title": "615-mobile-seletor-progresso",
+      "group": "6",
+      "bytes": 64772
+    },
+    {
+      "file": "616-mobile-laboratorio-debug.png",
+      "title": "616-mobile-laboratorio-debug",
+      "group": "6",
+      "bytes": 97672
+    },
+    {
+      "file": "7001-rolagem-configuracoes.png",
+      "title": "7001-rolagem-configuracoes",
+      "group": "7",
+      "bytes": 95823
+    },
+    {
+      "file": "7101-rolagem-remapeamento.png",
+      "title": "7101-rolagem-remapeamento",
+      "group": "7",
+      "bytes": 125555
+    },
+    {
+      "file": "7201-rolagem-armeiro.png",
+      "title": "7201-rolagem-armeiro",
+      "group": "7",
+      "bytes": 171382
+    },
+    {
+      "file": "7211-rolagem-armeiro.png",
+      "title": "7211-rolagem-armeiro",
+      "group": "7",
+      "bytes": 171380
+    },
+    {
+      "file": "7212-rolagem-armeiro.png",
+      "title": "7212-rolagem-armeiro",
+      "group": "7",
+      "bytes": 171380
+    },
+    {
+      "file": "7213-rolagem-armeiro.png",
+      "title": "7213-rolagem-armeiro",
+      "group": "7",
+      "bytes": 171414
+    },
+    {
+      "file": "7221-rolagem-armeiro.png",
+      "title": "7221-rolagem-armeiro",
+      "group": "7",
+      "bytes": 171380
+    }
+  ]
+}

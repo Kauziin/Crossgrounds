@@ -33,6 +33,7 @@ local extra={
  GameSFXVolume={Label="Sons da partida",Default=.5,Min=0,Max=1,Step=.05,Percent=true,Category="Audio"},
  BeastProximityVolume={Label="Proximidade da Besta",Default=.35,Min=0,Max=1,Step=.05,Percent=true,Category="Audio"},
  MenuScale={Label="Escala do menu",Default=1,Min=.8,Max=1.3,Step=.05,Percent=true,Category="Interface"},
+ InterfaceStyle={Label='Estilo da interface',Default=0,Choices={0,1,2},Labels={[0]='ATUAL',[1]='GERAL',[2]='COMPLETO'},Category='Interface'},
  HUDScale={Label="Escala da HUD",Default=1,Min=.8,Max=1.3,Step=.05,Percent=true,Category="Interface",ModeOverride=true},
  FontScale={Label="Tamanho adicional do texto",Default=1,Min=.9,Max=1.35,Step=.05,Percent=true,Category="Accessibility"},
  AccentHue={Label="Matiz",Default=180,Min=0,Max=359,Step=1,Category="Themes"},
@@ -77,7 +78,7 @@ local Controls=require(script.Parent.ControlDefinitions)
 for action,data in pairs(Controls.Actions) do
  for _,device in {"Gamepad","Keyboard"} do Settings.Rules[Controls:Attribute(action,device)]={Default=data[device],Device=device,Action=action} end
 end
-local categories={Gameplay={"AutoSprint"},Camera={"FieldOfView","WeaponFOVScale","FirstPerson","ShiftLock","Shoulder","CameraMotion"},Aim={"LookSensitivity","AimSensitivity","AimAssist","AimAssistStrength","AimAssistSlowdown","AimAssistTracking","AimAssistCentering"},Analog={"LeftStickDeadzone","RightStickDeadzone","StickCurve","StickCurveStrength"},Audio={"MenuVolume","MenuSFXVolume","GameSFXVolume","BeastProximityVolume"},Accessibility={"FontScale","HighContrast","ReducedMenuMotion","SimpleAnimations","WeaponAnimationIntensity","FOVTransitionSpeed","DamageFlash"},Interface={"MenuScale","HUDScale","KillFeedVisible"}}
+local categories={Gameplay={"AutoSprint"},Camera={"FieldOfView","WeaponFOVScale","FirstPerson","ShiftLock","Shoulder","CameraMotion"},Aim={"LookSensitivity","AimSensitivity","AimAssist","AimAssistStrength","AimAssistSlowdown","AimAssistTracking","AimAssistCentering"},Analog={"LeftStickDeadzone","RightStickDeadzone","StickCurve","StickCurveStrength"},Audio={"MenuVolume","MenuSFXVolume","GameSFXVolume","BeastProximityVolume"},Accessibility={"FontScale","HighContrast","ReducedMenuMotion","SimpleAnimations","WeaponAnimationIntensity","FOVTransitionSpeed","DamageFlash"},Interface={"InterfaceStyle","MenuScale","HUDScale","KillFeedVisible"}}
 categories.Reticle={"ReticleColor","ReticleSize","ReticleThickness","ReticleGap","ReticleDot","ReticleOutline","ReticleOpacity","ReticleDynamic"}
 categories.Graphics={"GraphicsQuality"}
 categories.Themes={"ThemePreset","AccentHue","AccentSaturation","AccentValue"}

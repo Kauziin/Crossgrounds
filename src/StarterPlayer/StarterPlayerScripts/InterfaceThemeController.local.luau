@@ -50,7 +50,9 @@ local names={MenuDialog=true,ClassOptionsOverlay=true,FloatingMapVote=true,GetOu
 local bound=setmetatable({},{__mode="k"}) local panels=setmetatable({},{__mode="k"})
 local function attach(gui)
  if not gui:IsA("ScreenGui") or not names[gui.Name] or bound[gui] then return end
- bound[gui]=true Theme.Apply(gui)
+ bound[gui]=true
+ if table.find({'ExperienceMenu','JoinMenu','CrossgroundsHub','ProgressionPanel','LobbyMusicMenu','ClassOptionsOverlay','MenuDialog'},gui.Name)then gui:SetAttribute('InterfaceStyleScope',true)end
+ Theme.Apply(gui)
  local function track(v) typography(v) if v:IsA("Frame") and v.Name=="Panel" then panels[v]=gui end end
  for _,v in gui:GetDescendants() do track(v) end gui.DescendantAdded:Connect(track) scaleHUD(gui)
 end
@@ -76,6 +78,7 @@ Preferences.Changed:Connect(function(changes)
  if not changes or changes.FontScale or changes.HighContrast or changes.HUDScale or changes.TouchSafeX or changes.TouchSafeY then refresh() end
 end)
 Theme.ObserveMobile(refresh)
+Theme.Style.Observe(player.PlayerGui,refresh)
 workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(refresh)
 pcall(function() GuiService:GetPropertyChangedSignal("PreferredTransparency"):Connect(refresh) end)
 Run.RenderStepped:Connect(function(dt)

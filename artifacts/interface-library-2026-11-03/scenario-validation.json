@@ -1,0 +1,175 @@
+{
+  "date": "2026-11-03",
+  "environment": "Roblox Studio Play, local client",
+  "count": 42,
+  "results": [
+    {
+      "id": "hub",
+      "ok": true
+    },
+    {
+      "id": "ctf-hud",
+      "ok": true
+    },
+    {
+      "id": "arena-hud",
+      "ok": true
+    },
+    {
+      "id": "ctf-flag-pickup",
+      "ok": true
+    },
+    {
+      "id": "ctf-flag-drop",
+      "ok": true
+    },
+    {
+      "id": "ctf-flag-return",
+      "ok": true
+    },
+    {
+      "id": "ctf-flag-capture",
+      "ok": true
+    },
+    {
+      "id": "ctf-victory",
+      "ok": true
+    },
+    {
+      "id": "ctf-tie",
+      "ok": true
+    },
+    {
+      "id": "ctf-elimination",
+      "ok": true
+    },
+    {
+      "id": "level-account",
+      "ok": true
+    },
+    {
+      "id": "level-weapon",
+      "ok": true
+    },
+    {
+      "id": "party-invitation",
+      "ok": true
+    },
+    {
+      "id": "ctf-vote",
+      "ok": true
+    },
+    {
+      "id": "arena-vote",
+      "ok": true
+    },
+    {
+      "id": "arena-respawn",
+      "ok": true
+    },
+    {
+      "id": "getout-survivor-waiting",
+      "ok": true
+    },
+    {
+      "id": "getout-beast-waiting",
+      "ok": true
+    },
+    {
+      "id": "getout-survivor-playing",
+      "ok": true
+    },
+    {
+      "id": "getout-beast-playing",
+      "ok": true
+    },
+    {
+      "id": "getout-survivor-enraged",
+      "ok": true
+    },
+    {
+      "id": "getout-beast-enraged",
+      "ok": true
+    },
+    {
+      "id": "getout-survivor-results",
+      "ok": true
+    },
+    {
+      "id": "getout-beast-results",
+      "ok": true
+    },
+    {
+      "id": "getout-Downed",
+      "ok": true
+    },
+    {
+      "id": "getout-Dragged",
+      "ok": true
+    },
+    {
+      "id": "getout-Captured",
+      "ok": true
+    },
+    {
+      "id": "getout-hacking",
+      "ok": true
+    },
+    {
+      "id": "loading",
+      "ok": true
+    },
+    {
+      "id": "loading-error",
+      "ok": true
+    },
+    {
+      "id": "damage",
+      "ok": true
+    },
+    {
+      "id": "interaction",
+      "ok": true
+    },
+    {
+      "id": "dialog",
+      "ok": true
+    },
+    {
+      "id": "eliminated",
+      "ok": true
+    },
+    {
+      "id": "standings-ctf",
+      "ok": true
+    },
+    {
+      "id": "standings-arena",
+      "ok": true
+    },
+    {
+      "id": "weapon-hud",
+      "ok": true
+    },
+    {
+      "id": "gamepad-help",
+      "ok": true
+    },
+    {
+      "id": "optical-scope",
+      "ok": true
+    },
+    {
+      "id": "optical-reflex",
+      "ok": true
+    },
+    {
+      "id": "clan-fixture",
+      "ok": true
+    },
+    {
+      "id": "party-fixture",
+      "ok": true
+    }
+  ]
+}

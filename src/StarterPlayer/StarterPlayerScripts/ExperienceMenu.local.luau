@@ -236,7 +236,8 @@ resize=function(animate)
  v=Theme.MenuBounds(v)
  local scale=get("MenuScale") local modifier=panel:FindFirstChild("PreferenceScale") or Instance.new("UIScale") modifier.Name="PreferenceScale" modifier.Scale=scale*Theme.MobileFactor() modifier.Parent=panel
  local ctfLoadout=page=="Loadout" and player:GetAttribute("CrossgroundsMode")=="ctf"
- local w=math.min(ctfLoadout and 1560 or 1280,(v.X-24)/scale) local h=math.min(720,(v.Y-20)/scale) panel.Size=UDim2.fromOffset(w,h)
+ local style=Theme.Style.Metrics(page~='Main')
+ local w=math.min(style.Id==0 and (ctfLoadout and 1560 or 1280) or style.Width,(v.X-24)/scale) local h=math.min(style.Height,(v.Y-20)/scale) panel.Size=UDim2.fromOffset(w,h)
  for f,t in paneTweens do t:Cancel() paneTweens[f]=nil end
  local configActive=page~="Main" and not table.find({"Loadout","Exit","Surrender"},page)
  panel:SetAttribute("SettingsOverhaul",configActive)
@@ -319,7 +320,7 @@ resize=function(animate)
  if page~="Main" and not simple and not categoryButtons.Options then buildCategories("Options") end
  if controlLeaf and not categoryButtons[leafParent[page]] then buildCategories(leafParent[page]) end
  panel:SetAttribute("CascadeDepth",#stack)
- local preferred=190
+ local preferred=style.Id>0 and (style.Id==1 and 218 or 164) or 190
  local step=preferred+8
  if step*(#stack-1)+340>w then step=math.max(24,(w-math.min(340,w-24*(#stack-1)))/math.max(1,#stack-1)) end
  for _,f in panes do f.Visible=false end
@@ -426,14 +427,15 @@ local function scopeLabels()
  mainButtons.Exit.LayoutOrder=7
  mainButtons.Loadout.Text=Scope:IsHub() and "Jogar" or "Armamentos"
  if Scope:IsGetOut() then mainButtons.Loadout.Text="Papéis do Get Out" end
- for _,b in mainButtons do b:SetAttribute('ExpandedText',b.Text)end
+ -- Compact rails hide labels; never persist the hidden text as the full label.
+ for _,b in mainButtons do if b.Text~=''then b:SetAttribute('ExpandedText',b.Text)end end
 end
 Scope.Changed:Connect(function() scopeLabels() show(false) end) scopeLabels()
-player:GetAttributeChangedSignal("CTFPracticeRange"):Connect(scopeLabels)
 player:GetAttributeChangedSignal("CTFPracticeRange"):Connect(scopeLabels)
 workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(function() resize(false) end)
 player:GetAttributeChangedSignal("SettingMenuScale"):Connect(function() resize(false) end)
 Theme.ObserveMobile(function() resize(false) end)
+Theme.Style.Observe(panel,function()resize(false)end)
 player:GetAttributeChangedSignal('ArsenalFocused'):Connect(function() resize(false) end)
 shade:GetPropertyChangedSignal("AbsoluteSize"):Connect(function() resize(false) end)
 player:GetAttributeChangedSignal("HUDLayoutEditing"):Connect(function() resize(false) end)

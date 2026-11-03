@@ -22,10 +22,24 @@ function Adapter.Cross(position,target,lane)
   end
   return target
  end
- if position.X<-36 and target.X>36 then return Vector3.new(-32,41,lane) end
- if position.X>36 and target.X<-36 then return Vector3.new(32,41,lane) end
- if position.X<36 and position.X>=-36 and target.X>36 then return Vector3.new(42,41,lane) end
- if position.X>-36 and position.X<=36 and target.X<-36 then return Vector3.new(-42,41,lane) end
+ -- Riverside bridges can move during authoring. Derive a crossing from the
+ -- actual deck rather than coordinates from the original map.
+ local bridges=arena and arena:FindFirstChild("Bridges")
+ if bridges and position.X*target.X<0 and math.abs(position.X-target.X)>70 then
+  local decks={} for _,part in bridges:GetDescendants() do
+   if part:IsA("BasePart") and part.Name=="Deck" and part.CanCollide then table.insert(decks,part) end
+  end
+  table.sort(decks,function(a,b)return a.Position.Z<b.Position.Z end)
+  local deck=decks[lane<0 and 1 or lane>0 and #decks or math.ceil(#decks/2)]
+  if deck then
+   local direction=target.X>position.X and 1 or -1
+   local edge=deck.Size.X*.5+8
+   local approach=Vector3.new(deck.Position.X-direction*edge,deck.Position.Y+deck.Size.Y*.5,deck.Position.Z)
+   local exit=Vector3.new(deck.Position.X+direction*edge,approach.Y,deck.Position.Z)
+   if (approach.X-position.X)*direction>5 then return approach end
+   if (exit.X-position.X)*direction>5 then return exit end
+  end
+ end
  return target
 end
 function Adapter:Candidates()
@@ -49,7 +63,7 @@ function Adapter:Objective(memory,now)
   position=own.home+Vector3.new(-sign*22,0,self.lane*.45) label="Guarding"
  else position=other.hitbox.Position label="Capturing" end
  if not position then position=own.home label="Guarding" end
- if label=="Guarding" then position+=Vector3.new(math.sin(now*.22+self.slot)*6,0,math.cos(now*.22+self.slot)*7) end
+ -- Hold a stable defensive post instead of continuously orbiting the flag.
  return {position=Adapter.Cross(root.Position,position,self.lane),label=label,critical=critical}
 end
 function Adapter:Cover(threat)

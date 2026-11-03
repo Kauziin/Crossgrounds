@@ -61,7 +61,9 @@ table.insert(connections,player:GetAttributeChangedSignal("CTFPracticeRange"):Co
      task.wait(math.max(0,.16-(os.clock()-lastRequest)))
      if not alive then break end
      if not item[4] or item[4]() then
-      lastRequest=os.clock() local ok,success,message=pcall(remote.InvokeServer,remote,item[1],item[2])
+      local target=remote
+      if item[1]=="preview"and game:GetService("RunService"):IsStudio()and player:GetAttribute("StudioInterfaceScenario")then target=Root:FindFirstChild("StudioInterfacePreview")or remote end
+      lastRequest=os.clock() local ok,success,message=pcall(target.InvokeServer,target,item[1],item[2])
       if not alive then break end
       if not ok or not success then notice.Text=ok and tostring(message) or "Não foi possível completar a solicitação." if item[5] then item[5]() end elseif item[3] then item[3](message) else notice.Text=tostring(message) end
      end

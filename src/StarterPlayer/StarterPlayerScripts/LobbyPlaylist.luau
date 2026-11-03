@@ -5,7 +5,7 @@ local Settings=require(game.ReplicatedStorage.ExperienceSettings)
 local Catalog=require(game.ReplicatedStorage.Crossgrounds.LobbyMusicCatalog)
 local changed=Instance.new("BindableEvent") Playlist.Changed=changed.Event
 Playlist.Tracks={} Playlist.Paused=false Playlist.Shuffle=false Playlist.Index=1 Playlist.State="Preparando"
-for _,track in Catalog do local copy=table.clone(track) copy.enabled=track.enabled~=false table.insert(Playlist.Tracks,copy) end
+for _,track in Catalog do if type(track)=="table" and type(track.id)=="string" and type(track.soundId)=="string" then local copy=table.clone(track) copy.enabled=track.enabled~=false table.insert(Playlist.Tracks,copy) end end
 local sound local retired={} local failed={} local loadingSince local lastAllowed
 local function allowed() return Scope:IsHub() and not player:GetAttribute("InArena") and not player:GetAttribute("ArenaPlaying") end
 local function emit()

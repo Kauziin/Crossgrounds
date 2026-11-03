@@ -33,6 +33,9 @@ local function characterAdded(c)
  end)
 end
 player.CharacterAdded:Connect(characterAdded) if player.Character then task.spawn(characterAdded,player.Character) end
+if game:GetService("RunService"):IsStudio()then
+ local event=Instance.new("BindableEvent")event.Name="StudioUIDamage"event.Parent=player.PlayerGui event.Event:Connect(flash)
+end
 require(script.Parent:WaitForChild("LobbyPlaylist")):Start()
 
 Scope.Changed:Connect(function()

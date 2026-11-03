@@ -11,7 +11,7 @@ function Navigation.Pump(now)
   if self.alive and job.generation==self.generation then
    busy+=1 tokens-=1 Navigation.Metrics.computations+=1 Navigation.Metrics.maxConcurrent=math.max(busy,Navigation.Metrics.maxConcurrent)
    task.spawn(function()
-    local path=Pathfinding:CreatePath({AgentRadius=2.1,AgentHeight=5.5,AgentCanJump=true,AgentCanClimb=true,WaypointSpacing=4,Costs={Water=25}})
+    local path=Pathfinding:CreatePath({AgentRadius=2.1,AgentHeight=5.5,AgentCanJump=true,AgentCanClimb=true,WaypointSpacing=4,Costs={Water=math.huge}})
     local ok=pcall(function() path:ComputeAsync(self.root.Position,job.goal) end)
     busy-=1
     if not self.alive or job.generation~=self.generation then path:Destroy() return end
@@ -49,8 +49,14 @@ function Navigation:Clear(from,to)
  if delta.Magnitude>18 or math.abs(delta.Y)>4 then return false end
  local params=RaycastParams.new() params.FilterType=Enum.RaycastFilterType.Exclude params.FilterDescendantsInstances={self.bot} params.RespectCanCollide=true
  local hit=delta.Magnitude>.1 and workspace:Blockcast(CFrame.new(from+Vector3.new(0,.4,0)),Vector3.new(3.2,3.5,3.2),delta,params)
- local ground=workspace:Raycast(to+Vector3.new(0,2,0),Vector3.new(0,-10,0),params)
- return not hit and ground~=nil
+ if hit then return false end
+ -- Check the full shortcut, including holes and water between supported ends.
+ for i=0,math.max(1,math.ceil(delta.Magnitude/3)) do
+  local point=from:Lerp(to,i/math.max(1,math.ceil(delta.Magnitude/3)))
+  local ground=workspace:Raycast(point+Vector3.new(0,1,0),Vector3.new(0,-7,0),params)
+  if not ground or ground.Material==Enum.Material.Water or ground.Normal.Y<.65 then return false end
+ end
+ return true
 end
 function Navigation:SetGoal(goal,now)
  if self.failedGoal and now<(self.failedUntil or 0) and (goal-self.failedGoal).Magnitude<12 then return false end
@@ -78,7 +84,7 @@ function Navigation:Update(now)
  local progress=(root.Position-self.position).Magnitude self.travel+=progress self.position=root.Position
  local step=math.min(.5,now-self.updatedAt) self.updatedAt=now
  if progress<.1 then self.idleSeconds+=math.max(0,step) end
- if distance<3.5 then self.lastProgress=now self.recovery=0 h:Move(Vector3.zero) self.command=nil return end
+ if Navigation.ReachedWaypoint(root.Position,self.goal) then self.lastProgress=now self.recovery=0 h:Move(Vector3.zero) self.command=nil return end
  if (root.Position-self.progressPosition).Magnitude>1.2 then self.lastProgress=now self.recovery=0 self.progressPosition=root.Position end
  if now-self.lastProgress>2.5 then
   self.recovery+=1 self.stuckCount+=1 self.lastProgress=now Navigation.Metrics.stuck+=1 self.reason="recover_"..self.recovery
@@ -96,7 +102,6 @@ function Navigation:Update(now)
  end
  local waypoint=self.waypoints and self.waypoints[self.index]
  if waypoint and Navigation.ReachedWaypoint(root.Position,waypoint.Position) then
-  if waypoint.Action==Enum.PathWaypointAction.Jump then h.Jump=true end
   self.index+=1 waypoint=self.waypoints[self.index]
  end
  local destination=self.direct and self.goal or waypoint and waypoint.Position
