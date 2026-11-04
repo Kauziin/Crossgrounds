@@ -25,6 +25,8 @@ end
 local title=label("Title",8,30,20)
 local objective=label("Objective",42,36,14)
 local note=label("Note",82,34,13,Color3.fromRGB(190,205,217))
+local roundResult=require(script.Parent.NeoRoundResult).new(gui,"GET OUT",panel)
+roundResult.Root.Position=panel.Position
 local abilityButton=Instance.new("TextButton") abilityButton.Name="BeastAbility" abilityButton.AnchorPoint=Vector2.new(1,1)
 abilityButton.Position=UDim2.new(1,-28,1,-88) abilityButton.Size=UDim2.fromOffset(190,56)
 abilityButton.BackgroundColor3=Color3.fromRGB(45,89,107) abilityButton.TextColor3=Color3.fromRGB(245,250,253)
@@ -49,8 +51,9 @@ end,{scope="get_out"})
 
 local function render()
  gui.Enabled=Scope:IsGetOut()
- if not gui.Enabled then return end
+ if not gui.Enabled then roundResult:Set(nil) return end
  local data=current
+ if not data or data.state~="results" then roundResult:Set(nil) end
  if not data then title.Text="GET OUT" objective.Text="Preparando partida..." note.Text="" abilityButton.Visible=false return end
  local role=data.role=="beast" and "BESTA" or data.role=="survivor" and "SOBREVIVENTE" or "AGUARDANDO"
  local phase=data.state=="enraged" and "FÚRIA" or data.state=="playing" and "FUGA" or string.upper(data.state or "AGUARDANDO")
@@ -59,6 +62,7 @@ local function render()
   local translations={escaped="Você escapou",captured="Você foi capturado",beast_contained="Besta contida",eliminated_at_timeout="Eliminado ao fim do tempo"}
   objective.Text=translations[data.result] or (data.ending=="technical_beast_departure" and "Partida encerrada por desconexão" or "Rodada encerrada")
   note.Text="Nova rodada em "..fmt(data.remaining)
+  roundResult:Set(objective.Text,note.Text)
  elseif data.state=="playing" or data.state=="enraged" then
   if data.role=="beast" then
    objective.Text="Capture os sobreviventes antes que escapem."

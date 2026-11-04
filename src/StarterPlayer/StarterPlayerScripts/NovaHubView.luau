@@ -55,7 +55,13 @@ function View.new(options)
  local primary=button(content,'Enter','Entrar',function()if page=='home'then show('modes',true)return end if selectedEntry and selectedEntry.canEnter then options.Play(selected,false)end end,true)
  local practice=button(content,'PracticeRange','Practice Range',function()options.Play('ctf',true)end)
  local cancel=button(content,'CancelEntry','Cancelar entrada',options.Cancel)
- local status=text(content,'Status','',14)Accent.Role(status,'TextColor3','Muted')
+ local entryStatus=make('Frame',content,'EntryStatus')
+ entryStatus.BackgroundTransparency=.25
+ Accent.Role(entryStatus,'BackgroundColor3','Surface')
+ make('UICorner',entryStatus,'Corner').CornerRadius=UDim.new(0,8)
+ local status=text(entryStatus,'Status','',14)
+ status.TextTruncate=Enum.TextTruncate.AtEnd
+ cancel.Parent=entryStatus
   local function focusFirst()task.delay(.08,function()if gui.Enabled then Nav:Focus(page=='modes'and modeCards and modeCards:DefaultFocus()or page=='home'and primary or rows[1]or backButton)end end)end
  local function clear()for _,b in rows do b:Destroy()end rows={}local live={}for _,b in buttons do if b.Parent then table.insert(live,b)end end buttons=live end
  local function refreshData()
@@ -68,7 +74,12 @@ function View.new(options)
   primary.Active=page=='home'or available==true and not options.Pending()primary.Selectable=primary.Active primary.TextTransparency=primary.Active and 0 or .45
   practice.Visible=false practice.Active=available==true and not options.Pending()practice.Selectable=practice.Active
   cancel.Visible=page=='modes'and(q.state=='joining'or q.state=='ready')
-  status.Text=options.Error()or data and data.error or (q.state~='idle'and q.message)or ''
+  local message=options.Error()or data and data.error or (q.state~='idle'and q.message)or ''
+  if message=='' then
+   message=({joining='Preparando entrada…',ready='Entrada pronta. Confirme pelo card.',entering='Entrando na modalidade…',travelling='Conectando ao servidor…',failed='Não foi possível entrar. Tente novamente.'})[q.state] or (options.Pending() and 'Preparando entrada…' or '')
+  end
+  status.Text=message
+  entryStatus.Visible=page=='modes' and (message~='' or cancel.Visible)
   for _,b in rows do b:SetAttribute('Chosen',page=='modes'and b.Name==selected)paint(b)end
  end
  function self:Layout()
@@ -97,17 +108,25 @@ function View.new(options)
   detail.Position=UDim2.new(0,4,1,compact and -116 or -156)detail.Size=UDim2.new(1,-8,0,compact and 34 or 48)detail.TextSize=13*fs
   primary.Position=page=='home'and UDim2.fromOffset(4,homeY)or UDim2.new(0,4,1,compact and -76 or -100)primary.Size=page=='home'and UDim2.fromOffset(math.min(width-8,550),compact and 52 or 64)or UDim2.new(.45,-10,0,52)
   practice.Position=UDim2.new(.45,4,1,compact and -76 or -100)practice.Size=UDim2.new(.32,-10,0,52)
-  cancel.Position=UDim2.new(.77,4,1,compact and -76 or -100)cancel.Size=UDim2.new(.23,-8,0,52)
-  status.Position=UDim2.new(0,4,1,compact and -22 or -42)status.Size=UDim2.new(1,-8,0,compact and 22 or 38)status.TextSize=13*fs
   if page=='modes'then
    brand.Text='CROSSGROUNDS  /  JOGAR'
    title.Text='JOGAR'title.Position=UDim2.fromOffset(4,compact and 36 or 44)title.Size=UDim2.new(1,-8,0,44)title.TextSize=compact and 27 or 34
    description.Position=UDim2.fromOffset(4,90)description.Size=UDim2.new(1,-8,0,28)
-   y=compact and 86 or 126 list.Position=UDim2.fromOffset(4,y)
+   y=compact and 86 or 126
+   local cancelWidth=width<520 and 126 or 168
+   entryStatus.Position=UDim2.fromOffset(4,y)
+   entryStatus.Size=UDim2.new(1,-8,0,52)
+   status.Position=UDim2.fromOffset(12,0)
+   status.Size=UDim2.new(1,cancel.Visible and -cancelWidth-24 or -24,1,0)
+   status.TextSize=13*fs
+   cancel.AnchorPoint=Vector2.new(1,0)
+   cancel.Position=UDim2.new(1,-4,0,4)
+   cancel.Size=UDim2.fromOffset(cancelWidth,44)
+   cancel.TextSize=13*fs
+   if entryStatus.Visible then y+=60 end
+   list.Position=UDim2.fromOffset(4,y)
    list.Size=UDim2.new(1,-8,0,math.max(120,height-y-(compact and 36 or 48)))
    primary.Visible=false detail.Visible=false
-   cancel.Position=UDim2.new(1,-180,0,0)cancel.Size=UDim2.fromOffset(180,44)
-   backButton.Position=UDim2.new(1,cancel.Visible and -310 or -120,0,0)
    if modeCards then modeCards:Resize()end
   end
   local home=page=='home'
@@ -157,7 +176,7 @@ function View.new(options)
   elseif id=='social'then
    add('Social','Amigos e grupo',function()Nav:OpenMenu('Social')end)add('Clan','Guilda',function()Nav:OpenMenu('Clan')end)
   else add('Modes','Escolher modalidade',function()show('modes',true)end,true)end
-  primary.Visible=id=='modes'or id=='home'detail.Visible=id=='modes'status.Visible=id=='modes'
+  primary.Visible=id=='modes'or id=='home'detail.Visible=id=='modes'
   refreshData()self:Layout()
   if self.Transition then self.Transition:Cancel()end
   if gui.Enabled and not Theme.ReducedMotion()then local target=content.Position content.Position=target+UDim2.fromOffset(10,0)self.Transition=game:GetService('TweenService'):Create(content,TweenInfo.new(.18,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{Position=target})self.Transition:Play()end
@@ -185,7 +204,15 @@ function View.new(options)
  hook(require(script.Parent.InputMode).Changed,refreshHelp)
  hook(require(script.Parent.InputIcons).Changed,refreshHelp)
  Accent.Bind(gui)
- function self:Update(value)local rebuild=page=='modes'and data==nil and value~=nil data=value modeCards:Update(data and data.catalog or {})if rebuild then show(page,false)else refreshData()end end
+ function self:Update(value)
+  local rebuild=page=='modes'and data==nil and value~=nil
+  data=value
+  modeCards:Update(data and data.catalog or {})
+  if rebuild then show(page,false)return end
+  local wasVisible,wasCancelable=entryStatus.Visible,cancel.Visible
+  refreshData()
+  if wasVisible~=entryStatus.Visible or wasCancelable~=cancel.Visible then self:Layout() end
+ end
  function self:SetOpen(on)local changed=gui.Enabled~=on gui.Enabled=on if changed and on then self:Layout()focusFirst()end end
  function self:Home()show('home',gui.Enabled)end
  function self:Modes()show('modes',gui.Enabled)end

@@ -3,6 +3,7 @@ local Weapons=require(script.Parent.WeaponCatalog)
 local Attachments=require(script.Parent.AttachmentCatalog)
 local Kits=require(game.ReplicatedStorage.KitDefinitions)
 local Finishes=require(script.Parent.WeaponFinishCatalog)
+local AttachmentLevels=require(script.Parent.WeaponAttachmentLevels)
 local C={}
 function C.FinishWeapon(mode,id)
  if mode=="ctf"then for _,w in Weapons.Weapons do if w.combatId==id and Kits.Weapons[id]and Kits.Weapons[id].Kind=="Gun"then return true end end
@@ -23,13 +24,17 @@ local fixed={
  as_val=51,legacy_AutoBlaster=51,sykov=52,rytec_amr=53,["725"]=54,ax_50=55,
 }
 local arenaLevels={M1911=1,Luger=4,Beretta=8,m1911=12,Magnum=16,x16=20,Glock18=24,m19=28,DesertEagle=32,magnum_357=36,renetti=42,desert_eagle=48,sykov=55}
-function C.Get(mode,item)
+function C.Get(mode,item,weaponId)
  local weapon,finish=Finishes.Parse(item)if weapon then if C.FinishWeapon(mode,weapon)then return {id=item,name=Finishes.Items[finish].name.." · "..weapon,kind="finish",weaponLevel=Finishes.Items[finish].level,weaponId=weapon}end return end
  if mode=="ctf" then
   local w=Weapons.Get(item)
   if w and w.combatId then return {id=item,name=w.name or item,kind="weapon",level=fixed[item] or 55,weaponId=item} end
   local a=Attachments[item]
-  if a and (a.status=="Available" or a.status=="VisualAdapter") then return {id=item,name=a.name or item,kind="attachment",weaponLevel=({optic=5,underbarrel=8,muzzle=12,magazine=15,barrel=20})[a.slot] or 10} end
+  if a and (a.status=="Available" or a.status=="VisualAdapter") then
+   local track=AttachmentLevels[weaponId]
+   local level=track and track[item] or ({optic=5,underbarrel=8,muzzle=12,magazine=15,barrel=20})[a.slot] or 10
+   return {id=item,name=a.name or item,kind="attachment",weaponLevel=level}
+  end
  elseif mode=="arena" and Kits:IsPistolVisual(item) then
   return {id=item,name=Kits.ArenaPistolNames[item] or item,kind="appearance",level=arenaLevels[item] or 55}
  end

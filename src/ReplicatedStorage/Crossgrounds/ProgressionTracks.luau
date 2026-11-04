@@ -42,7 +42,7 @@ function T.Weapon(p,id,category)
  track.title=w and w.name or id track.subtitle='Nível da arma '..level..' · XP de arma'
  local count=0
  if w then for _,slot in w.slots do for _,result in Compatibility.ForSlot(w,Attachments,slot) do if result.available then
-  local item=Unlocks.Get('ctf',result.attachment.id)
+  local item=Unlocks.Get('ctf',result.attachment.id,id)
   if item and (not category or category=='all' or category==slot) then
    local row=table.clone(item) row.slot=slot row.available=T.Allows(p,'ctf',item,id) row.description=(T.Slots[slot] or slot)..' · Arma nível '..item.weaponLevel
    add(track,item.weaponLevel,row)

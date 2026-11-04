@@ -1307,5 +1307,121 @@ Catalog.sykov_auto_725 = {
     visualOnly = false,
     description = "Disparo automático a 725 RPM enquanto segura o gatilho. Sem modelo adicional; dano e capacidade mantidos."
 }
+
+-- Merc Foregrip: M4A1
+
+local merc = Catalog.foregrips_merc_foregrip
+
+assert(merc, "Merc Foregrip não encontrado")
+assert(merc.physicalAssetPath, "Modelo não registrado")
+
+-- Identificação e compatibilidade
+merc.status = "Available"
+merc.auditStatus = "Verified"
+merc.pendingAudit = false
+
+merc.compatible = {"m4a1"}
+merc.compatibleWeapons = {"m4a1", "ak47", "m13"}
+merc.compatibilityMode = "SpecificWeapon"
+
+-- Encaixe físico
+merc.slot = "underbarrel"
+merc.mountType = "LowerRail"
+merc.mountName = "underbarrel"
+merc.requiresMount = true
+merc.rigDependencies = {"Handle.underbarrel"}
+
+-- Efeitos funcionais
+merc.visualOnly = false
+
+merc.statMultipliers = {
+    Spread = 0.50,
+    AdsSpeedMultiplier = 0.95,
+}
+
+merc.description =
+    "Reduz a dispersão em 50%, mas torna a mira 5% mais lenta."
+
+-- Inventory entries stay in preview until their weapon mounts are verified.
+local rialagInventory={
+ {"rialag_buffer_tube_stocks_ati_ar_stock", "ATI AR Stock", "stock", "Buffer Tube stocks", "ATI AR Stock"},
+ {"rialag_buffer_tube_stocks_b5_systems_sopmod_stock", "B5 Systems SOPMOD stock", "stock", "Buffer Tube stocks", "B5 Systems SOPMOD stock"},
+ {"rialag_buffer_tube_stocks_gl_core_stock", "GL Core stock", "stock", "Buffer Tube stocks", "GL Core stock"},
+ {"rialag_buffer_tube_stocks_hk416_stock", "HK416 Stock", "stock", "Buffer Tube stocks", "HK416 Stock"},
+ {"rialag_buffer_tube_stocks_hk416c_telescopic_stock", "HK416C Telescopic stock", "stock", "Buffer Tube stocks", "HK416C Telescopic stock"},
+ {"rialag_buffer_tube_stocks_m16_fixed_stock", "M16 Fixed Stock", "stock", "Buffer Tube stocks", "M16 Fixed Stock"},
+ {"rialag_buffer_tube_stocks_m4_enhanced_stock", "M4 Enhanced stock", "stock", "Buffer Tube stocks", "M4 Enhanced stock"},
+ {"rialag_buffer_tube_stocks_magpul_moe_stock", "MAGPUL MOE Stock", "stock", "Buffer Tube stocks", "MAGPUL MOE Stock"},
+ {"rialag_foregrips_aim_sports_grip", "Aim Sports Grip", "underbarrel", "Foregrips", "Aim Sports Grip"},
+ {"rialag_foregrips_chainsaw_grip", "Chainsaw Grip", "underbarrel", "Foregrips", "Chainsaw Grip"},
+ {"rialag_foregrips_hera_cqr_gen1", "Hera CQR Gen1", "underbarrel", "Foregrips", "Hera CQR Gen1"},
+ {"rialag_foregrips_magpul_afg2", "Magpul AFG2", "underbarrel", "Foregrips", "Magpul AFG2"},
+ {"rialag_foregrips_magpul_mvg", "Magpul MVG", "underbarrel", "Foregrips", "Magpul MVG"},
+ {"rialag_foregrips_magpul_rvg", "Magpul RVG", "underbarrel", "Foregrips", "Magpul RVG"},
+ {"rialag_foregrips_magpul_sc_grip", "Magpul SC Grip", "underbarrel", "Foregrips", "Magpul SC Grip"},
+ {"rialag_foregrips_sideways_grip", "Sideways Grip", "underbarrel", "Foregrips", "Sideways Grip"},
+ {"rialag_foregrips_skeleton_grip", "Skeleton Grip", "underbarrel", "Foregrips", "Skeleton Grip"},
+ {"rialag_foregrips_stubby_grip", "Stubby Grip", "underbarrel", "Foregrips", "Stubby Grip"},
+ {"rialag_foregrips_vertical_grip", "Vertical Grip", "underbarrel", "Foregrips", "Vertical Grip"},
+ {"rialag_iron_sights_carry_handle_sight", "Carry Handle sight", "optic", "Iron Sights", "Carry Handle sight"},
+ {"rialag_iron_sights_hk_sights", "HK Sights", "optic", "Iron Sights", "HK Sights"},
+ {"rialag_iron_sights_mbus_gen3", "MBUS-GEN3", "optic", "Iron Sights", "MBUS-GEN3"},
+ {"rialag_iron_sights_quick_release_sights", "Quick-Release Sights", "optic", "Iron Sights", "Quick-Release Sights"},
+ {"rialag_iron_sights_troy_flip_up_sights", "Troy Flip up sights", "optic", "Iron Sights", "Troy Flip up sights"},
+ {"rialag_magazines_ak_magazines_30rd_5_45x39_ak_magazine", "30RD 5.45x39 AK Magazine", "magazine", "Magazines", "AK Magazines", "30RD 5.45x39 AK Magazine"},
+ {"rialag_magazines_ak_magazines_30rd_7_62x39_ak_magazine", "30RD 7.62x39 AK Magazine", "magazine", "Magazines", "AK Magazines", "30RD 7.62x39 AK Magazine"},
+ {"rialag_magazines_ak_magazines_30rd_7_62x39_ak_pmag_magazine", "30RD 7.62x39 AK PMAG Magazine", "magazine", "Magazines", "AK Magazines", "30RD 7.62x39 AK PMAG Magazine"},
+ {"rialag_magazines_ak_magazines_30rd_9x19mm_ppk19_magazine", "30RD 9x19mm PPK19 Magazine", "magazine", "Magazines", "AK Magazines", "30RD 9x19mm PPK19 Magazine"},
+ {"rialag_magazines_ak_magazines_45rd_5_45x39_ak_magazine", "45rd 5.45x39 AK Magazine", "magazine", "Magazines", "AK Magazines", "45rd 5.45x39 AK Magazine"},
+ {"rialag_magazines_ak_magazines_45rd_7_62x39_ak_magazine", "45Rd 7.62x39 AK Magazine", "magazine", "Magazines", "AK Magazines", "45Rd 7.62x39 AK Magazine"},
+ {"rialag_magazines_ar15_magazines_20rd_stanag", "20RD STANAG", "magazine", "Magazines", "AR15 Magazines", "20RD STANAG"},
+ {"rialag_magazines_ar15_magazines_30rd_stanag", "30RD STANAG", "magazine", "Magazines", "AR15 Magazines", "30RD STANAG"},
+ {"rialag_magazines_ar15_magazines_40rd_stanag", "40RD STANAG", "magazine", "Magazines", "AR15 Magazines", "40RD STANAG"},
+ {"rialag_magazines_ar15_magazines_5_7x28mm_10rd_mag", "5.7x28mm 10rd mag", "magazine", "Magazines", "AR15 Magazines", "5.7x28mm 10rd mag"},
+ {"rialag_magazines_ar15_magazines_5_7x28mm_20rd_mag", "5.7x28mm 20rd mag", "magazine", "Magazines", "AR15 Magazines", "5.7x28mm 20rd mag"},
+ {"rialag_magazines_ar15_magazines_cmag", "Cmag", "magazine", "Magazines", "AR15 Magazines", "Cmag"},
+ {"rialag_magazines_ar15_magazines_drum_magazine", "Drum magazine", "magazine", "Magazines", "AR15 Magazines", "Drum magazine"},
+ {"rialag_magazines_ar15_magazines_lancer_l5_magazine", "Lancer L5 Magazine", "magazine", "Magazines", "AR15 Magazines", "Lancer L5 Magazine"},
+ {"rialag_magazines_ar15_magazines_pmag_20", "PMAG 20", "magazine", "Magazines", "AR15 Magazines", "PMAG 20"},
+ {"rialag_magazines_ar15_magazines_pmag_30", "PMAG 30", "magazine", "Magazines", "AR15 Magazines", "PMAG 30"},
+ {"rialag_magazines_ar15_magazines_s_mag", "S-Mag", "magazine", "Magazines", "AR15 Magazines", "S-Mag"},
+ {"rialag_magazines_hk_magazines_10rd_7_62x51_hk_magazine", "10RD 7.62x51 HK Magazine", "magazine", "Magazines", "HK Magazines", "10RD 7.62x51 HK Magazine"},
+ {"rialag_magazines_hk_magazines_20rd_7_62x51_hk_magazine", "20RD 7.62x51 HK Magazine", "magazine", "Magazines", "HK Magazines", "20RD 7.62x51 HK Magazine"},
+ {"rialag_magazines_hk_magazines_30rd_5_56x45_g36_magazine", "30RD 5.56x45 G36 Magazine", "magazine", "Magazines", "HK Magazines", "30RD 5.56x45 G36 Magazine"},
+ {"rialag_magazines_hk_magazines_30rd_5_56x45_hk_magazine", "30RD 5.56x45 HK Magazine", "magazine", "Magazines", "HK Magazines", "30RD 5.56x45 HK Magazine"},
+ {"rialag_magazines_other_magazines_10rd_7_62x51_magazine", "10RD 7.62x51 Magazine", "magazine", "Magazines", "Other Magazines", "10RD 7.62x51 Magazine"},
+ {"rialag_magazines_other_magazines_12_7x55_10rd_ash_12_7_mag", "12.7x55 10Rd ASh-12.7 Mag", "magazine", "Magazines", "Other Magazines", "12.7x55 10Rd ASh-12.7 Mag"},
+ {"rialag_magazines_other_magazines_20rd_30_06_vepr_mag", "20RD 30-06 VEPR mag", "magazine", "Magazines", "Other Magazines", "20RD 30-06 VEPR mag"},
+ {"rialag_magazines_other_magazines_20rd_7_62x51_magazine", "20RD 7.62x51 Magazine", "magazine", "Magazines", "Other Magazines", "20RD 7.62x51 Magazine"},
+ {"rialag_magazines_other_magazines_20rd_7_62x51_pmag", "20RD 7.62x51 PMAG", "magazine", "Magazines", "Other Magazines", "20RD 7.62x51 PMAG"},
+ {"rialag_magazines_other_magazines_20rd_9x39mm_magazine", "20RD 9x39mm Magazine", "magazine", "Magazines", "Other Magazines", "20RD 9x39mm Magazine"},
+ {"rialag_magazines_other_magazines_7_62x54mmr_vepr_mag", "7.62x54mmR VEPR mag", "magazine", "Magazines", "Other Magazines", "7.62x54mmR VEPR mag"},
+ {"rialag_magazines_small_caliber_17rd_9x19mm_glock_magazine", "17RD 9x19mm Glock Magazine", "magazine", "Magazines", "Small Caliber", "17RD 9x19mm Glock Magazine"},
+ {"rialag_magazines_small_caliber_33rd_9x19mm_glock_magazine", "33RD 9x19mm Glock Magazine", "magazine", "Magazines", "Small Caliber", "33RD 9x19mm Glock Magazine"},
+ {"rialag_magazines_small_caliber_7rd_45_acp_p220_magazine", "7RD .45 ACP P220 Magazine", "magazine", "Magazines", "Small Caliber", "7RD .45 ACP P220 Magazine"},
+ {"rialag_scopes_fronttime_3_9x", "FRONTTIME 3-9x", "optic", "Scopes", "FRONTTIME 3-9x"},
+ {"rialag_scopes_mark_5hd_5_25x56", "MARK 5HD 5-25X56", "optic", "Scopes", "MARK 5HD 5-25X56"},
+ {"rialag_scopes_mark_5hd_5_25x56_low", "MARK 5HD 5-25X56 Low", "optic", "Scopes", "MARK 5HD 5-25X56 Low"},
+ {"rialag_scopes_pm_ii_scope", "PM II SCOPE", "optic", "Scopes", "PM II SCOPE"},
+ {"rialag_scopes_un_branded_scope", "Un branded Scope", "optic", "Scopes", "Un branded Scope"},
+ {"rialag_supressors_supressors_ars_suppressor", "ARS Suppressor", "muzzle", "Supressors", "Supressors", "ARS Suppressor"},
+ {"rialag_supressors_supressors_default_supressor", "Default Supressor", "muzzle", "Supressors", "Supressors", "Default Supressor"},
+ {"rialag_supressors_supressors_osprey_supressor", "Osprey Supressor", "muzzle", "Supressors", "Supressors", "Osprey Supressor"},
+ {"rialag_supressors_supressors_r2_supressor", "R2 Supressor", "muzzle", "Supressors", "Supressors", "R2 Supressor"},
+}
+for _,row in rialagInventory do
+ local id,name,slot=row[1],row[2],row[3]
+ local path={"ServerStorage","ImportedArsenalOriginals","Rialag's Attachment Pack V2"}
+ for index=4,#row do table.insert(path,row[index]) end
+ Catalog[id]={
+  id=id,canonicalId=id,assetId=id,name=name,slot=slot,status="PreviewOnly",
+  sourcePack="Rialag's Attachment Pack V2",physicalAssetPath=path,
+  compatible={},compatibleWeapons={},compatibilityMode="SpecificWeapon",
+  requiresMount=true,visualOnly=true,auditStatus="Pending",pendingAudit=true,
+  publicationBlocked=true,description="Modelo de catálogo. Encaixe e desbloqueio pendentes.",
+ }
+end
+require(script.Parent.ArsenalPilot).InstallAttachments(Catalog)
+Catalog.optics_g_i_mini_reflex.mountReferencePart = "Rail Mount"
 return Catalog
 

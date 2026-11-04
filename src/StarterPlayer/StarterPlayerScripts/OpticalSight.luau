@@ -29,6 +29,7 @@ function Sight.new(player)
  return self
 end
 function Sight:Update(profile,viewport,point,progress,aperture,active)
+ if profile and profile.reticle=="Iron" then profile=nil end
  self.gui.Enabled=profile~=nil self.reticle.Enabled=profile~=nil
  if not profile then return end
  local reflex=profile.reticle=="RedDot"

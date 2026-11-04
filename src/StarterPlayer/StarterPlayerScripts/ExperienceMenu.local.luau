@@ -58,6 +58,21 @@ end
 local editScope="Global"
 local bindingDevice="Keyboard"
 local bindingTabs=Instance.new("Frame") bindingTabs.Name="InputTabs" bindingTabs.BackgroundTransparency=1 bindingTabs.Position=UDim2.fromOffset(8,50) bindingTabs.Size=UDim2.new(1,-16,0,30) bindingTabs.Visible=false bindingTabs.Parent=panes.Detail
+local function paintBinding(button)
+ local name=button:GetAttribute("BindingLabel")
+ if not name then return end
+ local neo=Theme.Style.IsNova()
+ local glyph=button.Binding
+ local width=button:GetAttribute("BindingDevice")=="Keyboard" and 84 or 32
+ button.Text=neo and name or name.."  ·  "..button:GetAttribute("BindingKey").."    "
+ button.TextXAlignment=neo and Enum.TextXAlignment.Left or Enum.TextXAlignment.Right
+ button.TextTruncate=neo and Enum.TextTruncate.AtEnd or Enum.TextTruncate.None
+ button.UIPadding.PaddingRight=UDim.new(0,neo and width+20 or 4)
+ glyph.AnchorPoint=neo and Vector2.new(0,.5) or Vector2.zero
+ glyph.Position=neo and UDim2.new(1,8,.5,0) or UDim2.fromOffset(3,9)
+ glyph.Size=UDim2.fromOffset(neo and width or 28,28)
+ glyph.BackgroundTransparency=neo and .3 or 1
+end
 local tabButtons={}
 for index,entry in {{"Keyboard","Teclado & Mouse"},{"Gamepad","Controle"},{"Touch","Toque"}} do
  local b=btn(bindingTabs,entry[1],entry[2]) b.Size=UDim2.new(1/3,-3,1,0) b.Position=UDim2.new((index-1)/3,0,0,0) b.TextSize=11 b.TextXAlignment=Enum.TextXAlignment.Center
@@ -162,9 +177,19 @@ render=function(id)
    for _,actionName in Controls.Order do
     if not Controls.Actions[actionName].AdminOnly or player:GetAttribute("CrossgroundsAdmin")==true then
      local b=action(actionName..device,"",function() Router:Capture(actionName,device) end)
-     local glyph,refresh=Icons:Glyph(b,"Binding",function() return Router:Key(actionName,device) end,28) glyph.Position=UDim2.fromOffset(3,9)
-     b.TextXAlignment=Enum.TextXAlignment.Right b.TextSize=12
-     local function updateKey() b.Text=Controls.Actions[actionName].Label.."  ·  "..Icons:Name(Router:Key(actionName,device)).."    " refresh() end
+     local glyph,refresh=Icons:Glyph(b,"Binding",function() return Router:Key(actionName,device) end,28)
+     glyph.BackgroundColor3=Theme.Colors.Surface
+     Instance.new("UICorner",glyph).CornerRadius=UDim.new(0,6)
+     b:SetAttribute("BindingLabel",Controls.Actions[actionName].Label)
+     b:SetAttribute("BindingDevice",device)
+     b.TextSize=12
+     local function updateKey()
+      local key=Icons:Name(Router:Key(actionName,device))
+      b:SetAttribute("BindingKey",key)
+      b:SetAttribute("AccessibleLabel",Controls.Actions[actionName].Label.." · "..key)
+      refresh()
+      paintBinding(b)
+     end
      hook(Router.Changed,updateKey) hook(Icons.Changed,updateKey) updateKey()
     end
    end
@@ -242,6 +267,7 @@ end
 resize=function(animate)
  if activeLoadoutView and ((activeLoadoutView.Root.Name=="ArenaLoadout" or activeLoadoutView.Root.Name=="Gunsmith") and (page~="Loadout" or not shade.Visible) or activeLoadoutView.Root.Name=="ThemeSelection" and (page~="Themes" or not shade.Visible)) then cleanDetail() end
  bindingTabs.Visible=page=="Bindings"
+ bindingTabs.Size=UDim2.new(1,-16,0,Theme.Style.IsNova() and 44 or 30)
  lists.Detail.Position=UDim2.fromOffset(8,page=="Bindings" and 86 or 52) lists.Detail.Size=UDim2.new(1,-16,1,page=="Bindings" and -94 or -60)
  for device,b in tabButtons do b.BackgroundColor3=device==bindingDevice and Theme.Colors.Selected or Theme.Colors.Button b:SetAttribute("MenuSelected",device==bindingDevice) end
  local v=shade.AbsoluteSize if v.X<200 or v.Y<150 then v=workspace.CurrentCamera.ViewportSize end
@@ -373,6 +399,9 @@ resize=function(animate)
  for _,b in mainButtons do b.Size=UDim2.new(1,-4,0,math.clamp((h-110)/math.max(1,visibleCount),48,62)) end
  if neoPause then for f,t in paneTweens do t:Cancel()paneTweens[f]=nil end end
  NeoPause.Apply({Active=neoPause,Page=page,Panes=panes,Lists=lists,Panel=panel,Width=w,Height=h})
+ if page=="Bindings" then
+  for _,row in lists.Detail:GetChildren() do paintBinding(row) end
+ end
  if animate then
   local activeId=panes.Detail.Visible and "Detail" or panes.Categories.Visible and "Categories" or panes.Options.Visible and "Options" or "Main"
   local activeList=lists[activeId] local target=panes[activeId].Back

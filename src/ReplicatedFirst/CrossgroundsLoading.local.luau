@@ -21,7 +21,7 @@ local function label(name,text,y,size,color)
  item.TextColor3=color or Color3.fromRGB(232,240,247)item.BackgroundTransparency=1
  item.TextWrapped=true item.Parent=panel return item
 end
-label("Brand","C R O S S G R O U N D S",0,19,Color3.fromRGB(118,204,235))
+local brand=label("Brand","C R O S S G R O U N D S",0,19,Color3.fromRGB(118,204,235))
 local title=label("Phase","Preparando sua chegada",59,28)title.Font=Enum.Font.GothamBold
 local detail=label("Detail","Conectando ao servidor…",108,15,Color3.fromRGB(168,187,205))
 detail.Size=UDim2.new(1,0,0,48)
@@ -127,6 +127,37 @@ exit.Activated:Connect(function()
  local command=remotes and remotes:FindFirstChild("Command")
  if command then command:FireServer({action="returnHub"}) end
 end)
+local classicBackground=background.BackgroundColor3
+local classicGradient=gradient.Color
+local designScale=Instance.new("UIScale",panel)
+local function layoutCover()
+ local neo=player:GetAttribute("SettingInterfaceStyle")==1
+ local height=background.AbsoluteSize.Y
+ local twoActions=exit.Visible
+ local panelHeight=neo and (twoActions and 286 or retry.Visible and 228 or 174) or 270
+ panel.Size=UDim2.new(.86,0,0,panelHeight)
+ local requiredHeight=neo and panelHeight or twoActions and 382 or 286
+ designScale.Scale=height>20 and math.min(1,(height-20)/requiredHeight) or 1
+ background.BackgroundColor3=neo and Color3.fromRGB(14,23,28) or classicBackground
+ gradient.Color=neo and ColorSequence.new(Color3.fromRGB(16,30,37),Color3.fromRGB(4,9,13)) or classicGradient
+ brand.Text=neo and "CROSSGROUNDS" or "C R O S S G R O U N D S"
+ brand.Font=neo and Enum.Font.GothamBlack or Enum.Font.GothamMedium
+ brand.TextSize=neo and 25 or 19
+ title.Position=UDim2.fromOffset(0,neo and 44 or 59)
+ title.TextSize=neo and 24 or 28
+ detail.Position=UDim2.fromOffset(0,neo and 86 or 108)
+ track.Position=UDim2.fromOffset(0,neo and 138 or 176)
+ status.Position=UDim2.fromOffset(0,neo and 151 or 190)
+ for index,action in {retry,exit} do
+  action.Size=UDim2.fromOffset(240,neo and 44 or 42)
+  action.Position=UDim2.new(.5,0,0,neo and 179+(index-1)*52 or 236+(index-1)*48)
+ end
+end
+player:GetAttributeChangedSignal("SettingInterfaceStyle"):Connect(layoutCover)
+background:GetPropertyChangedSignal("AbsoluteSize"):Connect(layoutCover)
+retry:GetPropertyChangedSignal("Visible"):Connect(layoutCover)
+exit:GetPropertyChangedSignal("Visible"):Connect(layoutCover)
+layoutCover()
 local elapsed=0
 Run.RenderStepped:Connect(function(dt)
  elapsed+=dt if elapsed<.15 then return end elapsed=0

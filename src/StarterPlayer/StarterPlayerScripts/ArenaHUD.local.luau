@@ -78,6 +78,7 @@ local voteBrowser=Cascade.new(gui,"VoteShade","ARENA")
 voteBrowser:AddPane("Maps","VOTAÇÃO DE MAPA")
 local shade=voteBrowser.Backdrop local votePanel=voteBrowser.Panel
 local state={state="idle",options={},counts={},endsAt=0} local voteOpen=false local cards={} local lastBallot=0 local markerToken=0
+local roundResult=require(script.Parent.NeoRoundResult).new(gui,"ARENA")
 local hint=voteBrowser:Info("Maps","Hint","",60)
 hint.LayoutOrder=-1 hint.Size=UDim2.new(1,-8,0,44)
 local summary=voteBrowser:Info("Maps","Summary","",64) summary.LayoutOrder=1000
@@ -105,6 +106,11 @@ local open=button(gui,"OpenVoting","VOTAÇÃO",0,100,166,38,function() Nav:OpenM
 local returnButton=button(gui,"ReturnCrossgrounds","CROSSGROUNDS",0,144,166,38,function() Bridge:Send("returnHub") end) returnButton.AnchorPoint=Vector2.new(1,0) returnButton.Position=UDim2.new(1,-24,0,144)
 local function snapshot(data)
  if typeof(data)~="table" or data.id~="arena" or not data.options then return end state=data
+ if state.state=="results" then
+  roundResult:Set("RODADA ENCERRADA",string.format("SESSÃO   %d ELIM.   ·   %d MORTES   ·   %d XP",state.kills or 0,state.deaths or 0,state.sessionXP or 0))
+ else
+  roundResult:Set(nil)
+ end
  rebuildMaps(state.options)
  if state.state=="voting" and state.endsAt~=lastBallot then lastBallot=state.endsAt showVote(false) end
  if state.state~="voting" then showVote(false) end
@@ -115,6 +121,7 @@ Bridge.Changed:Connect(function(data) if data and data.mode=="arena" and data.se
 Nav.MenuRequested:Connect(function(id) if id=="ArenaVote" and Scope:IsArena() then Nav:OpenMenu("MapVote") end end)
 local function scope()
  gui.Enabled=Scope:IsArena() if not Scope:IsArena() then showVote(false) markerToken+=1 marker.Visible=false clearNotifications() panel.Rotation=0 if sound then sound:Stop() end
+ roundResult:Set(nil)
  for _,audio in gui:GetChildren() do if audio:IsA("Sound") and audio.Name=="ArenaFeedbackVoice" then audio:Destroy() end end
  else pcall(function() game.StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack,false) game.StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Health,false) end)
  local data=Bridge:Get() if data and data.session then snapshot(data.session) end end

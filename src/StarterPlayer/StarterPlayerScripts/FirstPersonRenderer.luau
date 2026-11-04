@@ -31,6 +31,8 @@ function Renderer.new(tool)
  model:ScaleTo(Hold.IsPistol(tool) and .9 or tool:GetAttribute("WeaponKind")=="Gun" and .72 or .65)
  for _,p in model:GetChildren() do if p:IsA("BasePart") then table.insert(self.parts,{part=p,rest=p.CFrame,group=p:GetAttribute("ReloadGroup"),reloadOnly=p:GetAttribute("ReloadOnly")}) end end
  self.handle=handle self.scale=model:GetScale() self.reloadMotion=Reload.new()
+ local rear,front=handle:FindFirstChild("IronRear"),handle:FindFirstChild("IronFront")
+ if rear and front then self.ironAxis=CFrame.lookAt(rear.Position,front.Position) end
  self.ax50=tool:GetAttribute("WeaponId")=="ax_50"
  if self.ax50 then self.cycleEffects=require(script.Parent:WaitForChild("AX50CycleEffects")).new(tool,world) end
  if self.ax50 and not tool:GetAttribute("OpticalAttachmentId") then self.optic=AXOptics.Build(model,self.parts) end
@@ -95,7 +97,14 @@ function Renderer:Render(dt,camera,character,params)
  local rejected=shotStamp~=nil and self.tool:GetAttribute("AX50RejectedShotStamp")==shotStamp
  local bolt=self.ax50 and AX50.Bolt(params.firedAgo or 100,params.cooldown,reloading or rejected) or nil
  local axialKick=self.ax50 and AX50.Kick(params.firedAgo or 100,params.ads,params.recoilStrength) or CFrame.identity
- if params.sight and params.sight.reticle=="RedDot" then
+ local iron=params.sight and params.sight.reticle=="Iron" and self.ironAxis
+ if iron then
+  local kick=math.clamp((params.recoil or 0)*.12*weight,0,.10)
+  local pitch=math.rad((params.pitch or 0)*.13*weight)
+  local roll=math.rad((params.roll or 0)*.20*weight)
+  local aligned=CFrame.new(0,0,-.62+kick)*CFrame.Angles(pitch,0,roll)*self.ironAxis:Inverse()
+  cf=cf:Lerp(aligned,transition.alignment*(1-reload.active)*(1-self.wall))
+ elseif params.sight and params.sight.reticle=="RedDot" then
   for _,entry in self.parts do
    if entry.part:GetAttribute("VisualAttachmentSlot")=="optic" and entry.part.Name:find("Lens",1,true) then
     local eye=entry.rest.Position
@@ -136,7 +145,7 @@ function Renderer:Render(dt,camera,character,params)
   if entry.reloadOnly then entry.part.Transparency=reload.active>.02 and 0 or 1 end
  end
  for _,arm in self.arms do
-  arm.part.LocalTransparencyModifier=self.optic and 0 or transition.arms
+  arm.part.LocalTransparencyModifier=(self.optic or iron) and 0 or transition.arms
   local side=arm.side=="Right" and 1 or -1
   local hand=arm.hand+(side<0 and reload.hand+(action.support or Vector3.zero)*weight or bolt and bolt.hand*weight or Vector3.zero)
   local elbow=Vector3.new(side*(.9+(.18+.36*math.sin(params.runPhase or 0))*(params.runWeight or 0)*weight),-.65,1.25)

@@ -95,6 +95,16 @@ local timer=label(score,"Timer","",UDim2.fromOffset(105,0),UDim2.fromOffset(90,3
 local red=label(score,"Red","0  VERMELHO",UDim2.fromOffset(195,0),UDim2.fromOffset(93,38),14,Color3.fromRGB(255,137,128)) red.TextXAlignment=Enum.TextXAlignment.Right
 local objective=label(gui,"Objective","",UDim2.new(.5,-260,0,93),UDim2.fromOffset(520,25),13) objective.TextXAlignment=Enum.TextXAlignment.Center objective.TextStrokeTransparency=.55
 local victory=label(gui,"Victory","",UDim2.new(.5,-240,.3,0),UDim2.fromOffset(480,60),28) victory.TextXAlignment=Enum.TextXAlignment.Center victory.Font=Enum.Font.GothamBold victory.TextStrokeTransparency=.45
+local roundResult=require(script.Parent.NeoRoundResult).new(gui,"CONFLITO",victory)
+local function showRoundResult()
+ if not Scope:IsCTF() or workspace:GetAttribute("RoundState")~="Results" then roundResult:Set(nil) return end
+ local blueScore=game.Teams.Blue:GetAttribute("Captures") or 0
+ local redScore=game.Teams.Red:GetAttribute("Captures") or 0
+ roundResult:Set(victory.Text~="" and victory.Text or "RODADA ENCERRADA",string.format("AZUL  %d  ×  %d  VERMELHO",blueScore,redScore))
+end
+workspace:GetAttributeChangedSignal("RoundState"):Connect(showRoundResult)
+game.Teams.Blue:GetAttributeChangedSignal("Captures"):Connect(showRoundResult)
+game.Teams.Red:GetAttributeChangedSignal("Captures"):Connect(showRoundResult)
 local respawn=label(gui,"Respawn","",UDim2.new(.5,-180,.6,0),UDim2.fromOffset(360,32),20) respawn.TextXAlignment=Enum.TextXAlignment.Center respawn.TextStrokeTransparency=.4
 local shade=frame(gui,"LeaveShade",UDim2.new(),UDim2.fromScale(1,1),Color3.new(0,0,0),.4) shade.Visible=false shade.BackgroundTransparency=1
 local dialog=frame(shade,"Dialog",UDim2.fromScale(.5,.5),UDim2.fromOffset(360,155),dark) dialog.AnchorPoint=Vector2.new(.5,.5) round(dialog,12)
@@ -151,6 +161,7 @@ end)
 events.DisplayVictory.OnClientEvent:Connect(function(team)
  if not Scope:IsCTF() then return end
  victory.Text=team and (team=="Tie" and "EMPATE" or (team.Name=="Blue" and "AZUL VENCEU" or "VERMELHO VENCEU")) or ""
+ showRoundResult()
 end)
 local notificationToken=0
 events.DisplayNotification.OnClientEvent:Connect(function(_,message)
@@ -227,6 +238,8 @@ Scope.Changed:Connect(function()
  syncVisibility()
  close() toastToken+=1 hitToken+=1 notificationToken=0
  toast.Text="" victory.Text="" objective.Text="" marker.Visible=false hitSound:Stop()
+ showRoundResult()
  for _,entry in feedView.Rows do entry:Destroy() end table.clear(feedView.Rows)
 end)
+showRoundResult()
 

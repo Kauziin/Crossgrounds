@@ -22,7 +22,7 @@ function Layout.Apply(c)
  local description=not compact and leaf and c.Page~='Bindings'
  c.Subtitle.Visible=description c.Subtitle.Text=Visual.Descriptions[c.Page]or 'Personalize suas preferências.'
  c.Subtitle.Position=UDim2.fromOffset(18,heading)c.Subtitle.Size=UDim2.new(1,-36,0,28)
- local contentY=heading+(description and 36 or 6)+(c.Page=='Bindings'and 40 or 0)
+ local contentY=heading+(description and 36 or 6)+(c.Page=='Bindings'and 50 or 0)
  c.BindingTabs.Position=UDim2.fromOffset(8,heading+2)
  list.Position=UDim2.fromOffset(8,contentY)
  list.Size=UDim2.new(1,-24,1,-contentY-8)

@@ -403,7 +403,7 @@ bind("Shoulder",function() Presentation:ToggleShoulder() end)
 bind("Perspective",function() Presentation:TogglePerspective() end)
 local function canZoom()
  local _,_,t=current()
- local profile=t and SightDefinitions.Get(t:GetAttribute("WeaponId"),t:GetAttribute("OpticalAttachmentId"))
+ local profile=t and SightDefinitions.GetForTool(t)
  return aiming and not Presentation:IsBlocked() and profile~=nil and #profile.levels>1
 end
 local function toggleZoom() if canZoom() then zoomLevel=zoomLevel==1 and 2 or 1 end end
@@ -431,8 +431,9 @@ RunService:BindToRenderStep("CTFCombatPresentation",Enum.RenderPriority.Camera.V
  end
  locked,firstPerson=CameraPolicy.Resolve(Scope:Get(),data.Kind,setting("ShiftLock"),setting("FirstPerson"))
  if practiceFirstPerson~=nil then firstPerson=practiceFirstPerson end
- local sightProfile=(aiming or adsWeight>.001) and SightDefinitions.Get(tool:GetAttribute("WeaponId"),tool:GetAttribute("OpticalAttachmentId")) or nil
+ local sightProfile=(aiming or adsWeight>.001) and SightDefinitions.GetForTool(tool) or nil
  if sightProfile then firstPerson=true end
+ if sightProfile and sightProfile.reticle=="Iron" then locked=true end
  if tool~=currentTool then
   clearLook()
   currentTool=tool equippedAt=os.clock() firedAt=-100 adsWeight=0 locomotion=Locomotion.new() removeViewmodel()

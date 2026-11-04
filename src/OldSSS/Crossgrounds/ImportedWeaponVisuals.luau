@@ -4,10 +4,12 @@ local Registry=require(Root.WeaponAssetRegistry) local Catalog=require(Root.Weap
 local Attachments=require(Root.AttachmentCatalog) local Config=require(Root.WeaponVisualConfiguration)
 local AttachmentEffects=require(Root.AttachmentEffects)
 local IronSights=require(Root.IronSightVisibility)
+local NativeIrons=require(Root.NativeIronReferences)
 local Visuals={}
 local Hold=require(Root.WeaponHold)
 local GripReferences=require(Root.WeaponGripReferences)
 local SMG=require(Root.SMGGunsmith)
+local Pilot=require(Root.ArsenalPilot)
 local geometryCache={} local geometryOrder={}
 local function pistolOrigin(source,id)
  local names={m1911="Grips",renetti="Default_Grip",m19="17rnd 9mm Para Magazine",x16="13-Round .45 ACP Magazine"}
@@ -53,8 +55,43 @@ local function cachedGeometry(key,source,origin)
  return template:Clone()
 end
 local function attach(parent,name,cf) local a=Instance.new("Attachment") a.Name=name a.CFrame=cf a.Parent=parent return a end
+local function mountNativeIrons(handle,id,configuration)
+ local iron=NativeIrons[id]
+ if iron and not (id=="cr_56_amax" and configuration and configuration.barrel) then
+  attach(handle,"IronRear",CFrame.new(iron[1]))
+  attach(handle,"IronFront",CFrame.new(iron[2]))
+ end
+end
+local assemble
 function Visuals.Build(id,configuration)
  local weapon=Catalog.Get(id) local source=resolve(id)
+ if Pilot.IsLegacy(id) and weapon then
+  local factory=require(game.ServerScriptService.MainGameScript.GameManager.WeaponFactory)
+  local tool=factory:Create(weapon.combatId)
+  local native=tool.Handle
+  local model=geometry(tool,native.Position,CFrame.identity)
+  model.Name=id
+  local handle=model.Handle model.PrimaryPart=handle
+  for _,point in native:GetChildren() do
+   if point:IsA("Attachment") then point:Clone().Parent=handle end
+  end
+  tool:Destroy()
+  local rear=model:FindFirstChild("RearSight")
+  if rear then
+   -- Open a notch in the legacy solid rear block.
+   rear.Size=Vector3.new(.24,.08,.16)
+   rear.Position-=Vector3.new(0,.05,0)
+   for _,side in {-1,1} do
+    local ear=rear:Clone()
+    ear.Name="RearSightPost"..side
+    ear.Size=Vector3.new(.066,.10,.16)
+    ear.Position+=Vector3.new(side*.087,.09,0)
+    ear.Parent=model
+   end
+  end
+  mountNativeIrons(handle,id,configuration)
+  return assemble(model,handle,id,weapon,Vector3.zero,configuration)
+ end
  if not weapon then source=resolve(id) end
  if not source then
   local templates=Root:FindFirstChild("LoadoutPreviews") local old=templates and templates:FindFirstChild(weapon and weapon.assetId or id)
@@ -130,11 +167,16 @@ function Visuals.Build(id,configuration)
     end end end
    end
    local shotMuzzle=handle:FindFirstChild("Muzzle") if shotMuzzle then shotMuzzle.CFrame=CFrame.new(0,.79,muzzleZ) end
-   attach(handle,"optic",CFrame.new(0,1.45,-1.6)) attach(handle,"muzzle",CFrame.new(0,.79,muzzleZ)) attach(handle,"barrel",CFrame.new(0,.79,-7.29)) attach(handle,"underbarrel",CFrame.new(0,.4,-3.1))
+   attach(handle,"optic",CFrame.new(0,1.45,-1.6)) attach(handle,"muzzle",CFrame.new(0,.79,muzzleZ)) attach(handle,"barrel",CFrame.new(0,.79,-7.29)) attach(handle,"underbarrel",CFrame.new(0,.278,-3.1))
  end
  SMG.Mount(model,handle,id)
+ mountNativeIrons(handle,id,configuration)
+ return assemble(model,handle,id,weapon,origin,configuration)
+end
+assemble=function(model,handle,id,weapon,origin,configuration)
  if weapon then
   local clean,err=Config.Validate(id,configuration or {},false) if not clean then model:Destroy() return nil,err end
+  Pilot.Mount(model,handle,id,clean)
   local slots={} for slot in clean do table.insert(slots,slot) end
   table.sort(slots,function(a,b) if a=="barrel" then return b~="barrel" elseif b=="barrel" then return false end return a<b end)
   for _,slot in slots do local attachmentId=clean[slot]
@@ -147,8 +189,20 @@ function Visuals.Build(id,configuration)
     if visualScale~=1 then accessory:ScaleTo(visualScale) end
    local ac,sz=accessory:GetBoundingBox()
    local anchor=slot=="optic" and ac.Position-Vector3.new(0,sz.Y*.5,0) or slot=="underbarrel" and ac.Position+Vector3.new(0,sz.Y*.5,0) or ac.Position+Vector3.new(0,0,sz.Z*.5)
+   local referenceName=Attachments[attachmentId].mountReferencePart
+   if referenceName and (slot=="optic" or slot=="underbarrel") then
+    local reference=accessory:FindFirstChild(referenceName)
+    if not reference then model:Destroy() accessory:Destroy() return nil,"Accessory mounting reference missing." end
+    local bottom,top=SMG.Bounds({reference})
+    anchor=Vector3.new(reference.Position.X,slot=="optic" and bottom.Y or top.Y,reference.Position.Z)
+   end
    local smg=table.find(SMG.Ids,id)~=nil
-   if smg and (slot=="barrel" or slot=="muzzle") then
+   local pilotBarrel=Pilot.BarrelWeapons[id] and slot=="barrel"
+   if pilotBarrel then
+    local barrel=accessory:FindFirstChild("Barrel")
+    local _,hi=SMG.Bounds({barrel})
+    anchor=Vector3.new(barrel.Position.X,barrel.Position.Y,hi.Z)
+   elseif (smg or weapon.mountPoints and weapon.mountPoints.muzzle=="MuzzleThread") and slot=="muzzle" or smg and slot=="barrel" then
     local lo,hi=SMG.Bounds(accessory:GetChildren())
     anchor=Vector3.new(ac.Position.X,ac.Position.Y,hi.Z)
    end
@@ -172,11 +226,18 @@ function Visuals.Build(id,configuration)
      end end end
     end end
     anchor=Vector3.new(ac.Position.X,ac.Position.Y,front)
+    if referenceName then
+     local reference=accessory:FindFirstChild(referenceName)
+     if not reference then model:Destroy() accessory:Destroy() return nil,"Stock mounting reference missing." end
+     anchor=reference.Position
+    end
     for _,native in model:GetChildren() do if native:IsA("BasePart") and not native:GetAttribute("VisualAttachmentId") and (native.Name=="Stock" or native:GetAttribute("NativeStock")) then native.Transparency=1 end end
    elseif slot=="barrel" then
     for _,native in model:GetChildren() do if native:IsA("BasePart") and not native:GetAttribute("VisualAttachmentId") and (native.Name=="Barrel" or native.Name=="Barrel Main" or native.Name=="Muzzle" or attachmentId=="barrels_ax_50_heavy" and native.Name=="Rails") then native.Transparency=1 end end
     local muzzle=accessory:FindFirstChild("Muzzle")
-    if muzzle then
+    if pilotBarrel then
+     for _,name in {"Handguard","Rail Covers"} do local part=model:FindFirstChild(name) if part then part.Transparency=1 end end
+    elseif muzzle and id=="ax_50" then
      local minZ=math.huge
      for x=-1,1,2 do for y=-1,1,2 do for z=-1,1,2 do minZ=math.min(minZ,muzzle.CFrame:PointToWorldSpace(muzzle.Size*Vector3.new(x,y,z)*.5).Z) end end end
      handle.muzzle.CFrame=CFrame.new(muzzle.Position.X,muzzle.Position.Y,minZ) handle.Muzzle.CFrame=handle.muzzle.CFrame
@@ -200,7 +261,7 @@ function Visuals.Build(id,configuration)
 					)
 				end
    for _,p in accessory:GetChildren() do if p:IsA("BasePart") then
-						if slot ~= "barrel" or smg then
+						if slot ~= "barrel" or smg or pilotBarrel then
 							p.CFrame =
 								mount.WorldCFrame
 								* adjustment
@@ -208,12 +269,19 @@ function Visuals.Build(id,configuration)
 								* p.CFrame
 						end
     if slot=="magazine" then p:SetAttribute("ReloadGroup","Magazine") end p.Name="Accessory_"..attachmentId.."_"..p.Name p:SetAttribute("VisualAttachmentId",attachmentId) p:SetAttribute("VisualAttachmentSlot",slot) p.Parent=model end end accessory:Destroy()
-   if smg and slot=="barrel" then
+   if (smg or pilotBarrel) and slot=="barrel" then
     local parts={} for _,p in model:GetChildren() do if p:IsA("BasePart") and p:GetAttribute("VisualAttachmentId")==attachmentId then table.insert(parts,p) end end
     local lo,hi=SMG.Bounds(parts) local front=Vector3.new((lo.X+hi.X)*.5,(lo.Y+hi.Y)*.5,lo.Z)
     handle.Muzzle.Position=front handle.muzzle.Position=front
+    if pilotBarrel then
+     local guard=model:FindFirstChild("Accessory_"..attachmentId.."_Handguard")
+     if guard then
+      local bottom=SMG.Bounds({guard})
+      handle.underbarrel.Position=Vector3.new(0,bottom.Y,guard.Position.Z)
+     end
+    end
    end
-   if smg and slot=="underbarrel" then
+   if slot=="underbarrel" and (smg or weapon.category=="ASSAULT RIFLES") then
     local parts={} for _,p in model:GetChildren() do if p:IsA("BasePart") and p:GetAttribute("VisualAttachmentId")==attachmentId then table.insert(parts,p) end end
     local lo,hi=SMG.Bounds(parts) handle.SupportGrip.Position=(lo+hi)*.5
     if id=="aug" then local native=model:FindFirstChild("Grip") if native then native.Transparency=1 end end
@@ -226,11 +294,15 @@ function Visuals.Build(id,configuration)
  model:SetAttribute("VisualWeaponId",id) return model
 end
 function Visuals.Apply(tool,id,configuration)
- local weapon=Catalog.Get(id) if not weapon or weapon.sourcePack=="Crossgrounds" then return tool end
+ local weapon=Catalog.Get(id) if not weapon or weapon.sourcePack=="Crossgrounds" and not Pilot.IsLegacy(id) then return tool end
  local model,err=Visuals.Build(id,configuration) if not model then return nil,err end
  local handle=tool:FindFirstChild("Handle") if not handle then model:Destroy() return nil,"Handle ausente." end
  local original=handle.CFrame
  for _,v in tool:GetChildren() do if v:IsA("BasePart") and v~=handle then v:Destroy() end end
+ for _,name in {"IronRear","IronFront"} do
+  local old=handle:FindFirstChild(name)
+  if old then old:Destroy() end
+ end
  for _,v in model.Handle:GetChildren() do if v:IsA("Attachment") then local old=handle:FindFirstChild(v.Name) if old then old:Destroy() end v:Clone().Parent=handle end end
  for _,p in model:GetChildren() do if p:IsA("BasePart") and p~=model.Handle then
   p.CFrame=original*p.CFrame p.Anchored=false p.Parent=tool

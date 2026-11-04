@@ -17,6 +17,7 @@ local events=game.ReplicatedStorage:WaitForChild("Events")
 local action=events:WaitForChild("WeaponAction") 
 local reload=events:WaitForChild("WeaponReload")
 local Stats=require(game.ReplicatedStorage.Crossgrounds.WeaponStats)
+local Sights=require(game.ReplicatedStorage.Crossgrounds.SightDefinitions)
 local Kits=require(game.ReplicatedStorage:WaitForChild("KitDefinitions"))
 local Presentation=require(script.Parent:WaitForChild("CombatPresentation"))
 local Router=require(script.Parent:WaitForChild("ControlRouter"))
@@ -129,8 +130,10 @@ RunService:BindToRenderStep("CTFWeaponInput",Enum.RenderPriority.Camera.Value+3,
  scan() prediction:Prune(os.clock())
  if equipped then equipped:SetAttribute("PredictedAmmo",prediction:Available(equipped)) end
  local data=equipped and Stats.ResolveTool(equipped)
- local axScope=equipped and equipped:GetAttribute("WeaponId")=="ax_50" and (player:GetAttribute("SniperZoomLevel") or 0)>0
- cross.Visible=data and data.Kind=="Gun" and canUse() and not axScope or false
+ local weaponId=equipped and equipped:GetAttribute("WeaponId")
+ local sight=equipped and Sights.GetForTool(equipped)
+ local physicalAim=(weaponId=="ax_50" or sight and sight.reticle=="Iron") and (player:GetAttribute("SniperZoomLevel") or 0)>0
+ cross.Visible=data and data.Kind=="Gun" and canUse() and not physicalAim or false
  rangeText.Visible=false
  if data then
   reticle:Update(function(key) local v=player:GetAttribute("Setting"..key) if v==nil then v=require(game.ReplicatedStorage.ExperienceSettings).Rules[key].Default end return v end,math.clamp((player.Character.HumanoidRootPart.AssemblyLinearVelocity.Magnitude/30)+(held and .25 or 0),0,1))
