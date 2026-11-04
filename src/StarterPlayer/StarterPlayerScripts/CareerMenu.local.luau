@@ -49,7 +49,7 @@ refresh=function()
  preview:Render(P.Public(state,player.UserId,player.DisplayName))
  info.Text="XP histórico: "..state.lifetimeXP.."\nXP desta etapa: "..state.cycleXP..(state.phase=="legend" and " · sem teto de nível" or " / "..P.Cap(state.phase)).."\n"..(player:GetAttribute("CareerSaveState")=="StudioSessionOnly" and "Studio: progresso apenas nesta sessão." or "Progresso da conta")
  status.Text="Progressão das armas e cosméticos conquistados permanecem após o prestígio."
- tokenInfo.Text="Tokens · Conflict: "..state.tokens.ctf.." · Arena: "..state.tokens.arena.."\nDesbloqueios permanentes atravessam os resets."
+ tokenInfo.Text="Tokens · Conflito: "..state.tokens.ctf.." · Arena: "..state.tokens.arena.."\nDesbloqueios permanentes atravessam os resets."
  if renderUnlocks then renderUnlocks() end if renderWeapons then renderWeapons()end if renderFinishes then renderFinishes()end
  confirmInfo.Text=(state.phase=="mastery" and "Entrar na Lenda" or state.prestige==10 and "Entrar na Maestria" or "Entrar no Prestígio "..(state.prestige+1)).."\n\nNível volta a 1. "..(state.phase=="mastery" and "Desbloqueios da conta permanecem." or "Desbloqueios funcionais por nível serão reiniciados.").."\nArmas, cosméticos e permanências são preservados.\nVocê recebe um token por modalidade."
 end
@@ -76,12 +76,12 @@ renderUnlocks=function()
   local permanent=state and state.permanent[unlockMode][item.id]
   table.insert(unlockRows,browser:Button("Unlocks","Item"..i,item.name.." · "..(permanent and "Permanente" or item.level and "Conta nível "..item.level or "Arma nível "..item.weaponLevel),function()
    selectedItem=item selectedMode=unlockMode
-   tokenConfirm.Text=item.name.."\n"..(unlockMode=="ctf" and "Conflict" or "Arena").."\nCusta 1 token. A permanência sobrevive aos resets. Acessórios continuam exigindo uma arma compatível."
+   tokenConfirm.Text=item.name.."\n"..(unlockMode=="ctf" and "Conflito" or "Arena").."\nCusta 1 token. A permanência sobrevive aos resets. Acessórios continuam exigindo uma arma compatível."
    browser:Push({"RootPane","Unlocks","UnlockConfirm"})
   end,52))
  end
 end
-browser:Button("Unlocks","Mode","Alternar Conflict / Arena",function() unlockMode=unlockMode=="ctf" and "arena" or "ctf" unlockPage=1 renderUnlocks() end)
+browser:Button("Unlocks","Mode","Alternar Conflito / Arena",function() unlockMode=unlockMode=="ctf" and "arena" or "ctf" unlockPage=1 renderUnlocks() end)
 browser:Button("Unlocks","NextPage","Próxima página",function() local count=#Unlocks.List(unlockMode) unlockPage=unlockPage*20<count and unlockPage+1 or 1 renderUnlocks() end)
 renderUnlocks()
 local weaponRows,finishRows={},{}local weaponPage,weaponMode=1,"ctf"local chosenWeapon
@@ -107,12 +107,12 @@ end
 renderWeapons=function()
  for _,b in weaponRows do b:Destroy()end table.clear(weaponRows)
  local rows=weaponsForMode()local count=math.max(1,math.ceil(#rows/12))weaponPage=math.min(weaponPage,count)
- weaponListInfo.Text=(weaponMode=="ctf"and"Conflict"or"Arena").." · página "..weaponPage.." / "..count.."\nArmas preservam nível e camuflagens ao prestigiar. Seleção aplicada no próximo nascimento."
+ weaponListInfo.Text=(weaponMode=="ctf"and"Conflito"or"Arena").." · página "..weaponPage.." / "..count.."\nArmas preservam nível e camuflagens ao prestigiar. Seleção aplicada no próximo nascimento."
  for i=(weaponPage-1)*12+1,math.min(#rows,weaponPage*12)do local w=rows[i]
   table.insert(weaponRows,browser:Button("Weapons","Weapon_"..w.id,w.name.." · nível "..P.WeaponLevel(state and state.weapons[w.id]),function()chosenWeapon=w renderFinishes()browser:Push({"RootPane","Weapons","Finish"})end))
  end
 end
-browser:Button("Weapons","Mode","Alternar Conflict / Arena",function()weaponMode=weaponMode=="ctf"and"arena"or"ctf"weaponPage=1 renderWeapons()end)
+browser:Button("Weapons","Mode","Alternar Conflito / Arena",function()weaponMode=weaponMode=="ctf"and"arena"or"ctf"weaponPage=1 renderWeapons()end)
 browser:Button("Weapons","Page","Próxima página",function()local count=math.max(1,math.ceil(#weaponsForMode()/12))weaponPage=weaponPage%count+1 renderWeapons()end)
 renderWeapons()
 for _,id in {"classic","astral","solar"}do

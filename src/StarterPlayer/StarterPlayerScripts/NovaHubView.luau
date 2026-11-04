@@ -10,6 +10,10 @@ function View.new(options)
  local function make(class,parent,name)local o=Instance.new(class)o.Name=name o.Parent=parent if o:IsA('GuiObject')then o.BorderSizePixel=0 end return o end
  local panel=make('Frame',gui,'Panel')panel.Size=UDim2.fromScale(1,1)panel.BackgroundColor3=Color3.fromRGB(3,12,18)panel.BackgroundTransparency=.12
  local gradient=make('UIGradient',panel,'WorldFade')gradient.Transparency=NumberSequence.new({NumberSequenceKeypoint.new(0,.02),NumberSequenceKeypoint.new(1,.6)})gradient.Rotation=15
+ local backdrop=Instance.new('ScreenGui')backdrop.Name='NeoPlayBackdrop'backdrop.ResetOnSpawn=false backdrop.IgnoreGuiInset=true backdrop.ScreenInsets=Enum.ScreenInsets.None backdrop.DisplayOrder=gui.DisplayOrder-1 backdrop.Enabled=false backdrop.Parent=gui.Parent
+ local scrim=make('Frame',backdrop,'FullViewport')scrim.Size=UDim2.fromScale(1,1)scrim.BackgroundColor3=Color3.new()scrim.BackgroundTransparency=.07
+ gradient.Parent=scrim gradient.Rotation=0 gradient.Transparency=NumberSequence.new({NumberSequenceKeypoint.new(0,0),NumberSequenceKeypoint.new(.6,.08),NumberSequenceKeypoint.new(1,.28)})panel.BackgroundTransparency=1
+ gui:GetPropertyChangedSignal('Enabled'):Connect(function()backdrop.Enabled=gui.Enabled end)gui.Destroying:Once(function()backdrop:Destroy()end)
  local help=require(script.Parent:WaitForChild('NeoNavigationHints')).new(panel)panel:SetAttribute('NeoIconHints',true)
  local function refreshHelp()help:Refresh(Theme.Mobile()and Enum.PreferredInput.Touch or nil,Nav:GetHintContext(panel))end
  local content=make('Frame',panel,'Content')content.BackgroundTransparency=1
@@ -45,13 +49,14 @@ function View.new(options)
  local backButton local show
  local list=make('ScrollingFrame',content,'Destinations')list.BackgroundTransparency=1 list.ScrollBarThickness=3 list.AutomaticCanvasSize=Enum.AutomaticSize.Y list.CanvasSize=UDim2.new()Accent.Role(list,'ScrollBarImageColor3','Accent')
  local grid=make('UIGridLayout',list,'Grid')grid.CellPadding=UDim2.fromOffset(12,12)grid.SortOrder=Enum.SortOrder.LayoutOrder
+ local modeCards
  local rule=make('Frame',content,'TitleRule')rule.Size=UDim2.fromOffset(64,3)Accent.Role(rule,'BackgroundColor3','Accent')
  local detail=text(content,'ModeDetails','',14)Accent.Role(detail,'TextColor3','Muted')
  local primary=button(content,'Enter','Entrar',function()if page=='home'then show('modes',true)return end if selectedEntry and selectedEntry.canEnter then options.Play(selected,false)end end,true)
  local practice=button(content,'PracticeRange','Practice Range',function()options.Play('ctf',true)end)
  local cancel=button(content,'CancelEntry','Cancelar entrada',options.Cancel)
  local status=text(content,'Status','',14)Accent.Role(status,'TextColor3','Muted')
-  local function focusFirst()task.delay(.08,function()if gui.Enabled then Nav:Focus(page=='home'and primary or rows[1]or backButton)end end)end
+  local function focusFirst()task.delay(.08,function()if gui.Enabled then Nav:Focus(page=='modes'and modeCards and modeCards:DefaultFocus()or page=='home'and primary or rows[1]or backButton)end end)end
  local function clear()for _,b in rows do b:Destroy()end rows={}local live={}for _,b in buttons do if b.Parent then table.insert(live,b)end end buttons=live end
  local function refreshData()
   selectedEntry=nil
@@ -61,7 +66,7 @@ function View.new(options)
   local available=selectedEntry and selectedEntry.canEnter==true
   primary.Text=page=='home'and 'Jogar  →'or options.Pending()and 'Aguarde…'or available and 'Entrar em '..selectedEntry.name or 'Em desenvolvimento'
   primary.Active=page=='home'or available==true and not options.Pending()primary.Selectable=primary.Active primary.TextTransparency=primary.Active and 0 or .45
-  practice.Visible=page=='modes'and selected=='ctf'practice.Active=available==true and not options.Pending()practice.Selectable=practice.Active
+  practice.Visible=false practice.Active=available==true and not options.Pending()practice.Selectable=practice.Active
   cancel.Visible=page=='modes'and(q.state=='joining'or q.state=='ready')
   status.Text=options.Error()or data and data.error or (q.state~='idle'and q.message)or ''
   for _,b in rows do b:SetAttribute('Chosen',page=='modes'and b.Name==selected)paint(b)end
@@ -95,13 +100,15 @@ function View.new(options)
   cancel.Position=UDim2.new(.77,4,1,compact and -76 or -100)cancel.Size=UDim2.new(.23,-8,0,52)
   status.Position=UDim2.new(0,4,1,compact and -22 or -42)status.Size=UDim2.new(1,-8,0,compact and 22 or 38)status.TextSize=13*fs
   if page=='modes'then
-   local mw=math.min(width-12,560)
-   list.Size=UDim2.fromOffset(mw,math.max(60,height-y-bottom))
-   grid.FillDirectionMaxCells=1 grid.CellSize=UDim2.new(1,-6,0,compact and 60 or 72)
-   grid.CellPadding=UDim2.fromOffset(0,6)
-   primary.Size=UDim2.fromOffset(mw*.55,52)practice.Position=UDim2.new(0,mw*.57,1,compact and -76 or -100)practice.Size=UDim2.fromOffset(mw*.43,52)
-   cancel.Position=UDim2.new(0,mw+20,1,compact and -76 or -100)cancel.Size=UDim2.fromOffset(math.min(180,width-mw-24),52)
-   for _,b in rows do b.TextXAlignment=Enum.TextXAlignment.Left end
+   brand.Text='CROSSGROUNDS  /  JOGAR'
+   title.Text='JOGAR'title.Position=UDim2.fromOffset(4,compact and 36 or 44)title.Size=UDim2.new(1,-8,0,44)title.TextSize=compact and 27 or 34
+   description.Position=UDim2.fromOffset(4,90)description.Size=UDim2.new(1,-8,0,28)
+   y=compact and 86 or 126 list.Position=UDim2.fromOffset(4,y)
+   list.Size=UDim2.new(1,-8,0,math.max(120,height-y-(compact and 36 or 48)))
+   primary.Visible=false detail.Visible=false
+   cancel.Position=UDim2.new(1,-180,0,0)cancel.Size=UDim2.fromOffset(180,44)
+   backButton.Position=UDim2.new(1,cancel.Visible and -310 or -120,0,0)
+   if modeCards then modeCards:Resize()end
   end
   local home=page=='home'
   brand.Visible=not home backButton.Visible=not home rule.Visible=home
@@ -117,7 +124,7 @@ function View.new(options)
    primary.Position=UDim2.fromOffset(4,start)primary.Size=UDim2.fromOffset(menuWidth,rowH)primary.Text='Jogar'
    list.Position=UDim2.fromOffset(4,start+rowH+4)list.Size=UDim2.fromOffset(menuWidth+4,math.max(44,height-insetY-start-rowH-12))
    grid.FillDirectionMaxCells=1 grid.CellPadding=UDim2.fromOffset(0,4)grid.CellSize=UDim2.new(1,-4,0,rowH)
-  else Accent.Role(title,'TextColor3','Text')end
+  else Accent.Role(title,'TextColor3',page=='modes'and 'Accent'or 'Text')end
   for _,b in buttons do if b.Parent then
    local isHome=home and(b==primary or b.Parent==list)
    b:SetAttribute('NeoHome',isHome)b.TextXAlignment=(isHome or b.Parent==list)and Enum.TextXAlignment.Left or Enum.TextXAlignment.Center
@@ -132,6 +139,7 @@ function View.new(options)
  show=function(id,focus)
   if id=='home'then options.Home()return end
   page=id clear()list.CanvasPosition=Vector2.zero
+  if modeCards then modeCards:SetVisible(id=='modes')end
   title.Text=({home='CROSSGROUNDS',modes='Escolha seu confronto',career='Carreira',social='Social',armaments='Armamentos'})[id]
   description.Text=({home='Seu próximo confronto começa aqui.',modes='Escolha uma modalidade para jogar ou entrar no treino.',career='Sua identidade, evolução e conquistas.',social='Amigos, grupo e guilda.',armaments='O equipamento pertence à modalidade. Entre para escolher e editar sua classe.'})[id]
   local function add(name,label,fn,isPrimary)local b=button(list,name,label,fn,isPrimary)b.LayoutOrder=#rows+1 table.insert(rows,b)end
@@ -143,10 +151,7 @@ function View.new(options)
    add('Music','Música / Playlist',function()Nav:OpenMenu('Playlist')end)
    add('Explore','Explorar o lobby',options.Stay)
   elseif id=='modes'then
-   local catalog={}for _,entry in data and data.catalog or {}do table.insert(catalog,entry)end
-   table.sort(catalog,function(a,b)if a.canEnter~=b.canEnter then return a.canEnter==true end return a.name<b.name end)
-   for _,entry in catalog do add(entry.id,entry.name..'\n'..(entry.canEnter and 'Disponível' or entry.reason or 'Em desenvolvimento'),function()selected=entry.id refreshData()end)end
-   if #catalog==0 then add('Refresh','Carregando catálogo…',function()end)end
+   -- Cards own their shortcuts; no second row of large external actions.
   elseif id=='career'then
    for _,entry in {{'Career','Perfil e identidade'},{'Progress','Estatísticas e progressão'},{'GuildProgress','Progresso da guilda'}}do add(entry[1],entry[2],function()Nav:OpenMenu(entry[1])end)end
   elseif id=='social'then
@@ -159,6 +164,14 @@ function View.new(options)
   if focus then focusFirst()end
  end
  backButton=button(content,'Back','Voltar',function()if page=='home'then options.Stay()else show('home',true)end end)
+ modeCards=require(script.Parent.ModeSelectGrid).new(list,Nav,{
+  Play=function(id)options.Play(id,false)end,
+  Practice=function(id)options.Play(id,true)end,
+  Details=function(id)
+   local entry for _,e in data and data.catalog or {}do if e.id==id then entry=e break end end
+   require(script.Parent.MenuDialog).new({Navigation=Nav,Title=entry and entry.name or id,Message=entry and(entry.description..'\n\n'..(entry.reason or ''))or 'Carregando catálogo.',Actions={{Text='Voltar'}}})
+  end,
+ })
  Nav:SetBack(panel,function()if page=='home'then options.Stay()else show('home',true)end end,primary)
  hook(Nav.FocusChanged,function()if gui.Enabled then refreshHelp()for _,b in buttons do if b.Parent then paint(b)end end end end)
  hook(Nav.HintContextChanged,refreshHelp)
@@ -172,7 +185,7 @@ function View.new(options)
  hook(require(script.Parent.InputMode).Changed,refreshHelp)
  hook(require(script.Parent.InputIcons).Changed,refreshHelp)
  Accent.Bind(gui)
- function self:Update(value)local rebuild=page=='modes'and data==nil and value~=nil data=value if rebuild then show(page,false)else refreshData()end end
+ function self:Update(value)local rebuild=page=='modes'and data==nil and value~=nil data=value modeCards:Update(data and data.catalog or {})if rebuild then show(page,false)else refreshData()end end
  function self:SetOpen(on)local changed=gui.Enabled~=on gui.Enabled=on if changed and on then self:Layout()focusFirst()end end
  function self:Home()show('home',gui.Enabled)end
  function self:Modes()show('modes',gui.Enabled)end

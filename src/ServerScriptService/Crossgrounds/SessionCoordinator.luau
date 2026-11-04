@@ -167,6 +167,7 @@ function Coordinator:Start()
  end
  for _,p in Players:GetPlayers() do added(p) end
  self.partyTravel:Start()
+ require(script.Parent.ModePopulation).start(self.context)
  workspace:SetAttribute("CrossgroundsCoordinatorStartCount",(workspace:GetAttribute("CrossgroundsCoordinatorStartCount") or 0)+1)
 end
 return Coordinator

@@ -116,13 +116,13 @@ refresh=function()
  if data.invite then status.Text..="\nConvite de "..data.invite.name end
  create.Visible=not group accept.Visible=data.invite~=nil decline.Visible=data.invite~=nil leave.Visible=group~=nil
  teams.Visible=leader==true teams.Text=group and(group.sameTeam and"Equipes: permanecer juntos"or"Equipes: permitir divisão")or"Equipes"
- membersInfo.Text=group and(group.locked and"Entrada coletiva em andamento. Aguarde o líder."or"Mesmo time: Conflict até 6. Dividindo times: até 12.\nTreino e testes continuam individuais.")or"Você ainda não está em um grupo."
+ membersInfo.Text=group and(group.locked and"Entrada coletiva em andamento. Aguarde o líder."or"Mesmo time: Conflito até 6. Dividindo times: até 12.\nTreino e testes continuam individuais.")or"Você ainda não está em um grupo."
  local focus=Nav:GetFocus() local wanted=focus and focus.Name
  local scroll=browser.Panes.Members.List.CanvasPosition
  for _,row in memberRows do row:Destroy()end table.clear(memberRows)
  for _,row in group and group.members or{}do
   local member=row
-  local b=browser:Button("Members","Member_"..row.userId,row.name..(row.userId==group.leader and" · Líder"or"").."\n"..(row.mode=="hub"and"No lobby"or row.mode=="ctf"and"Conflict"or row.mode=="arena"and"Arena"or"Em outra atividade"),function()
+  local b=browser:Button("Members","Member_"..row.userId,row.name..(row.userId==group.leader and" · Líder"or"").."\n"..(row.mode=="hub"and"No lobby"or row.mode=="ctf"and"Conflito"or row.mode=="arena"and"Arena"or"Em outra atividade"),function()
    selected=member memberInfo.Text=member.name
    transfer.Visible=leader and member.userId~=player.UserId kick.Visible=transfer.Visible
    browser:Push({"RootPane","Members","Member"})

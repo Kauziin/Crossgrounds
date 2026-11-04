@@ -9,9 +9,18 @@ local toggle=Instance.new("TextButton") toggle.Name="Toggle" toggle.Text="Votar 
 local list=Instance.new("ScrollingFrame") list.Name="Choices" list.BackgroundTransparency=1 list.BorderSizePixel=0 list.Position=UDim2.fromOffset(10,44) list.Size=UDim2.new(1,-20,1,-54) list.ScrollBarThickness=3 list.AutomaticCanvasSize=Enum.AutomaticSize.Y list.CanvasSize=UDim2.new() list.Parent=panel
 local events=game.ReplicatedStorage:WaitForChild("Events") local arena=game.ReplicatedStorage.Crossgrounds:WaitForChild("ArenaRemotes")
 local states={} local interactive=false local current
+local hints=require(script.Parent.NeoNavigationHints).new(panel)
+local function refreshHints()
+ local neo=Theme.Style.IsNova()
+ local context=Nav:GetHintContext(panel)
+ context.Active=context.Active and neo and interactive
+ hints:Refresh(Theme.Mobile() and Enum.PreferredInput.Touch or nil,context)
+end
 local function interact(value)
  interactive=value==true and gui.Enabled p:SetAttribute("MapVotingMenuOpen",interactive)
- toggle.Text=interactive and "Fechar · "..Icons:Name("ButtonB") or "Votar · "..Icons:Name(Router:Key("VoteMenu",InputMode:Get()==Enum.PreferredInput.Gamepad and "Gamepad" or "Keyboard"))
+ if Theme.Style.IsNova() or Theme.Mobile() then toggle.Text=interactive and 'Fechar' or 'Votar'
+ else toggle.Text=interactive and "Fechar · "..Icons:Name("ButtonB") or "Votar · "..Icons:Name(Router:Key("VoteMenu",InputMode:Get()==Enum.PreferredInput.Gamepad and "Gamepad" or "Keyboard")) end
+ refreshHints()
 end
 local grid=require(script.Parent:WaitForChild("MapVoteGrid")).new(list,function(id)
  if not current or not current.active then return end
@@ -43,11 +52,22 @@ Nav.MenuRequested:Connect(function(id)
 end)
 local function resize()
  local v=Theme.MenuBounds(workspace.CurrentCamera.ViewportSize) local w=math.min(660,v.X-24)
+ local neo=Theme.Style.IsNova()
  panel.Size=UDim2.fromOffset(w,math.max(70,math.min(v.Y-130,w<430 and 330 or 230)))
- local scale=panel:FindFirstChildOfClass('UIScale')or Instance.new('UIScale',panel)scale.Scale=Theme.MobileFactor()
+ local scale=panel:FindFirstChildOfClass('UIScale')or Instance.new('UIScale',panel)scale.Scale=neo and 1 or Theme.MobileFactor()
+ panel:SetAttribute('NeoIconHints',neo)
+ toggle.Size=UDim2.fromOffset(114,neo and 44 or 30)
+ list.Position=UDim2.fromOffset(10,neo and 56 or 44)
+ list.Size=UDim2.new(1,-20,1,neo and (Theme.Mobile() and -64 or -88) or -54)
+ if neo then hints.Root.Position=UDim2.new(0,10,1,-32) end
  panel.Position=UDim2.new(.5,0,1,-70-(workspace.CurrentCamera.ViewportSize.Y-v.Y)*.5)
+ interact(interactive)
 end
 Theme.ObserveMobile(resize)
+Theme.Style.Observe(panel,resize)
+Nav.FocusChanged:Connect(refreshHints)
+Nav.HintContextChanged:Connect(refreshHints)
+Icons.Changed:Connect(refreshHints)
 workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(resize)
 for _,key in {"ExperienceMenuOpen","ProgressionMenuOpen","LobbyMusicMenuOpen","HUDLayoutEditing"} do p:GetAttributeChangedSignal(key):Connect(refresh) end
 local elapsed=0 game:GetService("RunService").Heartbeat:Connect(function(dt) elapsed+=dt if elapsed>=1 then elapsed=0 refresh() end end)

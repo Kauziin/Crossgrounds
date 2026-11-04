@@ -197,7 +197,7 @@ RunService.RenderStepped:Connect(function(dt)
  local t=c and c:FindFirstChildOfClass("Tool") local data=t and Kits.Weapons[t:GetAttribute("WeaponId")]
  local health=h and h.Health or 0
  panel.Visible=h and health>0 or false feed.Visible=inArena
- menu.Text=joined and "PREPARAÇÃO" or "KITS CONFLICT"
+ menu.Text=joined and "PREPARAÇÃO" or "KITS CONFLITO"
  lobby.Visible=not inArena
  local state=workspace:GetAttribute("RoundState")
  lobby.Text=joined and "Você está pronto. Explore o lobby até a próxima rodada." or (state=="Playing" and "Rodada em andamento · Entre quando quiser." or "Treine, escolha seu kit e entre na partida.")

@@ -161,7 +161,9 @@ local function layoutHome()
 end
 local cascadeResize=browser.Resize
 function browser:Resize(animate)
- cascadeResize(self,animate)
+ local showingModes=#self.Stack==2 and self.Stack[2]=="Modes"
+ -- The modes pane uses the full panel width and owns its position.
+ cascadeResize(self,animate and not showingModes)
  homeActive=#self.Stack==1 and self.Stack[1]=="RootPane"
  home.Visible=homeActive scrimGui.Enabled=homeActive and self.Backdrop.Visible self.Heading.Visible=not homeActive
  if homeActive then
@@ -170,11 +172,11 @@ function browser:Resize(animate)
   layoutHome() selectHome(selectedHome)
  else
   restoreFocusPaint()
-  if #self.Stack==2 and self.Stack[2]=="Modes" then
-   local w=self.Panel.Size.X.Offset local h=self.Panel.Size.Y.Offset local side=w<620 and 0 or 202
-   self.Panes.RootPane.Frame.Visible=side>0
-   self.Panes.RootPane.Frame.Position=UDim2.fromOffset(0,38) self.Panes.RootPane.Frame.Size=UDim2.fromOffset(side,h-76)
-   self.Panes.Modes.Frame.Position=UDim2.fromOffset(side>0 and side+10 or 0,38) self.Panes.Modes.Frame.Size=UDim2.fromOffset(w-(side>0 and side+10 or 0),h-76)
+  if showingModes then
+   local w=self.Panel.Size.X.Offset local h=self.Panel.Size.Y.Offset
+   self.Panes.RootPane.Frame.Visible=false
+   self.Panes.Modes.Frame.Position=UDim2.fromOffset(0,38)
+   self.Panes.Modes.Frame.Size=UDim2.fromOffset(w,h-76)
    if modeGrid then modeGrid:Resize() end
   end
  end
@@ -233,7 +235,16 @@ local modesList=browser.Panes.Modes.List
 local oldLayout=modesList:FindFirstChildOfClass("UIListLayout") if oldLayout then oldLayout:Destroy() end
 modesList.AutomaticCanvasSize=Enum.AutomaticSize.None
 modeGrid=require(script.Parent:WaitForChild("ModeSelectGrid")).new(modesList,Nav,{
- Details=function(id) selected=id browser:Push({"RootPane","Modes","ModeDetails"}) if refresh then refresh() end end,
+ Practice=function(id)
+  local data=Bridge:Get()if not data or Bridge.Pending then return end
+  local q=data.queue or {} selected=id
+  if q.state=='ready'and q.gameId==id and q.variant=='practice'then Bridge:Send('enter',nil,q.ticket)
+  elseif q.state=='idle'or q.state=='failed'then quickEntry=id Bridge:Send('join',id,nil,'practice')end
+ end,
+ Details=function(id)
+  selected=id local item=definition()
+  require(script.Parent.MenuDialog).new({Navigation=Nav,Title=item and item.name or id,Message=item and(item.description..'\n\n'..(item.reason or ''))or 'Carregando catálogo.',Actions={{Text='Voltar'}}})
+ end,
  Play=function(id)
   local data=Bridge:Get() if not data or Bridge.Pending then return end
   local item for _,entry in data.catalog or {} do if entry.id==id then item=entry end end
@@ -280,7 +291,7 @@ refresh=function()
  local item=definition()
  modeGrid:Update(data.catalog)
  practiceRange.Visible=selected=="ctf"
- description.Text=item and (item.name.."\n\n"..item.description.."\n\n"..(selected=="ctf" and "Practice Range abre o Boot Camp sem entrar na rodada de Conflict." or "Escolha Jogar para entrar. Você pode permanecer no lobby pelo menu.")) or "Carregando o catálogo..."
+ description.Text=item and (item.name.."\n\n"..item.description.."\n\n"..(selected=="ctf" and "Practice Range abre o Boot Camp sem entrar na rodada de Conflito." or "Escolha Jogar para entrar. Você pode permanecer no lobby pelo menu.")) or "Carregando o catálogo..."
  primary.Text=Bridge.Pending and "Aguarde..." or q.state=="ready" and (q.variant=="practice" and "Confirmar Practice Range" or "Confirmar entrada") or item and item.canEnter and "Jogar "..item.name or "Em desenvolvimento"
  practiceRange.Text=Bridge.Pending and "Aguarde..." or "Practice Range · Boot Camp"
  practiceRange.Active=selected=="ctf" and item~=nil and item.canEnter==true and not Bridge.Pending

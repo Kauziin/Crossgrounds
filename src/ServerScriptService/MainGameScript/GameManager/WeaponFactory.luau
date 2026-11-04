@@ -457,7 +457,7 @@ function Factory:Create(id,visual)
    local adapted,err=require(game.ServerScriptService.Crossgrounds.ImportedWeaponVisuals).Apply(tool,visual,{})
    if not adapted then tool:Destroy() error(err) end
   end
- elseif conflictId then tool.Name=data.Name tool.ToolTip=data.Name.." · Conflict" end
+ elseif conflictId then tool.Name=data.Name tool.ToolTip=data.Name.." · Conflito" end
  tool:SetAttribute("RestGrip",tool.Grip) return tool
 end
 return Factory

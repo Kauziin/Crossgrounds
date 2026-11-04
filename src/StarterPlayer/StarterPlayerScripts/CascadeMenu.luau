@@ -12,13 +12,59 @@ function Cascade.new(gui,name,title)
  local backdrop=Instance.new("Frame") backdrop.Name=name backdrop.BackgroundTransparency=1 backdrop.Size=UDim2.fromScale(1,1) backdrop.Visible=false backdrop.Parent=gui
  local panel=Instance.new("Frame") panel.Name="Panel" panel:SetAttribute("CascadeRoot",true) panel.BackgroundTransparency=1 panel.Size=UDim2.new(1,-32,1,-48) panel.AnchorPoint=Vector2.new(.5,.5) panel.Position=UDim2.fromScale(.5,.5) panel.Parent=backdrop
  local heading=Theme.Text(panel,"Title",title,30,22)
- local self=setmetatable({Backdrop=backdrop,Panel=panel,Heading=heading,Panes={},Stack={}},Cascade)
+ local self=setmetatable({Backdrop=backdrop,Panel=panel,Heading=heading,Panes={},Stack={},NeoEnabled=name~='BrowserBackdrop'},Cascade)
+ if self.NeoEnabled then
+  local full=Instance.new('ScreenGui')
+  full.Name=gui.Name..'NeoBackdrop'
+  full.ScreenInsets=Enum.ScreenInsets.None
+  full.IgnoreGuiInset=true
+  full.ResetOnSpawn=false
+  full.DisplayOrder=gui.DisplayOrder-1
+  full.Enabled=false
+  full.Parent=player.PlayerGui
+  local scrim=Instance.new('Frame',full)
+  scrim.Size=UDim2.fromScale(1,1)
+  scrim.BackgroundColor3=Color3.new()
+  scrim.BackgroundTransparency=.07
+  scrim.BorderSizePixel=0
+  local fade=Instance.new('UIGradient',scrim)
+  fade.Transparency=NumberSequence.new({NumberSequenceKeypoint.new(0,0),NumberSequenceKeypoint.new(.6,.08),NumberSequenceKeypoint.new(1,.28)})
+  local hints=require(script.Parent.NeoNavigationHints).new(panel)
+  local function refresh()
+   local neo=Theme.Style.IsNova()
+   full.Enabled=neo and gui.Enabled and backdrop.Visible
+   local context=Nav:GetHintContext(panel)
+   context.Active=context.Active and full.Enabled
+   hints:Refresh(Theme.Mobile() and Enum.PreferredInput.Touch or nil,context)
+  end
+  self.RefreshNeo=refresh
+  local connections={
+   gui:GetPropertyChangedSignal('Enabled'):Connect(refresh),
+   backdrop:GetPropertyChangedSignal('Visible'):Connect(refresh),
+   Nav.FocusChanged:Connect(refresh),
+   Nav.HintContextChanged:Connect(refresh),
+   require(script.Parent.InputIcons).Changed:Connect(refresh),
+  }
+  gui.Destroying:Once(function()
+   for _,connection in connections do connection:Disconnect() end
+   full:Destroy()
+  end)
+ end
  self:AddPane("RootPane",title)
- workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(function() self:Resize(false) end)
- player:GetAttributeChangedSignal("SettingMenuScale"):Connect(function() self:Resize(false) end)
- Theme.ObserveMobile(function() self:Resize(false)end)
+ local viewport=workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(function() self:Resize(false) end)
+ local menuScale=player:GetAttributeChangedSignal("SettingMenuScale"):Connect(function() self:Resize(false) end)
+ local stopMobile=Theme.ObserveMobile(function() self:Resize(false)end)
+ gui.Destroying:Once(function() viewport:Disconnect() menuScale:Disconnect() stopMobile() end)
  Theme.Style.Observe(backdrop,function()self:Resize(false)end)
- Nav:SetBack(panel,function() if #self.Stack>1 then self:Push({self.Stack[1]}) elseif self.OnClose then self.OnClose() end end)
+ Nav:SetBack(panel,function()
+  if #self.Stack>1 then
+   local stack={self.Stack[1]}
+   if self.NeoEnabled and Theme.Style.IsNova() then
+    for index=2,#self.Stack-1 do table.insert(stack,self.Stack[index]) end
+   end
+   self:Push(stack)
+  elseif self.OnClose then self.OnClose() end
+ end)
  if game:GetService("RunService"):IsStudio()then table.insert(Cascade.CaptureInstances,self)end
  return self
 end
@@ -34,6 +80,8 @@ end
 function Cascade:Button(id,name,text,callback,height)
  local list=self.Panes[id].List
  local b=Instance.new("TextButton") b.Name=name b.Text="  "..text b.TextXAlignment=Enum.TextXAlignment.Left b.TextWrapped=true b.TextSize=15 b.Size=UDim2.new(1,-4,0,height or 46) b.Parent=list Theme.Button(b)
+ b:SetAttribute('NeoCascadeButton',self.NeoEnabled and Theme.Style.IsNova())
+ Theme.RefreshAccessibility(b)
  local pad=Instance.new("UIPadding") pad.PaddingLeft=UDim.new(0,10) pad.PaddingRight=UDim.new(0,10) pad.Parent=b
  if Icons.Roles[name]then pad.PaddingLeft=UDim.new(0,42)local image=Icons.Image(b,name,22,Theme.Colors.Text)if image then image.Position=UDim2.new(0,-30,.5,-11)end end
  Nav:Connect(b,callback) return b
@@ -55,6 +103,54 @@ function Cascade:Resize(animate)
  local w=math.min(1120,v.X-32) local h=math.min(660,v.Y-40) self.Panel.Size=UDim2.fromOffset(w,h)
  local scale=player:GetAttribute("SettingMenuScale") or 1
  local modifier=self.Panel:FindFirstChild("PreferenceScale") or Instance.new("UIScale") modifier.Name="PreferenceScale" modifier.Scale=scale*Theme.MobileFactor() modifier.Parent=self.Panel
+ local neo=self.NeoEnabled and Theme.Style.IsNova()
+ self.Panel:SetAttribute('NeoIconHints',neo)
+ if self.RefreshNeo then self.RefreshNeo() end
+ if self.NeoEnabled then
+  for _,pane in self.Panes do
+   pane.Frame:SetAttribute('NeoSettingsPage',neo)
+   pane.Back:SetAttribute('NeoCascadeButton',neo)
+   Theme.RefreshAccessibility(pane.Back)
+   for _,button in pane.List:GetChildren() do
+    if button:IsA('TextButton') then
+     button:SetAttribute('NeoCascadeButton',neo)
+     Theme.RefreshAccessibility(button)
+    end
+   end
+  end
+ end
+ if neo then
+  modifier.Scale=math.min(scale,math.max(.65,(v.X-24)/360))
+  w=math.min(1400,(v.X-32)/modifier.Scale)
+  h=(v.Y-24)/modifier.Scale
+  self.Panel.Size=UDim2.fromOffset(w,h)
+  self.Panel:SetAttribute('CascadeDepth',2)
+  self.Heading.Position=UDim2.fromOffset(0,0)
+  self.Heading.Size=UDim2.new(1,0,0,34)
+  self.Heading.TextSize=17
+  local active=self.Stack[#self.Stack]
+  for id,pane in self.Panes do
+   pane.Frame.Visible=id==active
+   if id==active then
+    Theme.CascadeDepth(pane.Frame,0,false)
+    pane.Frame.Position=UDim2.fromOffset(0,38)
+    pane.Frame.Size=UDim2.new(1,0,1,-76)
+    pane.Back.Visible=id~='RootPane' or self.OnClose~=nil
+    if id=='RootPane' then pane.Back.Text='‹  Voltar' end
+    pane.Back.Size=UDim2.new(1,-16,0,44)
+    local top=pane.Back.Visible and 58 or 8
+    pane.List.Position=UDim2.fromOffset(8,top)
+    pane.List.Size=UDim2.new(1,-16,1,-top-8)
+    for _,button in pane.List:GetChildren() do
+     if button:IsA('TextButton') then
+      button.TextWrapped=true
+      button.TextTruncate=Enum.TextTruncate.None
+     end
+    end
+   end
+  end
+  return
+ end
  local style=Theme.Style.Metrics(false)
  w=math.min(style.Id==0 and 1120 or style.Width,(v.X-24)/scale) h=math.min(style.Id==0 and 660 or style.Height,(v.Y-20)/scale) self.Panel.Size=UDim2.fromOffset(w,h)
  local header=Theme.Style.Id()>0 and 70 or 38
@@ -70,6 +166,12 @@ function Cascade:Resize(animate)
   local p=self.Panes[id] local x=(i-1)*step local target=UDim2.fromOffset(x,header+(i-1)*6)
   p.Frame.Visible=not narrow or i==n if narrow then x=0 target=UDim2.fromOffset(0,header) end p.Frame.ZIndex=i p.Frame.Size=UDim2.fromOffset(narrow and w or n==1 and math.min(w,310) or i==n and w-x or step-8,h-header-38-(i-1)*6)
   Theme.CascadeDepth(p.Frame,n-i,animate and not Theme.ReducedMotion())
+  if self.NeoEnabled then
+   p.Back.Size=UDim2.new(1,-16,0,36)
+   p.Back.Visible=id~='RootPane'
+   p.List.Position=UDim2.fromOffset(10,52)
+   p.List.Size=UDim2.new(1,-20,1,-62)
+  end
   for _,b in p.List:GetChildren() do if b:IsA("TextButton") then b.TextWrapped=i==n b.TextTruncate=i==n and Enum.TextTruncate.None or Enum.TextTruncate.AtEnd end end
   if id=="RootPane" then
    p.Back.Visible=false p.List.Position=UDim2.fromOffset(10,10) p.List.Size=UDim2.new(1,-20,1,-20)

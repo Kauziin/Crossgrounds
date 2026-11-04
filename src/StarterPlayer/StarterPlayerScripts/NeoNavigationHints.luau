@@ -24,7 +24,7 @@ function Hints.new(parent)
   if context.Categories then table.insert(groups,{'Frames',{Router:Key('MenuPrevious',device),Router:Key('MenuNext',device)},'Categorias'})end
   if context.Adjust then table.insert(groups,{'Settings',gamepad and {'DPadLeft','DPadRight'}or {'Left','Right'},'Ajustar'})end
   if context.Custom then table.insert(groups,{'Preferences',gamepad and {'ButtonX'}or {'X'},context.CustomLabel or 'Ação contextual'})end
-  if context.Reset then table.insert(groups,{'rotate-ccw',gamepad and {'ButtonY'}or {'Y'},'Restaurar / retornar ao atual'})end
+  if context.Reset then table.insert(groups,{'rotate-ccw',gamepad and {'ButtonY'}or {'Y'},context.ResetLabel or 'Restaurar / retornar ao atual'})end
   if context.Options and gamepad then table.insert(groups,{'Settings',{'ButtonL3'},'Opções'})end
   if context.Group and gamepad then table.insert(groups,{'Frames',{'ButtonL2','ButtonR2'},'Grupos'})end
   local key=input.Name..Icons:Platform()

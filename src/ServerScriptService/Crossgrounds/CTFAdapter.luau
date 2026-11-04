@@ -44,7 +44,7 @@ function Adapter:Enter(player)
  return waitReady(player,self.context,"ctf")
 end
 function Adapter:ReserveAdmission(players,sameTeam,token)
- if not self:IsAvailable() then return false,"Conflict indisponível." end
+ if not self:IsAvailable() then return false,"Conflito indisponível." end
  return require(script.Parent.Parent.MainGameScript.GameManager.TeamManager):ReservePlayers(players,sameTeam,token)
 end
 function Adapter:ReleaseAdmission(token)

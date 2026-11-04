@@ -159,7 +159,32 @@ end
 function V.new(gui)
  gui.IgnoreGuiInset=false gui.ScreenInsets=Enum.ScreenInsets.CoreUISafeInsets gui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling
  local backdrop=make("Frame",gui,"Backdrop") backdrop.BackgroundTransparency=1 backdrop.Size=UDim2.fromScale(1,1)
+ local fullBackdrop=Instance.new('ScreenGui')
+ fullBackdrop.Name='NeoProgressionBackdrop'
+ fullBackdrop.ScreenInsets=Enum.ScreenInsets.None
+ fullBackdrop.IgnoreGuiInset=true
+ fullBackdrop.DisplayOrder=gui.DisplayOrder-1
+ fullBackdrop.ResetOnSpawn=false
+ fullBackdrop.Enabled=false
+ fullBackdrop.Parent=player.PlayerGui
+ local scrim=make('Frame',fullBackdrop,'FullViewport')
+ scrim.Size=UDim2.fromScale(1,1)
+ scrim.BackgroundColor3=Color3.new()
+ scrim.BackgroundTransparency=.07
+ local fade=Instance.new('UIGradient',scrim)
+ fade.Transparency=NumberSequence.new({NumberSequenceKeypoint.new(0,0),NumberSequenceKeypoint.new(.6,.08),NumberSequenceKeypoint.new(1,.28)})
+ local function syncBackdrop() fullBackdrop.Enabled=gui.Enabled and Style.IsNova() end
+ gui:GetPropertyChangedSignal('Enabled'):Connect(syncBackdrop)
+ gui.Destroying:Once(function() fullBackdrop:Destroy() end)
  local panel=make("Frame",backdrop,"Panel") panel:SetAttribute("CascadeDepth",2) panel:SetAttribute("ProgressionSurface",true) panel.BackgroundTransparency=1 panel.AnchorPoint=Vector2.new(.5,.5) panel.Position=UDim2.fromScale(.5,.5)
+ local hints=require(script.Parent.NeoNavigationHints).new(panel)
+ local function refreshHints()
+  hints:Refresh(Theme.Mobile() and Enum.PreferredInput.Touch or nil,Nav:GetHintContext(panel))
+  if not Style.IsNova() then hints.Root.Visible=false end
+ end
+ Nav.FocusChanged:Connect(refreshHints)
+ Nav.HintContextChanged:Connect(refreshHints)
+ require(script.Parent.InputIcons).Changed:Connect(refreshHints)
  local scale=make("UIScale",panel,"Fit")
  local title=V.Text(panel,"Title","PROGRESSÃO",8,0,240,32,24)
  local side=V.Box(panel,"Navigation",600) side.BackgroundColor3=C.Surface side.BackgroundTransparency=.05
@@ -202,9 +227,51 @@ function V.new(gui)
   for key,b in self.Buttons do V.Select(b,key==id) end
  end
  function self:Resize()
+  syncBackdrop()
   local viewport=backdrop.AbsoluteSize if viewport.X<100 then viewport=workspace.CurrentCamera.ViewportSize end
   local theme=require(script.Parent.MenuTheme) viewport=theme.MenuBounds(viewport)
   local preference=math.clamp(player:GetAttribute("SettingMenuScale") or 1,.65,1.5)
+  panel:SetAttribute('NeoIconHints',Style.IsNova())
+  if Style.IsNova() then
+   scale.Scale=math.min(preference,math.max(.65,(viewport.X-32)/400))
+   local w=(viewport.X-32)/scale.Scale
+   local h=(viewport.Y-24)/scale.Scale
+   panel.Size=UDim2.fromOffset(w,h)
+   side.Visible=false
+   title.Position=UDim2.fromOffset(0,0)
+   title.Size=UDim2.new(1,0,0,32)
+   title.Text='CROSSGROUNDS / PROGRESSÃO'
+   title.TextSize=17
+   pageSelector.Visible=true
+   pageSelector.Position=UDim2.fromOffset(0,38)
+   pageSelector.Size=UDim2.new(1,0,0,44)
+   content.Position=UDim2.fromOffset(0,90)
+   content.Size=UDim2.new(1,0,1,-126)
+   content.BackgroundTransparency=1
+   content.Edge.Transparency=1
+   heading.Visible=false
+   separator.Visible=false
+   self.Width=w-12
+   self.Compact=true
+   self.HeaderHeight=44
+   for id,p in self.Panes do
+    local filtersVisible=id=='Leaders' or id=='Friends'
+    local top=filtersVisible and 44 or 0
+    p.Filters.Position=UDim2.fromOffset(0,0)
+    p.Filters.Size=UDim2.new(1,0,0,38)
+    p.List.Position=UDim2.fromOffset(0,top)
+    p.List.Size=UDim2.new(1,-12,1,-top-(id=='Leaders' and 70 or 0))
+   end
+   refreshHints()
+   if self.OnResize then self.OnResize() end
+   return
+  end
+  title.Text='PROGRESSÃO'
+  heading.Visible=true
+  separator.Visible=true
+  content.BackgroundTransparency=.04
+  content.Edge.Transparency=.3
+  hints.Root.Visible=false
   local style=Style.Metrics(false)
   local maxWidth=style.Id==0 and 1400 or style.Width local maxHeight=style.Id==0 and 710 or style.Height
   local desktop=viewport.X>=1000 and viewport.X/viewport.Y>1.3
@@ -243,6 +310,7 @@ function V.new(gui)
   end
   if self.OnResize then self.OnResize() end
  end
+ self.PageSelector=pageSelector
  self:Select("Profile")
  workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(function() self:Resize() end)
  backdrop:GetPropertyChangedSignal("AbsoluteSize"):Connect(function() self:Resize() end)

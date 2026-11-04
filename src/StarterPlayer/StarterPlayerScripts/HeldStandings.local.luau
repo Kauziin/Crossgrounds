@@ -38,7 +38,7 @@ local current = {mode = nil, entries = {}}
 local function render()
  if board then board.Holder:Destroy() end
  local mode=player:GetAttribute("CrossgroundsMode")
- title.Text=mode=="ctf" and "PLACAR · CONFLICT" or mode=="arena" and "PLACAR · ARENA" or "JOGADORES · "..string.upper(mode or "")
+ title.Text=mode=="ctf" and "PLACAR · CONFLITO" or mode=="arena" and "PLACAR · ARENA" or "JOGADORES · "..string.upper(mode or "")
  board=Table.new(list,"Statistics",columns(mode))
  for i,entry in ipairs(current.entries or {}) do
   local row=board:Add({rank="#"..(entry.rank or i),name=entry.name,kills=entry.kills,deaths=entry.deaths,score=entry.score},i)

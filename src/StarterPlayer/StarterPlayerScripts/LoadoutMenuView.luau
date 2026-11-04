@@ -1,6 +1,7 @@
 -- Shared Arena/CTF presentation. Selection is delegated to the existing pending-loadout remote.
 local View={}
 local PreviewStyle=require(script.Parent.ArsenalPreviewStyle)
+local Theme=require(script.Parent.MenuTheme)
 local accent=Color3.fromRGB(37,213,235)
 local white=Color3.fromRGB(239,245,249)
 local muted=Color3.fromRGB(169,192,205)
@@ -147,10 +148,11 @@ function View.new(parent,config)
  local function refresh()
   local id=selected() local pending=player:GetAttribute(definitions.PendingAttribute(mode))
   local highContrast=player:GetAttribute("SettingHighContrast")==true
+  local neo=Theme.Style.IsNova()
   for _,block in {preview,melee,details} do block.BackgroundTransparency=highContrast and 0 or .12 end
   for _,row in rows do
    row.State.Text=row.Entry.id==pending and (row.Entry.id==player:GetAttribute(definitions.ActiveAttribute(mode)) and "ATIVA · PRÓXIMA VIDA" or "PRÓXIMA VIDA") or row.Entry.id==player:GetAttribute(definitions.ActiveAttribute(mode)) and "ATIVA" or "PRESET"
-   local on=row.Entry.id==id row.Button.BackgroundTransparency=highContrast and 0 or on and .02 or .16
+   local on=row.Entry.id==id row.Button.BackgroundTransparency=highContrast and 0 or neo and(on and .45 or 1)or on and .02 or .16
    row.Button:SetAttribute("MenuSelected",on)
    if on and not focusedId then show(row.Entry) end
   end
@@ -184,7 +186,7 @@ function View.new(parent,config)
   if not threeColumns then primaryHeight=math.min(primaryHeight,360) end
   local meleeHeight=128 local detailsHeight=threeColumns and primaryHeight+gap+meleeHeight or (fontScale>1.15 and 410 or 350)
   local total=noticeHeight+primaryHeight+gap+meleeHeight+(threeColumns and 0 or gap+detailsHeight)
-  root.Size=UDim2.new(1,-8,0,math.max(total,noticeHeight+#rows*88))
+  if not Theme.Style.IsNova()then root.Size=UDim2.new(1,-8,0,math.max(total,noticeHeight+#rows*88))end
   notice.Size=UDim2.new(1,0,0,noticeHeight-4) body.Position=UDim2.fromOffset(0,noticeHeight) body.Size=UDim2.new(1,0,1,-noticeHeight)
   grid.Position=UDim2.new() grid.Size=UDim2.fromOffset(listWidth,math.max(100,available-noticeHeight))
   layout.CellSize=UDim2.new(1,-14,0,compact and (fontScale>1.15 and 122 or 100) or (fontScale>1.15 and 104 or 80)) layout.CellPadding=UDim2.fromOffset(0,8)
@@ -208,12 +210,33 @@ function View.new(parent,config)
    row.State.Position=UDim2.new(0,8,1,-stateHeight-3) row.State.Size=UDim2.new(1,-16,0,stateHeight) row.State.TextSize=9
   end
   for _,record in cameras do fit(record) end
+  if Theme.Style.IsNova()then
+   local stacked=width<760 local lw=stacked and width or math.clamp(width*.32,240,360)
+   local px=stacked and 0 or lw+28 local pw=width-px local py=stacked and 250 or 0
+   grid.Position=UDim2.new()grid.Size=UDim2.fromOffset(lw,stacked and 236 or 520)
+   layout.CellSize=UDim2.new(1,-14,0,76)
+   preview.Position=UDim2.fromOffset(px,py)preview.Size=UDim2.fromOffset(pw,440)preview.BackgroundTransparency=1
+   melee.Position=UDim2.fromOffset(10,320)melee.Size=UDim2.new(1,-20,0,110)melee.BackgroundTransparency=.8
+   large.Frame.Position=UDim2.fromOffset(10,112)large.Frame.Size=UDim2.new(1,-20,0,198)
+   details.Position=UDim2.fromOffset(px,py+452)details.Size=UDim2.fromOffset(pw,104)details.BackgroundTransparency=1
+   detailsTitle.Visible=false detailsKind.Visible=false description.Visible=false
+   detailState.Position=UDim2.fromOffset(12,8)detailState.Size=UDim2.new(1,-24,0,76)
+   root.Size=UDim2.new(1,-8,0,noticeHeight+py+570)
+   for _,block in {preview,details}do local e=block:FindFirstChildOfClass('UIStroke')if e then e.Transparency=1 end local g=block:FindFirstChildOfClass('UIGradient')if g then g.Enabled=false end end
+   for _,row in rows do local e=row.Button:FindFirstChildOfClass('UIStroke')if e then e.Transparency=1 end local g=row.Button:FindFirstChildOfClass('UIGradient')if g then g.Enabled=false end end
+   for _,record in cameras do fit(record)end
+  else
+   detailsTitle.Visible=true detailsKind.Visible=true description.Visible=true
+   for _,block in {preview,details}do local e=block:FindFirstChildOfClass('UIStroke')if e then e.Transparency=.78 end local g=block:FindFirstChildOfClass('UIGradient')if g then g.Enabled=true end end
+   for _,row in rows do local e=row.Button:FindFirstChildOfClass('UIStroke')if e then e.Transparency=.78 end local g=row.Button:FindFirstChildOfClass('UIGradient')if g then g.Enabled=true end end
+  end
  end
  hook(parent:GetPropertyChangedSignal("AbsoluteSize"),reflow)
  hook(root:GetPropertyChangedSignal("AbsoluteSize"),reflow)
  hook(player:GetAttributeChangedSignal("SettingMenuScale"),reflow)
  hook(player:GetAttributeChangedSignal("SettingFontScale"),reflow)
  hook(player:GetAttributeChangedSignal("SettingHighContrast"),refresh)
+ hook(player:GetAttributeChangedSignal('SettingInterfaceStyle'),function()refresh()reflow()end)
  hook(player:GetAttributeChangedSignal("CrossgroundsAdmin"),reflow)
  refresh() reflow() return self
 end

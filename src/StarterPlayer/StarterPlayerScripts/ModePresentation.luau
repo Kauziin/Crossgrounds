@@ -1,26 +1,26 @@
--- EXEMPLO ORIENTATIVO. Imagens dependem de upload para a experiência Roblox.
+-- Fotos de assets/maps importadas para os cards da tela Jogar.
 local Presentation = {}
 
 Presentation.Order = { "arena", "ctf", "duels", "get_out" }
 Presentation.Cards = {
     arena = {
         Subtitle = "Combate rápido em primeira pessoa",
-        Image = "rbxassetid://113015463809046", -- rbxassetid://ID_DEPOIS_DO_UPLOAD
+        Image = "rbxassetid://102765073742237",
         Symbol = "Swords",
     },
     ctf = {
         Subtitle = "Trabalho em equipe e estratégia",
-        Image = "rbxassetid://91634170272364",
+        Image = "rbxassetid://101619043843471",
         Symbol = "Flag",
     },
     duels = {
         Subtitle = "Confrontos competitivos",
-        Image = "rbxassetid://97447858799189",
+        Image = "rbxassetid://125480821363582",
         Symbol = "Crosshair",
     },
     get_out = {
         Subtitle = "Sobrevivência assimétrica",
-        Image = "rbxassetid://72478321570256",
+        Image = "rbxassetid://126566346004931",
         Symbol = "Escape",
         UnavailableLabel = "Protótipo",
     },

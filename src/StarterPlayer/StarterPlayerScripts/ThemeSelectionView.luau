@@ -94,6 +94,12 @@ function View.new(parent,options)
   local id=preferences:Value('InterfaceStyle','Global')or 0
   for key,b in styleButtons do b:SetAttribute('MenuSelected',key==id)end
   Theme.Style.Surface(sample,id==1 and 'navigation' or 'panel')
+  sample:SetAttribute('NeoSettingsPage',id==1)
+  Theme.Surface(sample)
+  for _,button in styleButtons do
+   button:SetAttribute('NeoCascadeButton',id==1)
+   Theme.RefreshAccessibility(button)
+  end
   sampleTitle.Text='PRÉVIA · '..(({[0]='CLÁSSICA',[1]='NEO'})[id] or 'NEO')
   local selected=preferences:Value('ThemePreset','Global')
   if selected==0 and player:GetAttribute('ThemeCustomAllowed')~=true then selected=1 end

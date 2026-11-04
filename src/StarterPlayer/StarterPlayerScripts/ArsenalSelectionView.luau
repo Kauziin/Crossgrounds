@@ -28,6 +28,7 @@ function View.new(parent,options)
  local self={} local nav=options.Navigation local player=options.Player local category=options.Category
  local rows={} local controls={} local connections={} local dead=false local width=1000 local reflow local currentId
  local accessories=options.Accessories local categoryButtons={} local toolButtons={}
+ local previewOn=not accessories or not Style.IsNova() local togglePreview local previewControl
  local root=object('Frame','ArsenalSelection',parent) root.Size=UDim2.fromScale(1,1) self.Root=root
  local left=object('Frame','Categories',root) surface(left) left.Visible=not accessories
  local center=object('Frame','Catalog',root) surface(center)
@@ -84,7 +85,8 @@ function View.new(parent,options)
    b:SetAttribute('ArsenalItemStatus',entry.status)
   end
   local diamond=object('Frame','FocusDiamond',b) diamond.Rotation=45 diamond.BackgroundColor3=Color3.fromRGB(226,252,255) diamond.Size=UDim2.fromOffset(7,7) diamond.Position=UDim2.new(0,5,.5,-3) diamond.Visible=false
-  nav:Connect(b,callback) nav:SetActions(b,{custom=entry and options.Custom and function() options.Custom(entry) end or nil})
+  nav:Connect(b,callback) nav:SetActions(b,{custom=entry and not accessories and options.Custom and function() options.Custom(entry) end or nil,reset=accessories and Style.IsNova()and function()togglePreview()end or nil})
+  if accessories then b:SetAttribute('MenuResetLabel','Alternar prévia')end
   local r={Button=b,Edge=edge,Name=t,Status=sub,Icon=icon,Diamond=diamond,Entry=entry,Art=thumbnail,Mark=statusMark} table.insert(controls,r) return r
  end
  local function inspect(entry)
@@ -99,6 +101,7 @@ function View.new(parent,options)
    r.Diamond.Visible=on r.Edge.Color=on and Color3.fromRGB(226,252,255) or selected and Color3.fromRGB(40,230,235) or Color3.fromRGB(106,148,162)
    r.Edge.Thickness=on and 2 or 1 r.Edge.Transparency=on and 0 or selected and .15 or contrast and .25 or .65
    r.Button.BackgroundTransparency=Style.Id()==1 and not on and not selected and 1 or Style.Id()>0 and .28 or .06
+   if Style.IsNova()then r.Button.BackgroundTransparency=contrast and 0 or(on or selected)and .45 or 1 if not on and not selected then r.Edge.Transparency=1 end end
    if Style.Id()>0 and not on and not selected then r.Edge.Transparency=1 end
    r.Button.BackgroundColor3=on and Color3.fromRGB(14,63,72) or selected and Color3.fromRGB(13,46,54) or Color3.fromRGB(15,35,43)
    if r.Art then r.Art.ImageTransparency=r.Entry.available==false and .25 or 0 r.Mark.Visible=r.Entry.equipped==true r.Button:SetAttribute('ArsenalItemStatus',r.Entry.status) end
@@ -126,9 +129,9 @@ function View.new(parent,options)
   for i,r in rows do
    r.Button.NextSelectionUp=rows[i-1] and rows[i-1].Button or categoryButtons[category]
    r.Button.NextSelectionDown=rows[i+1] and rows[i+1].Button or toolButtons[1]
-   if not accessories then r.Button.NextSelectionLeft=categoryButtons[category] end
+   if not accessories and not Style.IsNova()then r.Button.NextSelectionLeft=categoryButtons[category] end
   end
-  for _,b in categoryButtons do if accessories then b.NextSelectionDown=rows[1] and rows[1].Button else b.NextSelectionRight=rows[1] and rows[1].Button end end
+  for _,b in categoryButtons do if accessories or Style.IsNova()then b.NextSelectionDown=rows[1] and rows[1].Button else b.NextSelectionRight=rows[1] and rows[1].Button end end
   local initial=rows[1] for _,r in rows do if r.Entry.id==wanted or not wanted and r.Entry.equipped then initial=r end end
   if initial then inspect(initial.Entry) end items.CanvasPosition=Vector2.zero
   if reflow then reflow() end if wanted and initial then nav:Focus(initial.Button) end paint(nav:GetFocus())
@@ -158,6 +161,41 @@ function View.new(parent,options)
  reflow=function()
   local s=scale() local gap=12 local compact=width<650 local top=options.Top and options.Top() or 64
   local height=math.max(420,options.Height and options.Height() or 530)
+  for _,r in controls do nav:SetActions(r.Button,{custom=r.Entry and not accessories and options.Custom and function()options.Custom(r.Entry)end or nil,reset=accessories and Style.IsNova()and function()togglePreview()end or nil})end
+  if Style.IsNova()then
+   local wide=width>=900 local showPreview=not accessories or previewOn
+   local rh=math.clamp(options.Height and options.Height()or 530,180,520)local strip=math.ceil(48*s)
+   local side=wide and showPreview and math.floor(width*.42)or 0
+   local cw=width-(side>0 and side+28 or 0)local cy=top+strip+12
+   left.Visible=false categories.Parent=root categories.AutomaticCanvasSize=Enum.AutomaticSize.X categories.UIListLayout.FillDirection=Enum.FillDirection.Horizontal
+   categories.Position=UDim2.fromOffset(0,top)categories.Size=UDim2.new(1,accessories and -180 or 0,0,strip)
+   for _,p in {center,right,statsPanel}do p.BackgroundTransparency=1 local e=p:FindFirstChildOfClass('UIStroke')if e then e.Transparency=1 end end
+   center.Position=UDim2.fromOffset(0,cy)center.Size=UDim2.fromOffset(cw,rh)
+   heading.Visible=false items.Position=UDim2.fromOffset(4,4)items.Size=UDim2.new(1,-12,1,-8)
+   local rx=side>0 and cw+28 or 0 local rw=side>0 and side or width local ry=side>0 and cy or cy+rh+16
+   right.Visible=showPreview right.Position=UDim2.fromOffset(rx,ry)right.Size=UDim2.fromOffset(rw,300)
+   self.PreviewPosition=right.Position+UDim2.fromOffset(8,96)self.PreviewSize=UDim2.fromOffset(rw-16,200)
+   local sy=ry+(showPreview and 312 or 0)
+   statsPanel.Position=UDim2.fromOffset(rx,sy)statsPanel.Size=UDim2.fromOffset(rw,250*s)
+   description.Position=UDim2.fromOffset(8,42)description.Size=UDim2.new(1,-16,0,48*s)
+   statsList.Position=UDim2.fromOffset(8,96*s)statsList.Size=UDim2.new(1,-16,1,-104*s)
+   for _,r in controls do
+    local cat=r.Category~=nil local utility=table.find(toolButtons,r.Button)
+    r.Button.Size=(cat or utility)and UDim2.fromOffset(math.clamp(#r.Name.Text*8+40,130,260)*s,44*s)or UDim2.new(1,-8,0,80*s)
+    local inset=r.Art and 92 or r.Entry and 58 or 16
+    r.Icon.Position=UDim2.fromOffset(14,0)r.Icon.Size=UDim2.new(0,36,1,0)
+    r.Name.Position=UDim2.fromOffset(inset,(cat or utility)and 0 or 8)r.Name.Size=UDim2.new(1,-inset-12,0,(cat or utility)and 44*s or 30*s)r.Name.TextSize=(cat or utility)and 14 or 16
+    r.Status.Position=UDim2.fromOffset(inset,40*s)r.Status.Size=UDim2.new(1,-inset-12,0,30*s)r.Status.Visible=not cat and not utility and r.Status.Text~=''
+    if r.Art then r.Art.Position=UDim2.fromOffset(14,12*s)r.Art.Size=UDim2.fromOffset(64*s,50*s)end
+   end
+   if previewControl then previewControl.Button.Visible=true previewControl.Button.Position=UDim2.new(1,-172,0,top)previewControl.Button.Size=UDim2.fromOffset(172,44*s)previewControl.Name.Text=previewOn and 'Ocultar prévia'or 'Mostrar prévia'previewControl.Name.Position=UDim2.fromOffset(12,0)previewControl.Name.Size=UDim2.new(1,-24,1,0)previewControl.Name.TextSize=14 end
+   local bottom=math.max(cy+rh,sy+250*s)
+   tools.Visible=#toolButtons>0 tools.Position=UDim2.fromOffset(0,bottom+12)tools.Size=UDim2.new(1,0,0,52*s)
+   footer.Position=UDim2.fromOffset(4,bottom+72*s)footer.Size=UDim2.new(1,-8,0,44*s)footer.Text=options.Information and options.Information()or ''
+   self.TotalHeight=footer.Position.Y.Offset+footer.Size.Y.Offset+8 paint(nav:GetFocus())return
+  end
+  if previewControl then previewControl.Button.Visible=false end
+  left.Visible=not accessories categories.Parent=accessories and center or left categories.AutomaticCanvasSize=accessories and Enum.AutomaticSize.X or Enum.AutomaticSize.Y categories.UIListLayout.FillDirection=accessories and Enum.FillDirection.Horizontal or Enum.FillDirection.Vertical right.Visible=true
   local architecture=StylePolicy.Arsenal(width,accessories,Style.Id())local modern=architecture.Modern
   local rightWidth=architecture.Right
   local side=modern and architecture.Side or accessories and 0 or compact and width or math.clamp(width*.22,170,240)
@@ -197,7 +235,9 @@ function View.new(parent,options)
   self.TotalHeight=footer.Position.Y.Offset+footer.Size.Y.Offset+8
  end
  function self:Layout(value) width=value reflow() return self.TotalHeight end
- function self:PreviewVisible() return true end
+ togglePreview=function()previewOn=not previewOn reflow()if options.PreviewChanged then options.PreviewChanged(previewOn)end end
+ if accessories then previewControl=button(root,'TogglePreview','Mostrar prévia','',function()togglePreview()end)end
+ function self:PreviewVisible() return not Style.IsNova()or not accessories or previewOn end
  function self:DefaultFocus() for _,r in rows do if r.Entry.equipped then return r.Button end end return rows[1] and rows[1].Button or categoryButtons[category] end
  function self:Destroy() if dead then return end dead=true for _,c in connections do c:Disconnect() end root:Destroy() end
  root.Destroying:Connect(function() dead=true for _,c in connections do c:Disconnect() end end)

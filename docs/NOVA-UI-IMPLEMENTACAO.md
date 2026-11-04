@@ -80,3 +80,25 @@ MenuNavigation.GetHintContext descreve ações realmente registradas no alvo em 
 
 Play novo verificou slider, booleano, botão comum, alterações de ações no mesmo alvo, edição de texto, confirmação flutuante e troca para pausa. Apresentações especializadas ainda não migradas devem consumir a mesma fonte de contexto ao receber a composição Neo.
 Sessão adicional confirmou LS e grupos LT/RT na apresentação Gamepad simulada somente enquanto seus callbacks estão registrados. 15/15 fontes compiladas e correspondentes ao editor; sem teste físico de controle ou nova simulação mobile nesta etapa. Play encerrado, sem publicação.
+
+## Seleção de classes e visão geral de equipamento Neo
+
+Loadout recebe página única e fundo integral Neo. CTF troca três colunas pela lista simples e equipamento, mantendo slots e áreas futuras; atributos continuam nas telas específicas existentes. Mobile empilha a composição, com edição X retraindo a lista. Arena recebe lista/prévia na mesma linguagem, sem estatísticas. Dicas locais mobile ocultas e rodapé repetido do CTF oculto na Neo. Fluxos de equipamento/seleção existentes preservados.
+
+Validação: CTF Practice Range real, desktop e iPhone paisagem, edição/foco/opções sem gestão destrutiva; Arena por View temporária com definições reais, callback simulado, alternância de estilo e estabilidade de tamanho. Corrigido ciclo de redimensionamento detectado na primeira Arena e retestado em sessão nova. Capturas artifacts/neo-armaments-2026-11-03. Arquivos: ExperienceMenu, GunsmithView, CTFClassOverview e LoadoutMenuView. 18 fontes compiladas no conjunto; sem publicação.
+
+A pendência de Armamentos está parcialmente atendida: seleção e visão geral migradas. Catálogos de armas/acessórios, prévias detalhadas, progressão e gestão flutuante ainda exigem composição Neo. Demais telas do inventário permanecem pendentes. Sem controle físico ou partida Arena real validada.
+
+## Catálogos e gestão da classe Neo
+
+Migrados os catálogos internos de armas/acessórios para lista vertical e faixa de categorias, com painéis abertos, dados/XP/compatibilidade existentes. Prévia sempre disponível em armas; acessórios ocultam o render inicialmente, com Y e botão visível Mostrar/Ocultar prévia. Rótulos contextuais consultam as ações atuais, inclusive após troca de estilo. Botão de preview exclusivo Neo; Clássica preserva layout. Painel flutuante da classe tem ramo Neo com lista textual, escala mobile 1 e rolagem para alcançar campos/ações. Backend de gestão preservado.
+
+Verificados em Play real no CTF Practice Range: modelos reais, inspeção de armas, acessórios e preview por ação/botão, mobile paisagem, popup e campo de renomeação sem salvar. Sessão final com View temporária verificou callbacks simulados, altura estável e alternância Clássica/Neo. MenuNavigation corrige cálculo de revelação em scrolls aninhados e inclui eixo horizontal. Captura em artifacts/neo-gunsmith-2026-11-03; detalhes e limites no Estado de desenvolvimento. 20 fontes compiladas no conjunto, sem novo erro observado no console final das fontes alteradas. Sem publicação ou validação física.
+
+Ainda falta composição Neo da trilha de progressão da arma; menus de Progresso/Carreira/Social, Playlist e demais fluxos continuam no inventário pendente. Não há nova implementação de HUD/#11b.
+
+## Jogar — cards compartilhados e nome Conflito
+
+Recriada tela Jogar com ModeSelectGrid nas duas apresentações: imagens anteriores, tipos do modo, pessoa + jogadores/capacidade, disponibilidade e atalhos menores dentro de cada card. Neo substitui lista/ações grandes por grade e cabeçalho compacto com fundo integral; Clássica retira coluna lateral na página de modalidades. X abre diálogo de detalhes, A/card entra, Y no Conflito abre Practice Range; toque tem botões próprios sem letras de teclado. Contagem é humana no servidor local, exclui treino e sinaliza capacidade quando população não está disponível.
+
+Usuário esclareceu que Conflito é o nome definitivo. Corrigidos rótulos antigos em ProgressionSchema e demais textos de produção, preservando IDs/dados. Validada entrada real no treino e na Arena, atualização 1/12 e retorno, alternância Clássica/Neo e mobile paisagem. Capturas/limites em artifacts/neo-play-2026-11-03/VALIDACAO.md. Sem publicação; restantes do inventário continuam pendentes.

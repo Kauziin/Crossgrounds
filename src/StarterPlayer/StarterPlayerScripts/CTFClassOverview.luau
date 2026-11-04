@@ -2,6 +2,7 @@
 local View={}
 local PreviewStyle=require(script.Parent.ArsenalPreviewStyle)
 local Accent=require(script.Parent:WaitForChild('AccentTheme'))
+local Theme=require(script.Parent.MenuTheme)
 local cyan=Accent.Color()
 local muted=Color3.fromRGB(164,188,198)
 local Compatibility=require(game.ReplicatedStorage.Crossgrounds.AttachmentCompatibility)
@@ -171,7 +172,7 @@ function View.new(root,options)
 	end
 	function self:RefreshState(state)
 		for n,row in rows do if row.Button.Parent then
-				local focused=self.Index==n row.Edge.Color=Accent.Color() row.Edge.Thickness=focused and 2 or 1 row.Edge.Transparency=focused and 0 or .8 row.Button.BackgroundColor3=focused and Color3.fromRGB(10,46,54) or Color3.fromRGB(13,28,35)
+				local focused=self.Index==n row.Edge.Color=Accent.Color() row.Edge.Thickness=focused and 2 or 1 row.Edge.Transparency=focused and 0 or Theme.Style.IsNova()and 1 or .8 row.Button.BackgroundTransparency=Theme.Style.IsNova()and(focused and .4 or 1)or 0 row.Button.BackgroundColor3=focused and Color3.fromRGB(10,46,54) or Color3.fromRGB(13,28,35)
 				local p=row.Preset local function matches(v)
 					if not v or v.name~=p.name or v.primaryWeaponId~=p.primaryWeaponId or v.secondaryWeaponId~=p.secondaryWeaponId or v.meleeWeaponId~=p.meleeWeaponId then return false end
 					for _,slot in {'primaryAttachments','secondaryAttachments'} do
@@ -185,6 +186,21 @@ function View.new(root,options)
 			end end
 	end
 	function self:Layout(width,focused)
+		local neo=Theme.Style.IsNova()
+		footer.Visible=not neo right.Visible=not neo
+		for _,panel in {primary,secondary,melee,ability1,ability2,appearance}do panel.BackgroundTransparency=neo and .8 or .12 local edge=panel:FindFirstChildOfClass('UIStroke')if edge then edge.Transparency=neo and .85 or .55 end end
+		for _,b in {primary,secondary}do b.Controls.Visible=not Theme.Mobile()end
+		if neo then
+			local stacked=width<760 local left=stacked and width or math.clamp(width*.29,230,340)
+			local x=not focused and not stacked and left+28 or 0 local centerW=width-x
+			local offset=stacked and not focused and 252 or 0
+			primary.Position=UDim2.fromOffset(x,62+offset)primary.Size=UDim2.fromOffset(centerW,210)
+			secondary.Position=UDim2.fromOffset(x,284+offset)secondary.Size=UDim2.fromOffset(centerW,120)
+			local third=(centerW-24)/3
+			for i,p in {melee,ability1,ability2}do p.Position=UDim2.fromOffset(x+(i-1)*(third+12),416+offset)p.Size=UDim2.fromOffset(third,90)end
+			appearance.Position=UDim2.fromOffset(x,518+offset)appearance.Size=UDim2.fromOffset(centerW,48)
+			return left,x,centerW,580+offset,offset
+		end
 		local wide=width>=900 local mid=width>=650 local left=mid and math.clamp(width*.22,175,235) or width local gap=10
 		local rightWidth=wide and math.clamp(width*.245,220,280) or 0 local centerX=not focused and mid and left+gap or 0 local centerW=width-centerX-(wide and rightWidth+gap or 0)
 		primary.Position=UDim2.fromOffset(centerX,62) primary.Size=UDim2.fromOffset(centerW,210)

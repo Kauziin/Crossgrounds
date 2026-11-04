@@ -155,12 +155,17 @@ local function visible(object,clipping)
  return true
 end
 local function reveal(object)
- local ancestor=object.Parent
+ local ancestor=object.Parent local shift=0 local shiftX=0
  while ancestor and ancestor~=root do
   if ancestor:IsA("ScrollingFrame") then
-   local pos=object.AbsolutePosition.Y-ancestor.AbsolutePosition.Y local bottom=pos+object.AbsoluteSize.Y
-   if pos<0 then ancestor.CanvasPosition+=Vector2.new(0,pos-4)
-   elseif bottom>ancestor.AbsoluteSize.Y then ancestor.CanvasPosition+=Vector2.new(0,bottom-ancestor.AbsoluteSize.Y+4) end
+   local pos=object.AbsolutePosition.Y+shift-ancestor.AbsolutePosition.Y local bottom=pos+object.AbsoluteSize.Y
+   local delta=pos<0 and pos-4 or bottom>ancestor.AbsoluteSize.Y and bottom-ancestor.AbsoluteSize.Y+4 or 0
+   local before=ancestor.CanvasPosition.Y
+   local after=math.clamp(before+delta,0,math.max(0,ancestor.AbsoluteCanvasSize.Y-ancestor.AbsoluteSize.Y))
+   local x=object.AbsolutePosition.X+shiftX-ancestor.AbsolutePosition.X
+   local dx=x<0 and x-4 or x+object.AbsoluteSize.X>ancestor.AbsoluteSize.X and x+object.AbsoluteSize.X-ancestor.AbsoluteSize.X+4 or 0
+   local beforeX=ancestor.CanvasPosition.X local afterX=math.clamp(beforeX+dx,0,math.max(0,ancestor.AbsoluteCanvasSize.X-ancestor.AbsoluteSize.X))
+   ancestor.CanvasPosition=Vector2.new(afterX,after)shift-=after-before shiftX-=afterX-beforeX
   end ancestor=ancestor.Parent
  end
 end
@@ -221,7 +226,8 @@ function Navigation:GetHintContext(owner)
   Categories=active and categories~=nil,Adjust=entry and entry.adjust~=nil or false,
   Custom=type(actions.custom)=='function',Reset=type(actions.reset)=='function',
   Options=type(actions.options)=='function',Group=type(actions.group)=='function',
-  CustomLabel=object and object:GetAttribute('SettingsCard')and 'Valor personalizado'or 'Ação contextual'}
+  ResetLabel=object and object:GetAttribute('MenuResetLabel'),
+  CustomLabel=object and(object:GetAttribute('MenuCustomLabel')or object:GetAttribute('SettingsCard')and 'Valor personalizado')or 'Ação contextual'}
 end
 function Navigation:ContextAction(action)
  local entry=focused and registered[focused] local callback=entry and entry.actions and entry.actions[action]

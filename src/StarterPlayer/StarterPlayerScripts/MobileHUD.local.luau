@@ -74,6 +74,19 @@ local toolbar=Instance.new("Frame") toolbar.Name="Toolbar" toolbar.AnchorPoint=V
 local save=button(toolbar,"Save","SALVAR",0,0,84,38)
 local cancel=button(toolbar,"Cancel","CANCELAR",90,0,84,38)
 local reset=button(toolbar,"Reset","PADRÃO",180,0,84,38)
+local function styleEditor()
+ local neo=Theme.Style.IsNova()
+ local height=neo and 44 or 38
+ toolbar.Size=UDim2.fromOffset(264,height)
+ panel.BackgroundTransparency=neo and .2 or .12
+ editor.BackgroundTransparency=neo and .65 or .5
+ for _,control in {save,cancel,reset} do
+  control.Size=UDim2.fromOffset(84,height)
+  control.BackgroundTransparency=neo and .2 or 0
+ end
+end
+Theme.Style.Observe(editor,styleEditor)
+styleEditor()
 local function inside(object,point)
  local p,z=object.AbsolutePosition,object.AbsoluteSize
  return object.Visible and point.X>=p.X and point.X<=p.X+z.X and point.Y>=p.Y and point.Y<=p.Y+z.Y

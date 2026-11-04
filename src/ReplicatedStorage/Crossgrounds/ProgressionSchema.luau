@@ -1,5 +1,5 @@
 -- Shared display contract. Only the server records progress or grants prestige.
-local S={Modes={"general","arena","get_out","duels","ctf"},Names={general="Geral",arena="Arena",get_out="Get Out",duels="Duels",ctf="Capture The Flag"},Primary={arena="Kills",get_out="Wins",duels="Wins",ctf="Captures"}}
+local S={Modes={"general","arena","get_out","duels","ctf"},Names={general="Geral",arena="Arena",get_out="Get Out",duels="Duels",ctf="Conflito"},Primary={arena="Kills",get_out="Wins",duels="Wins",ctf="Captures"}}
 S.Fields={"XP","Coins","Kills","Deaths","Captures","PlaySeconds","BotKills","TrainingKills","Wins","Losses","Escapes","SurvivorWins","BeastWins"}
 S.Labels={XP="XP total",Level="Nível",Coins="Moedas",Kills="Eliminações",Deaths="Mortes",Captures="Bandeiras",PlaySeconds="Tempo jogado",BotKills="Contra bots",TrainingKills="Alvos de treino",Wins="Vitórias",Losses="Derrotas",Escapes="Fugas",SurvivorWins="Vitórias como sobrevivente",BeastWins="Vitórias como besta",Ratio="Relação E/M"}
 S.Metrics={general={"XP","Level","Kills","Wins","Captures"},arena={"Kills","XP"},get_out={"Wins","Escapes","SurvivorWins","BeastWins"},duels={"Wins","Kills"},ctf={"Captures","Kills","Wins","XP"}}

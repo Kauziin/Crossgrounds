@@ -6,6 +6,7 @@ local Career=require(script.Parent:WaitForChild("CareerClient"))
 local Config=require(Root.WeaponVisualConfiguration) local Stats=require(Root.WeaponStats)
 local Http=game:GetService("HttpService") local UIS=game:GetService("UserInputService")
 local PreviewStyle=require(script.Parent.ArsenalPreviewStyle)
+local Theme=require(script.Parent.MenuTheme)
 local function copy(v) return Http:JSONDecode(Http:JSONEncode(v)) end
 function View.new(parent,options)
  local player,nav=options.Player,options.Navigation local remote=Root.Remotes:WaitForChild("ArsenalCommand")
@@ -103,7 +104,7 @@ table.insert(connections,player:GetAttributeChangedSignal("CTFPracticeRange"):Co
   end)
  end
  local function action(text,fn)
-  local b=Instance.new("TextButton") b.Name="Option"..(#buttons+1) b:SetAttribute("CascadeDecoration",page=="loadouts") b.LayoutOrder=#buttons+1 b.Text=text b.TextWrapped=true b.Size=UDim2.new(1,-8,0,44) b.BackgroundColor3=Color3.fromRGB(25,42,55) b.TextColor3=Color3.fromRGB(230,244,250) b.TextSize=14 b.Font=Enum.Font.GothamMedium b.AutoButtonColor=true b.Parent=list nav:Connect(b,fn) table.insert(buttons,b) return b
+  local b=Instance.new("TextButton") b.Name="Option"..(#buttons+1) b:SetAttribute("CascadeDecoration",page=="loadouts") b.LayoutOrder=#buttons+1 b.Text=text b.TextWrapped=true b.Size=UDim2.new(1,-8,0,44) b.BackgroundColor3=Color3.fromRGB(25,42,55) b.BackgroundTransparency=Theme.Style.IsNova()and 1 or 0 b.TextColor3=Color3.fromRGB(230,244,250) b.TextSize=14 b.Font=Enum.Font.GothamMedium b.AutoButtonColor=true b.Parent=list nav:Connect(b,fn) table.insert(buttons,b) return b
  end
  local function clear() if progression then preview.Parent=root progression:Destroy() progression=nil end if popup then popup:Destroy() popup=nil end if selectionView then selectionView:Destroy() selectionView=nil end for _,b in buttons do b:Destroy() end buttons={} list.CanvasPosition=Vector2.zero end
  local function open(nextPage,back)
@@ -190,6 +191,7 @@ table.insert(connections,player:GetAttributeChangedSignal("CTFPracticeRange"):Co
   notice.Position=UDim2.fromOffset(0,34) notice.Size=UDim2.new(1,0,0,page=="loadouts" and 24 or 42)
   list.Visible=true
   if page=='progression' then
+   if Theme.Style.IsNova() then title.Text='PROGRESSÃO DA ARMA' end
    local Track=require(script.Parent.ProgressionTrackView)
    local Data=require(Root.ProgressionTracks)
    local weapon=Catalog.Get(candidate)
@@ -210,11 +212,11 @@ table.insert(connections,player:GetAttributeChangedSignal("CTFPracticeRange"):Co
     end,
     Inspect=function(reward)
      progressionReward=reward
-     if not reward then return end
      local configuration=copy(attachments)
-     if reward.kind=='attachment' then configuration[reward.slot]=reward.id end
+     if reward and reward.kind=='attachment' then configuration[reward.slot]=reward.id end
      showModel(candidate,configuration)
-     if model then require(Root.WeaponFinishVisual).Apply(model,reward.finish or 'default') end
+     if model then require(Root.WeaponFinishVisual).Apply(model,reward and reward.finish or 'default') end
+     if not reward then return end
      if reward.kind=='attachment' then
       local before=Stats.Get(candidate,attachments).effectiveGameplayStats local after=Stats.Get(candidate,configuration).effectiveGameplayStats
       local changes={}
@@ -224,6 +226,11 @@ table.insert(connections,player:GetAttributeChangedSignal("CTFPracticeRange"):Co
     end,
    })
    progression.Root.Position=UDim2.fromOffset(0,66)
+   local trackRoot=progression.Root
+   local layoutConnection=trackRoot:GetPropertyChangedSignal('Size'):Connect(function()
+    task.defer(function() if alive and progression and progression.Root==trackRoot then reflow() end end)
+   end)
+   trackRoot.Destroying:Once(function() layoutConnection:Disconnect() end)
    preview.Parent=progression.PreviewArea preview.Position=UDim2.fromScale(0,0) preview.Size=UDim2.fromScale(1,1) preview.Visible=true preview.BackgroundTransparency=1
    list.Visible=false rotate.Visible=false details.Visible=false Career.Refresh()
    return
@@ -318,8 +325,9 @@ table.insert(connections,player:GetAttributeChangedSignal("CTFPracticeRange"):Co
    list.Visible=page~="focused" preview.Active=false preview.Visible=true
    local width=math.max(310,parent.AbsoluteSize.X/factor-8)
    local left,x,center,total,offset=overview:Layout(width,page=='focused')
+   local neo=Theme.Style.IsNova()
    root.Size=UDim2.new(1,-8,0,total)
-   list.Position=UDim2.fromOffset(0,62) list.Size=UDim2.fromOffset(left,offset>0 and 194 or 492)
+   list.Position=UDim2.fromOffset(0,62) list.Size=UDim2.fromOffset(left,offset>0 and (neo and 230 or 194)or 492)
    preview.Position=UDim2.fromOffset(x+center*.23,72+offset) preview.Size=UDim2.fromOffset(center*.75,143)
    preview.ZIndex=3 rotate.ZIndex=3 preview.BackgroundTransparency=1 rotate.Position=UDim2.fromOffset(x+center-182,69+offset) rotate.Size=UDim2.fromOffset(76,28) rotate.TextSize=10 rotate.Text="Girar prévia" rotate.Visible=false
    details.Visible=false positionCamera() return
@@ -336,6 +344,7 @@ table.insert(connections,player:GetAttributeChangedSignal("CTFPracticeRange"):Co
   positionCamera()
  end
  hook(parent:GetPropertyChangedSignal("AbsoluteSize"),reflow)
+ hook(player:GetAttributeChangedSignal('SettingInterfaceStyle'),reflow)
  hook(preview.InputBegan,function(input) if page~='loadouts' and page~='focused' and (input.UserInputType==Enum.UserInputType.MouseButton1 or input.UserInputType==Enum.UserInputType.Touch) then dragging=input end end)
  hook(UIS.InputEnded,function(input) if dragging==input then dragging=nil end end)
  hook(UIS.InputChanged,function(input) if dragging and (input==dragging or input.UserInputType==Enum.UserInputType.MouseMovement) then yaw-=input.Delta.X*.008 pitch=math.clamp(pitch-input.Delta.Y*.008,-.9,.9) positionCamera() end end)

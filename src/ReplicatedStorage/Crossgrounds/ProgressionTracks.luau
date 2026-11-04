@@ -28,7 +28,7 @@ function T.Account(p,mode,category)
  track.totalXP=p and p.lifetimeXP or nil
  for _,m in mode=='all' and {'ctf','arena'} or {mode} do
   for _,item in Unlocks.List(m) do if item.level and (not category or category=='all' or item.kind==category) then
-   local row=table.clone(item) row.mode=m row.available=T.Allows(p,m,item) row.description=(m=='ctf' and 'Conflict' or 'Arena')..' · '..(item.kind=='weapon' and 'Armamento' or 'Aparência')..' · Conta nível '..item.level
+   local row=table.clone(item) row.mode=m row.available=T.Allows(p,m,item) row.description=(m=='ctf' and 'Conflito' or 'Arena')..' · '..(item.kind=='weapon' and 'Armamento' or 'Aparência')..' · Conta nível '..item.level
    add(track,item.level,row)
   end end
  end

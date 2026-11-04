@@ -69,7 +69,7 @@ local styled=setmetatable({},{__mode='k'})
 local function paint(b,r)
  if not b.Parent then return end
  local selected=b:GetAttribute('MenuSelected')==true
- local simple=menuStyle(b)==1
+ local simple=menuStyle(b)==1 or b:GetAttribute('NeoCascadeButton')==true
  Accent.Role(b,'BackgroundColor3',selected and 'Selected' or 'Button')
  b.BackgroundTransparency=alpha(selected and .03 or r.hover and (menuStyle(b)>0 and .10 or .05) or simple and 1 or menuStyle(b)==2 and .45 or .14)
  local s=edge(b) s.Thickness=(selected or r.hover)and 2 or 1 s.Transparency=(selected or r.hover)and .04 or simple and 1 or menuStyle(b)==2 and .85 or .50

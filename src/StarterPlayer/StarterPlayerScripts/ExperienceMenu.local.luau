@@ -254,7 +254,8 @@ resize=function(animate)
  local configActive=page~="Main" and not table.find({"Loadout","Exit","Surrender"},page)
  local neo=Theme.Style.IsNova()and configActive
  local neoPause=Theme.Style.IsNova()and table.find({'Main','Exit','Surrender'},page)~=nil
- local neoSurface=neo or neoPause
+ local neoLoadout=Theme.Style.IsNova()and page=='Loadout'
+ local neoSurface=neo or neoPause or neoLoadout
  if neoSurface then
   modifier.Scale=scale
   local margin=math.clamp(v.X*.03,16,48)
@@ -268,11 +269,12 @@ resize=function(animate)
  panel:SetAttribute("SettingsOverhaul",configActive)
  for _,f in panes do f:SetAttribute("SettingsOverhaul",configActive)if not neoSurface then f:SetAttribute("NeoSettingsPage",nil)require(script.Parent.AccentTheme).Role(f.Back,"TextColor3","Text")end end
  siblingTabs.Visible=configActive subtitle.Visible=configActive
- if neo then
+ if neo or neoLoadout then
   if not categoryButtons.Options then buildCategories('Options')end
   if categories[page]and page~='Options'and not categoryButtons[page]then buildCategories(page)end
   siblingTabs.Visible=false
   NeoSettings.Apply({Page=page,Categories=categories,Titles=titles,Panes=panes,Lists=lists,Panel=panel,Subtitle=subtitle,BindingTabs=bindingTabs,Width=w,Height=h})
+  if neoLoadout then subtitle.Visible=false panes.Detail.Back.Text='‹  ARMAMENTOS' lists.Detail.Position=UDim2.fromOffset(8,h<450 and 52 or 64) lists.Detail.Size=UDim2.new(1,-24,1,h<450 and -60 or -72)end
  elseif configActive then
   local adaptive=Adaptive.Settings(w,h,page=="Bindings")
   local compact=adaptive.Compact

@@ -1,6 +1,6 @@
 local Catalog={}
 local definitions={
- {id="ctf",name="Conflict",status="prototype",description="Capture a bandeira inimiga e proteja a sua. Duas equipes, três kits e bots para completar a partida.",capacity={teams=2,combatantsPerTeam=6,maxCombatants=12},version="0.1.0"},
+ {id="ctf",name="Conflito",status="prototype",description="Capture a bandeira inimiga e proteja a sua. Duas equipes, três kits e bots para completar a partida.",capacity={teams=2,combatantsPerTeam=6,maxCombatants=12},version="0.1.0"},
  {id="get_out",name="Get Out",status="planned",version="0.5-p0",description="Hackeie quatro PCs, use portas e dutos e resgate aliados para escapar da Besta. Duas saídas; 2 a 5 jogadores."},
  {id="duels",name="Duels",status="planned",description="Uma modalidade de duelos em desenvolvimento."},
  {id="arena",name="Arena",status="prototype",capacity={maxCombatants=12},version="0.1.0-hubtest",description="Combate rápido em primeira pessoa. 20 de vida, pistolas e reaparecimento após a morte. Vote no próximo mapa."},

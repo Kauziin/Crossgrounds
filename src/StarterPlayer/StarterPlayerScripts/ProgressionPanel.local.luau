@@ -168,7 +168,7 @@ local Clan=require(script.Parent.ClanBridge)
 local accountTrack=TrackView.new(view.Panes.Unlocks.List,{
  Name=function() return player.DisplayName end,
  Categories={{id="all",label="Todas as recompensas"},{id="weapon",label="Armas"},{id="appearance",label="Aparências"}},
- Modes={{id="all",label="Todos os modos"},{id="ctf",label="Conflict"},{id="arena",label="Arena"}},
+ Modes={{id="all",label="Todos os modos"},{id="ctf",label="Conflito"},{id="arena",label="Arena"}},
  Data=function(category,mode) return TrackData.Account(Career.Get(),mode,category) end,
 })
 local guildTrack=TrackView.new(view.Panes.Guild.List,{Data=function() return TrackData.Guild(Clan:Get(),Career.Get()) end})
@@ -190,7 +190,7 @@ view.OnResize=function()
 end
 Nav:SetBack(view.Panel,function() if popup then dismiss() if popupReturn and popupReturn.Parent then Nav:Focus(popupReturn) end else close() end end,view.Buttons.Profile)
 Nav:SetCategories(view.Panel,function(step)
- if popup then return end local ids={"Profile","Leaders","Unlocks","Friends","Guild"} local index=table.find(ids,view.Selected) or 1 local id=ids[(index-1+step)%#ids+1] selectPage(id) Nav:Focus(view.Buttons[id])
+ if popup then return end local ids={"Profile","Leaders","Unlocks","Friends","Guild"} local index=table.find(ids,view.Selected) or 1 local id=ids[(index-1+step)%#ids+1] selectPage(id) Nav:Focus(view.PageSelector.Visible and view.PageSelector or view.Buttons[id])
 end)
 local refreshPending=false
 player.AttributeChanged:Connect(function(key)
@@ -199,7 +199,7 @@ player.AttributeChanged:Connect(function(key)
 end)
 local function show()
  local on=player:GetAttribute("ProgressionMenuOpen")==true gui.Enabled=on view.Backdrop.Visible=on dismiss()
- if on then view:Resize() selectPage("Profile") profileList.CanvasPosition=Vector2.zero task.delay(.05,function() if gui.Enabled then Nav:Focus(view.Buttons.Profile) end end) end
+ if on then view:Resize() selectPage("Profile") profileList.CanvasPosition=Vector2.zero task.delay(.05,function() if gui.Enabled then Nav:Focus(view.PageSelector.Visible and view.PageSelector or view.Buttons.Profile) end end) end
 end
 player:GetAttributeChangedSignal("ProgressionMenuOpen"):Connect(show)
 Nav.MenuRequested:Connect(function(id) if id=="GuildProgress" then player:SetAttribute("ClanMenuOpen",false) player:SetAttribute("ProgressionMenuOpen",true) task.defer(function() selectPage("Guild") end) return end if table.find({"Clan","Social","Career","Main","Hub","Settings","Resume","Playlist","Pause"},id) then player:SetAttribute("ProgressionMenuOpen",false) end end)
